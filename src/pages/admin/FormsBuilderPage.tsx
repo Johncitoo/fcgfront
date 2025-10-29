@@ -31,8 +31,9 @@ type FieldType =
 
 interface CallRow {
   id: string
-  code: string
-  title: string
+  name: string
+  year: number
+  status?: string
 }
 
 interface FormOption {
@@ -68,7 +69,7 @@ interface FormSection {
 }
 
 interface FormSchemaPayload {
-  call: { id: string; code: string; title: string }
+  call: { id: string; name: string; year: number }
   sections: FormSection[]
 }
 
@@ -404,7 +405,7 @@ export default function FormsBuilderPage() {
             >
               {calls.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.title} ({c.code})
+                  {c.name} ({c.year})
                 </option>
               ))}
             </select>
@@ -557,7 +558,7 @@ export default function FormsBuilderPage() {
                     .filter((c) => c.id !== callId)
                     .map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.title} ({c.code})
+                        {c.name} ({c.year})
                       </option>
                     ))}
                 </select>

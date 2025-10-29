@@ -4,11 +4,13 @@ import { apiGet, apiPost } from '../../lib/api'
 
 interface CallRow {
   id: string
-  code: string
-  title: string
-  description?: string | null
-  start_date: string
-  end_date: string
+  name: string
+  year: number
+  status: string
+  total_seats?: number
+  min_per_institution?: number
+  dates?: any
+  rules?: any
   created_at?: string
   updated_at?: string
 }
@@ -41,11 +43,8 @@ export default function CallsListPage() {
   const [saving, setSaving] = useState(false)
   const [formErr, setFormErr] = useState<string | null>(null)
   const [form, setForm] = useState({
-    code: '',
-    title: '',
-    description: '',
-    start_date: '',
-    end_date: '',
+    name: '',
+    year: new Date().getFullYear(),
   })
 
   const deps = useMemo(() => ({ q, onlyActive, limit, offset }), [q, onlyActive, limit, offset])
@@ -98,20 +97,17 @@ export default function CallsListPage() {
     setFormErr(null)
     setSaving(true)
     try {
-      if (!form.code.trim()) throw new Error('El código es obligatorio (ej: 2025-REGULAR)')
-      if (!form.title.trim()) throw new Error('El título es obligatorio')
-      if (!form.start_date || !form.end_date) throw new Error('Indica fechas de inicio y término')
+      if (!form.name.trim()) throw new Error('Name and year are required')
+      if (!form.year || form.year < 2000) throw new Error('Year must be valid')
 
       await apiPost('/calls', {
-        code: form.code.trim(),
-        title: form.title.trim(),
-        description: emptyToNull(form.description),
-        start_date: form.start_date,
-        end_date: form.end_date,
+        name: form.name.trim(),
+        year: form.year,
+        status: 'DRAFT',
       })
 
       setCreating(false)
-      setForm({ code: '', title: '', description: '', start_date: '', end_date: '' })
+      setForm({ name: '', year: new Date().getFullYear() })
       setOffset(0)
       await load()
     } catch (e: any) {
@@ -191,31 +187,26 @@ export default function CallsListPage() {
                   <table className="w-full text-sm">
                     <thead className="text-left text-slate-600">
                       <tr className="border-b">
-                        <th className="py-2 pr-3">Código</th>
-                        <th className="py-2 pr-3">Título</th>
-                        <th className="py-2 pr-3">Vigencia</th>
+                        <th className="py-2 pr-3">Año</th>
+                        <th className="py-2 pr-3">Nombre</th>
                         <th className="py-2 pr-3">Estado</th>
                         <th className="py-2">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {rows.map((c) => {
-                        const active = isActive(c.start_date, c.end_date)
                         return (
                           <tr key={c.id} className="border-b last:border-0">
-                            <td className="py-2 pr-3 font-mono">{c.code}</td>
-                            <td className="py-2 pr-3">{c.title}</td>
-                            <td className="py-2 pr-3">
-                              {fmtDate(c.start_date)} — {fmtDate(c.end_date)}
-                            </td>
+                            <td className="py-2 pr-3 font-mono">{c.year}</td>
+                            <td className="py-2 pr-3">{c.name}</td>
                             <td className="py-2 pr-3">
                               <span
                                 className={
                                   'badge ' +
-                                  (active ? 'badge-success' : 'badge-neutral')
+                                  (c.status === 'OPEN' ? 'badge-success' : 'badge-neutral')
                                 }
                               >
-                                {active ? 'Activa' : 'Inactiva'}
+                                {c.status}
                               </span>
                             </td>
                             <td className="py-2">
@@ -226,13 +217,6 @@ export default function CallsListPage() {
                                 >
                                   Abrir
                                 </Link>
-                                <button
-                                  disabled
-                                  title="Próximamente: clonar"
-                                  className="btn text-xs opacity-50"
-                                >
-                                  Clonar
-                                </button>
                               </div>
                             </td>
                           </tr>
@@ -245,28 +229,21 @@ export default function CallsListPage() {
                 {/* Mobile cards */}
                 <div className="space-y-3 md:hidden">
                   {rows.map((c) => {
-                    const active = isActive(c.start_date, c.end_date)
                     return (
                       <div key={c.id} className="rounded-lg border p-3">
                         <div className="mb-1 flex items-center justify-between">
-                          <div className="font-mono text-sm">{c.code}</div>
+                          <div className="font-mono text-sm">{c.year}</div>
                           <span
-                            className={'badge ' + (active ? 'badge-success' : 'badge-neutral')}
+                            className={'badge ' + (c.status === 'OPEN' ? 'badge-success' : 'badge-neutral')}
                           >
-                            {active ? 'Activa' : 'Inactiva'}
+                            {c.status}
                           </span>
                         </div>
-                        <div className="text-sm font-semibold">{c.title}</div>
-                        <div className="mt-1 text-xs text-slate-600">
-                          {fmtDate(c.start_date)} — {fmtDate(c.end_date)}
-                        </div>
+                        <div className="text-sm font-semibold">{c.name}</div>
                         <div className="mt-2 flex flex-wrap gap-2">
                           <Link to={`/admin/calls/${c.id}`} className="btn text-xs">
                             Abrir
                           </Link>
-                          <button className="btn text-xs opacity-50" disabled title="Próximamente">
-                            Clonar
-                          </button>
                         </div>
                       </div>
                     )
@@ -350,11 +327,13 @@ export default function CallsListPage() {
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Código *</label>
                   <input
-                    type="text"
-                    value={form.code}
-                    onChange={(e) => setForm((s) => ({ ...s, code: e.target.value }))}
+                    type="number"
+                    value={form.year}
+                    onChange={(e) => setForm((s) => ({ ...s, year: parseInt(e.target.value) || 2026 }))}
                     className="input"
-                    placeholder="Ej: 2026-REGULAR"
+                    placeholder="2026"
+                    min="2000"
+                    max="2100"
                   />
                 </div>
 
@@ -362,42 +341,10 @@ export default function CallsListPage() {
                   <label className="text-sm font-medium">Título *</label>
                   <input
                     type="text"
-                    value={form.title}
-                    onChange={(e) => setForm((s) => ({ ...s, title: e.target.value }))}
+                    value={form.name}
+                    onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
                     className="input"
-                    placeholder="Becas FCG 2026 (Regular)"
-                  />
-                </div>
-
-                <div className="space-y-1 sm:col-span-2">
-                  <label className="text-sm font-medium">Descripción</label>
-                  <textarea
-                    value={form.description}
-                    onChange={(e) =>
-                      setForm((s) => ({ ...s, description: e.target.value }))
-                    }
-                    className="input min-h-[90px]"
-                    placeholder="Notas internas o detalle público de la convocatoria…"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Fecha inicio *</label>
-                  <input
-                    type="date"
-                    value={form.start_date}
-                    onChange={(e) => setForm((s) => ({ ...s, start_date: e.target.value }))}
-                    className="input"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Fecha término *</label>
-                  <input
-                    type="date"
-                    value={form.end_date}
-                    onChange={(e) => setForm((s) => ({ ...s, end_date: e.target.value }))}
-                    className="input"
+                    placeholder="Becas FCG 2026"
                   />
                 </div>
               </div>
@@ -429,26 +376,4 @@ export default function CallsListPage() {
       )}
     </div>
   )
-}
-
-/* =============== utils =============== */
-
-function fmtDate(d: string) {
-  try {
-    return new Date(d).toLocaleDateString()
-  } catch {
-    return d
-  }
-}
-
-function isActive(start: string, end: string) {
-  const today = new Date().setHours(0, 0, 0, 0)
-  const s = new Date(start).setHours(0, 0, 0, 0)
-  const e = new Date(end).setHours(23, 59, 59, 999)
-  return today >= s && today <= e
-}
-
-function emptyToNull(v: string) {
-  const t = v.trim()
-  return t === '' ? null : t
 }

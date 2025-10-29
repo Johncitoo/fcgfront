@@ -23,7 +23,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const [calls, setCalls] = useState<Call[]>([])
   const [loading, setLoading] = useState(true)
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+  const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'https://fcgback-production.up.railway.app/api'
 
   async function refreshCalls() {
     try {
