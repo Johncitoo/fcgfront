@@ -7,6 +7,10 @@ interface ApplicantRow {
   last_name?: string | null
   rut?: string | null
   phone?: string | null
+  birth_date?: string | null
+  address?: string | null
+  commune?: string | null
+  region?: string | null
   created_at?: string
 }
 
@@ -43,8 +47,12 @@ export default function ApplicantsListPage() {
     last_name: '',
     rut: '',
     phone: '',
+    birth_date: '',
+    address: '',
+    commune: '',
+    region: '',
   })
-  // Campos extra seleccionables (para UX: permite agregar variables opcionales)
+  // Campos extra opcionales que el usuario puede agregar dinámicamente
   const [extraFields, setExtraFields] = useState<string[]>([])
   const [createError, setCreateError] = useState<string | null>(null)
   const [createLoading, setCreateLoading] = useState(false)
@@ -125,6 +133,11 @@ export default function ApplicantsListPage() {
       if (form.last_name?.trim()) payload.last_name = form.last_name.trim()
       if (form.rut?.trim()) payload.rut = form.rut.trim()
       if (form.phone?.trim()) payload.phone = form.phone.trim()
+      if (form.birth_date?.trim()) payload.birth_date = form.birth_date.trim()
+      if (form.address?.trim()) payload.address = form.address.trim()
+      if (form.commune?.trim()) payload.commune = form.commune.trim()
+      if (form.region?.trim()) payload.region = form.region.trim()
+
       const res = await fetch(`${API_BASE}/applicants`, {
         method: 'POST',
         headers,
@@ -133,7 +146,8 @@ export default function ApplicantsListPage() {
       if (!res.ok) throw new Error(await safeError(res))
       // recargar
       setCreating(false)
-      setForm({ email: '', first_name: '', last_name: '', rut: '', phone: '' })
+      setForm({ email: '', first_name: '', last_name: '', rut: '', phone: '', birth_date: '', address: '', commune: '', region: '' })
+      setExtraFields([])
       // volver a primera página para ver el nuevo si el backend ordena por fecha desc
       setOffset(0)
       await load()
@@ -291,16 +305,17 @@ export default function ApplicantsListPage() {
             <div className="border-b px-5 py-3">
               <div className="text-base font-semibold">Ingresar postulante</div>
             </div>
-            <form onSubmit={createApplicant} className="px-5 py-4 space-y-3">
+            <form onSubmit={createApplicant} className="px-5 py-4 space-y-4">
               {createError && (
                 <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
                   {createError}
                 </div>
               )}
 
+              {/* Campos siempre visibles (básicos) */}
               <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Correo *</label>
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-sm font-medium">Correo electrónico *</label>
                   <input
                     type="email"
                     required
@@ -310,67 +325,70 @@ export default function ApplicantsListPage() {
                     placeholder="alumno@colegio.cl"
                   />
                 </div>
-                {/* RUT, nombres y teléfono se muestran como campos opcionales que se pueden agregar */}
-                <div className="md:col-span-2">
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium">Agregar campo</label>
-                    <select
-                      defaultValue=""
-                      onChange={(e) => {
-                        const v = e.target.value
-                        if (!v) return
-                        if (!extraFields.includes(v)) setExtraFields((s) => [...s, v])
-                        e.currentTarget.value = ''
-                      }}
-                      className="rounded-md border px-2 py-1 text-sm"
-                    >
-                      <option value="">Seleccione…</option>
-                      {['first_name', 'last_name', 'rut', 'phone'].map((k) => (
-                        <option key={k} value={k} disabled={extraFields.includes(k)}>
-                          {k}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="ml-auto text-sm text-slate-500">Campos añadidos: {extraFields.join(', ') || 'ninguno'}</div>
-                  </div>
 
-                  <div className="mt-3 grid gap-3 md:grid-cols-2">
-                    {extraFields.includes('rut') && (
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium">RUT</label>
-                        <input
-                          type="text"
-                          value={form.rut}
-                          onChange={(e) => onChange('rut', e.target.value)}
-                          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                          placeholder="12.345.678-9"
-                        />
-                      </div>
-                    )}
-                    {extraFields.includes('first_name') && (
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium">Nombres</label>
-                        <input
-                          type="text"
-                          value={form.first_name}
-                          onChange={(e) => onChange('first_name', e.target.value)}
-                          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                          placeholder="Ej: María José"
-                        />
-                      </div>
-                    )}
-                    {extraFields.includes('last_name') && (
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium">Apellidos</label>
-                        <input
-                          type="text"
-                          value={form.last_name}
-                          onChange={(e) => onChange('last_name', e.target.value)}
-                          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                          placeholder="Ej: Pérez Soto"
-                        />
-                      </div>
-                    )}
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Nombres *</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.first_name}
+                    onChange={(e) => onChange('first_name', e.target.value)}
+                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                    placeholder="Ej: María José"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Apellidos *</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.last_name}
+                    onChange={(e) => onChange('last_name', e.target.value)}
+                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                    placeholder="Ej: Pérez Soto"
+                  />
+                </div>
+
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-sm font-medium">RUT *</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.rut}
+                    onChange={(e) => onChange('rut', e.target.value)}
+                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                    placeholder="12.345.678-9"
+                  />
+                </div>
+              </div>
+
+              {/* Selector de campos opcionales */}
+              <div className="border-t pt-3">
+                <div className="mb-2 flex items-center gap-2">
+                  <label className="text-sm font-medium text-slate-700">Agregar campo opcional:</label>
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      const v = e.target.value
+                      if (!v) return
+                      if (!extraFields.includes(v)) setExtraFields((s) => [...s, v])
+                      e.currentTarget.value = ''
+                    }}
+                    className="rounded-md border px-2 py-1 text-sm"
+                  >
+                    <option value="">Seleccione…</option>
+                    <option value="phone" disabled={extraFields.includes('phone')}>Teléfono</option>
+                    <option value="birth_date" disabled={extraFields.includes('birth_date')}>Fecha de nacimiento</option>
+                    <option value="address" disabled={extraFields.includes('address')}>Dirección</option>
+                    <option value="commune" disabled={extraFields.includes('commune')}>Comuna</option>
+                    <option value="region" disabled={extraFields.includes('region')}>Región</option>
+                  </select>
+                </div>
+
+                {/* Campos opcionales agregados */}
+                {extraFields.length > 0 && (
+                  <div className="grid gap-3 md:grid-cols-2">
                     {extraFields.includes('phone') && (
                       <div className="space-y-1 md:col-span-2">
                         <label className="text-sm font-medium">Teléfono</label>
@@ -383,14 +401,64 @@ export default function ApplicantsListPage() {
                         />
                       </div>
                     )}
+                    {extraFields.includes('birth_date') && (
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium">Fecha de nacimiento</label>
+                        <input
+                          type="date"
+                          value={form.birth_date}
+                          onChange={(e) => onChange('birth_date', e.target.value)}
+                          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                        />
+                      </div>
+                    )}
+                    {extraFields.includes('address') && (
+                      <div className="space-y-1 md:col-span-2">
+                        <label className="text-sm font-medium">Dirección</label>
+                        <input
+                          type="text"
+                          value={form.address}
+                          onChange={(e) => onChange('address', e.target.value)}
+                          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                          placeholder="Calle, número, depto"
+                        />
+                      </div>
+                    )}
+                    {extraFields.includes('commune') && (
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium">Comuna</label>
+                        <input
+                          type="text"
+                          value={form.commune}
+                          onChange={(e) => onChange('commune', e.target.value)}
+                          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                          placeholder="Ej: Santiago"
+                        />
+                      </div>
+                    )}
+                    {extraFields.includes('region') && (
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium">Región</label>
+                        <input
+                          type="text"
+                          value={form.region}
+                          onChange={(e) => onChange('region', e.target.value)}
+                          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                          placeholder="Ej: Metropolitana"
+                        />
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
 
-              <div className="mt-2 flex justify-end gap-2">
+              <div className="mt-4 flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setCreating(false)}
+                  onClick={() => {
+                    setCreating(false)
+                    setExtraFields([])
+                  }}
                   className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-slate-50"
                 >
                   Cancelar
