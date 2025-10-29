@@ -43,6 +43,9 @@ const ApplicationFullFormPage = lazy(() => import('./pages/reviewer/ApplicationF
 const ApplicationHistoryPage = lazy(() => import('./pages/reviewer/ApplicationHistoryPage'))
 const ApplicationReviewPage = lazy(() => import('./pages/reviewer/ApplicationReviewPage'))
 
+// Public
+const PublicFormPage = lazy(() => import('./pages/public/PublicFormPage'))
+
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/auth/login" replace /> },
 
@@ -51,6 +54,9 @@ export const router = createBrowserRouter([
   { path: '/auth/enter-invite', element: <EnterInviteCodePage /> },
   { path: '/auth/set-password', element: <SetPasswordPage /> },
   { path: '/auth/reset-password', element: <ResetPasswordPage /> },
+
+  // Public - Vista previa de formularios
+  { path: '/form/:callId', element: <PublicFormPage /> },
 
   // Admin (protegido)
   {
