@@ -69,6 +69,22 @@ export default function FormDesignerPage() {
     'Content-Type': 'application/json',
   }
 
+  // Mapear tipos de DB a tipos del frontend
+  function mapFieldTypeFromDb(dbType: string): FieldType {
+    const typeMap: Record<string, FieldType> = {
+      INPUT: 'text',
+      NUMBER: 'number',
+      TEXTAREA: 'textarea',
+      SELECT: 'select',
+      CHECKBOX: 'checkbox',
+      RADIO: 'radio',
+      DATE: 'date',
+      FILE: 'file',
+      IMAGE: 'image',
+    }
+    return typeMap[dbType] || 'text'
+  }
+
   // Cargar formulario existente
   useEffect(() => {
     if (!callId) {
@@ -81,7 +97,14 @@ export default function FormDesignerPage() {
         const res = await fetch(`${API_BASE}/admin/forms?callId=${callId}`, { headers })
         if (res.ok) {
           const data = await res.json()
-          setSections(data.sections || [])
+          const sectionsFromDb = (data.sections || []).map((section: any) => ({
+            ...section,
+            fields: (section.fields || []).map((field: any) => ({
+              ...field,
+              type: mapFieldTypeFromDb(field.type),
+            })),
+          }))
+          setSections(sectionsFromDb)
         }
       } catch (err) {
         console.error('Error loading form:', err)
@@ -160,22 +183,52 @@ export default function FormDesignerPage() {
     if (selectedField === fieldId) setSelectedField(null)
   }
 
+  // Mapear tipos de campos a enum de la base de datos
+  function mapFieldTypeToDb(type: FieldType): string {
+    const typeMap: Record<FieldType, string> = {
+      text: 'INPUT',
+      number: 'NUMBER',
+      decimal: 'NUMBER',
+      textarea: 'TEXTAREA',
+      select: 'SELECT',
+      checkbox: 'CHECKBOX',
+      radio: 'RADIO',
+      date: 'DATE',
+      file: 'FILE',
+      image: 'IMAGE',
+    }
+    return typeMap[type] || 'INPUT'
+  }
+
   // Guardar formulario
   async function saveForm() {
     if (!callId) return
     try {
       setSaving(true)
+      
+      // Convertir tipos a formato de DB
+      const sectionsForDb = sections.map(section => ({
+        ...section,
+        fields: section.fields.map(field => ({
+          ...field,
+          type: mapFieldTypeToDb(field.type),
+        })),
+      }))
+      
       const res = await fetch(`${API_BASE}/admin/forms?callId=${callId}`, {
         method: 'PUT',
         headers,
-        body: JSON.stringify({ sections }),
+        body: JSON.stringify({ sections: sectionsForDb }),
       })
       if (res.ok) {
         alert('Formulario guardado correctamente')
       } else {
+        const errorText = await res.text()
+        console.error('Error saving form:', errorText)
         alert('Error al guardar el formulario')
       }
     } catch (err) {
+      console.error('Error saving form:', err)
       alert('Error al guardar')
     } finally {
       setSaving(false)
@@ -351,9 +404,9 @@ function SectionCard({
               e.stopPropagation()
               onDelete()
             }}
-            className="p-1 text-rose-600 hover:bg-rose-50 rounded"
+            className="p-1 text-rose-600 hover:bg-rose-50 rounded text-lg"
           >
-            🗑️
+            ×
           </button>
         </div>
       </div>
