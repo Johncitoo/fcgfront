@@ -44,6 +44,8 @@ export default function ApplicantsListPage() {
     rut: '',
     phone: '',
   })
+  // Campos extra seleccionables (para UX: permite agregar variables opcionales)
+  const [extraFields, setExtraFields] = useState<string[]>([])
   const [createError, setCreateError] = useState<string | null>(null)
   const [createLoading, setCreateLoading] = useState(false)
 
@@ -105,13 +107,24 @@ export default function ApplicantsListPage() {
     setCreateError(null)
     setCreateLoading(true)
     try {
-      const payload = {
-        email: form.email.trim(),
-        first_name: form.first_name.trim() || undefined,
-        last_name: form.last_name.trim() || undefined,
-        rut: form.rut.trim() || undefined,
-        phone: form.phone.trim() || undefined,
+      // Construir fullName ya que el backend espera `fullName`
+      const first = form.first_name?.trim() || ''
+      const last = form.last_name?.trim() || ''
+      let fullName = (first + (last ? ` ${last}` : '')).trim()
+      if (!fullName) {
+        // Derivar nombre del correo antes de la @ si no hay nombre
+        const local = form.email.split('@')[0] || ''
+        fullName = local.replace(/[._\-]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase())
       }
+
+      const payload: any = {
+        email: form.email.trim(),
+        fullName,
+      }
+      if (form.first_name?.trim()) payload.first_name = form.first_name.trim()
+      if (form.last_name?.trim()) payload.last_name = form.last_name.trim()
+      if (form.rut?.trim()) payload.rut = form.rut.trim()
+      if (form.phone?.trim()) payload.phone = form.phone.trim()
       const res = await fetch(`${API_BASE}/applicants`, {
         method: 'POST',
         headers,
@@ -297,45 +310,80 @@ export default function ApplicantsListPage() {
                     placeholder="alumno@colegio.cl"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">RUT</label>
-                  <input
-                    type="text"
-                    value={form.rut}
-                    onChange={(e) => onChange('rut', e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                    placeholder="12.345.678-9"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Nombres</label>
-                  <input
-                    type="text"
-                    value={form.first_name}
-                    onChange={(e) => onChange('first_name', e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                    placeholder="Ej: María José"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Apellidos</label>
-                  <input
-                    type="text"
-                    value={form.last_name}
-                    onChange={(e) => onChange('last_name', e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                    placeholder="Ej: Pérez Soto"
-                  />
-                </div>
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-sm font-medium">Teléfono</label>
-                  <input
-                    type="tel"
-                    value={form.phone}
-                    onChange={(e) => onChange('phone', e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                    placeholder="+56 9 1234 5678"
-                  />
+                {/* RUT, nombres y teléfono se muestran como campos opcionales que se pueden agregar */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium">Agregar campo</label>
+                    <select
+                      defaultValue=""
+                      onChange={(e) => {
+                        const v = e.target.value
+                        if (!v) return
+                        if (!extraFields.includes(v)) setExtraFields((s) => [...s, v])
+                        e.currentTarget.value = ''
+                      }}
+                      className="rounded-md border px-2 py-1 text-sm"
+                    >
+                      <option value="">Seleccione…</option>
+                      {['first_name', 'last_name', 'rut', 'phone'].map((k) => (
+                        <option key={k} value={k} disabled={extraFields.includes(k)}>
+                          {k}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="ml-auto text-sm text-slate-500">Campos añadidos: {extraFields.join(', ') || 'ninguno'}</div>
+                  </div>
+
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    {extraFields.includes('rut') && (
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium">RUT</label>
+                        <input
+                          type="text"
+                          value={form.rut}
+                          onChange={(e) => onChange('rut', e.target.value)}
+                          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                          placeholder="12.345.678-9"
+                        />
+                      </div>
+                    )}
+                    {extraFields.includes('first_name') && (
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium">Nombres</label>
+                        <input
+                          type="text"
+                          value={form.first_name}
+                          onChange={(e) => onChange('first_name', e.target.value)}
+                          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                          placeholder="Ej: María José"
+                        />
+                      </div>
+                    )}
+                    {extraFields.includes('last_name') && (
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium">Apellidos</label>
+                        <input
+                          type="text"
+                          value={form.last_name}
+                          onChange={(e) => onChange('last_name', e.target.value)}
+                          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                          placeholder="Ej: Pérez Soto"
+                        />
+                      </div>
+                    )}
+                    {extraFields.includes('phone') && (
+                      <div className="space-y-1 md:col-span-2">
+                        <label className="text-sm font-medium">Teléfono</label>
+                        <input
+                          type="tel"
+                          value={form.phone}
+                          onChange={(e) => onChange('phone', e.target.value)}
+                          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                          placeholder="+56 9 1234 5678"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
