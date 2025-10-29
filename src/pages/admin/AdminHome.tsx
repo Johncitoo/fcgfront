@@ -10,7 +10,7 @@ interface Stat {
 type CountPayload = { count: number } | { total: number } | Record<string, any>
 
 const API_BASE =
-  (import.meta as any).env?.VITE_API_BASE_URL ?? 'http://localhost:3000/api'
+  (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
 export default function AdminHome() {
   const [loading, setLoading] = useState(true)

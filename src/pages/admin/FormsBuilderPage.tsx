@@ -73,7 +73,7 @@ interface FormSchemaPayload {
 }
 
 const API_BASE =
-  (import.meta as any).env?.VITE_API_BASE_URL ?? 'http://localhost:3000/api'
+  (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
 export default function FormsBuilderPage() {
   // Convocatorias
