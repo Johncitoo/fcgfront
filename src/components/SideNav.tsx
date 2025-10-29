@@ -10,10 +10,10 @@ export default function SideNav() {
 
         <Section title="Gestión">
           <Item to="/admin/applicants" label="Postulantes" />
-          <Item to="/admin/calls" label="Convocatorias" disabled />
-          <Item to="/admin/invites" label="Invitaciones" disabled />
-          <Item to="/admin/applications" label="Postulaciones" disabled />
-          <Item to="/admin/forms" label="Formularios" disabled />
+          <Item to="/admin/calls" label="Convocatorias" />
+          <Item to="/admin/invites" label="Invitaciones" />
+          <Item to="/admin/applications" label="Postulaciones" />
+          <Item to="/admin/forms-builder" label="Formularios" />
         </Section>
 
         <Section title="Comunicaciones">
@@ -22,7 +22,7 @@ export default function SideNav() {
         </Section>
 
         <Section title="Monitoreo">
-          <Item to="/admin/audit" label="Auditoría" disabled />
+          <Item to="/admin/audit" label="Auditoría" />
         </Section>
       </div>
     </aside>

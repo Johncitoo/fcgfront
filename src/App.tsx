@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { CallProvider } from './contexts/CallContext'
 
 // Layouts
 import AdminLayout from './layouts/AdminLayout'
@@ -46,8 +47,9 @@ import ApplicationReviewPage from './pages/reviewer/ApplicationReviewPage'
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <CallProvider>
+      <BrowserRouter>
+        <Routes>
         {/* Redirección raíz a login */}
         <Route path="/" element={<Navigate to="/auth/login" replace />} />
 
@@ -135,5 +137,6 @@ export default function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
+    </CallProvider>
   )
 }
