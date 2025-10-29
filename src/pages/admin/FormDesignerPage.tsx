@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useCall } from '../../contexts/CallContext'
 
 /**
  * Diseñador de formularios moderno con vista previa
@@ -54,8 +54,8 @@ const FIELD_TYPE_LABELS: Record<FieldType, string> = {
 }
 
 export default function FormDesignerPage() {
-  const [searchParams] = useSearchParams()
-  const callId = searchParams.get('callId') || ''
+  const { selectedCall } = useCall()
+  const callId = selectedCall?.id || ''
 
   const [sections, setSections] = useState<FormSection[]>([])
   const [selectedSection, setSelectedSection] = useState<string | null>(null)
@@ -71,7 +71,10 @@ export default function FormDesignerPage() {
 
   // Cargar formulario existente
   useEffect(() => {
-    if (!callId) return
+    if (!callId) {
+      setLoading(false)
+      return
+    }
     ;(async () => {
       try {
         setLoading(true)
@@ -186,6 +189,17 @@ export default function FormDesignerPage() {
     return (
       <div className="min-h-screen grid place-items-center">
         <p className="text-slate-600">Cargando formulario...</p>
+      </div>
+    )
+  }
+
+  if (!callId) {
+    return (
+      <div className="min-h-screen grid place-items-center">
+        <div className="text-center">
+          <p className="text-slate-600 text-lg mb-2">Por favor selecciona una convocatoria</p>
+          <p className="text-slate-400 text-sm">Usa el selector de convocatorias en la parte superior</p>
+        </div>
       </div>
     )
   }
