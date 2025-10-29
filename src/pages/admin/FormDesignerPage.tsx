@@ -250,7 +250,6 @@ export default function FormDesignerPage() {
                       onDelete={() => deleteSection(section.id)}
                       onAddField={(type) => addField(section.id, type)}
                       onSelectField={(fieldId) => setSelectedField(fieldId)}
-                      onUpdateField={(fieldId, updates) => updateField(section.id, fieldId, updates)}
                       onDeleteField={(fieldId) => deleteField(section.id, fieldId)}
                       selectedFieldId={selectedField}
                     />
@@ -288,7 +287,6 @@ function SectionCard({
   onDelete,
   onAddField,
   onSelectField,
-  onUpdateField,
   onDeleteField,
   selectedFieldId,
 }: {
@@ -299,7 +297,6 @@ function SectionCard({
   onDelete: () => void
   onAddField: (type: FieldType) => void
   onSelectField: (fieldId: string) => void
-  onUpdateField: (fieldId: string, updates: Partial<FormField>) => void
   onDeleteField: (fieldId: string) => void
   selectedFieldId: string | null
 }) {
