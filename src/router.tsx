@@ -54,28 +54,25 @@ export const router = createBrowserRouter([
 
   // Admin (protegido)
   {
-    path: '/admin',
-    element: (
-      <RequireAuth roles={['ADMIN']}>
-        <AdminLayout />
-      </RequireAuth>
-    ),
-    children: [
-      { index: true, element: <AdminHome /> },
-      { path: 'applicants', element: <ApplicantsListPage /> },
-      { path: 'applicants/:id', element: <ApplicantDetailPage /> },
-      { path: 'calls', element: <CallsListPage /> },
-      { path: 'calls/:id', element: <CallDetailPage /> },
-      { path: 'invites', element: <InvitesPage /> },
-      { path: 'applications', element: <ApplicationsListPage /> },
-      { path: 'applications/:id', element: <ApplicationDetailPage /> },
-      { path: 'forms', element: <FormsBuilderPage /> },
-      { path: 'forms/:formId/sections/:sectionId', element: <FormSectionEditorPage /> },
-      { path: 'email/templates', element: <EmailTemplatesPage /> },
-      { path: 'email/logs', element: <EmailLogsPage /> },
-      { path: 'audit', element: <AuditPage /> },
-    ],
-  },
+  path: '/admin',
+  element: <AdminLayout />, // ⚠️ sin RequireAuth temporalmente
+  children: [
+    { index: true, element: <AdminHome /> },
+    { path: 'applicants', element: <ApplicantsListPage /> },
+    { path: 'applicants/:id', element: <ApplicantDetailPage /> },
+    { path: 'calls', element: <CallsListPage /> },
+    { path: 'calls/:id', element: <CallDetailPage /> },
+    { path: 'invites', element: <InvitesPage /> },
+    { path: 'applications', element: <ApplicationsListPage /> },
+    { path: 'applications/:id', element: <ApplicationDetailPage /> },
+    { path: 'forms', element: <FormsBuilderPage /> }, // ✅ constructor de formularios
+    { path: 'forms/:formId/sections/:sectionId', element: <FormSectionEditorPage /> },
+    { path: 'email/templates', element: <EmailTemplatesPage /> },
+    { path: 'email/logs', element: <EmailLogsPage /> },
+    { path: 'audit', element: <AuditPage /> },
+  ],
+},
+
 
   // Applicant (protegido)
   {
