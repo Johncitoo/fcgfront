@@ -555,8 +555,37 @@ function SectionProperties({ section, onUpdate }: { section: FormSection; onUpda
 
 // Propiedades de campo
 function FieldProperties({ field, onUpdate }: { field: FormField; onUpdate: (updates: Partial<FormField>) => void }) {
+  const [newOptionLabel, setNewOptionLabel] = useState('')
+  
+  const addOption = () => {
+    if (!newOptionLabel.trim()) return
+    const newOption: FormOption = {
+      id: `opt_${Date.now()}`,
+      value: newOptionLabel.toLowerCase().replace(/\s+/g, '_'),
+      label: newOptionLabel.trim(),
+    }
+    onUpdate({ options: [...(field.options || []), newOption] })
+    setNewOptionLabel('')
+  }
+
+  const updateOption = (optionId: string, updates: Partial<FormOption>) => {
+    onUpdate({
+      options: (field.options || []).map(opt =>
+        opt.id === optionId ? { ...opt, ...updates } : opt
+      ),
+    })
+  }
+
+  const deleteOption = (optionId: string) => {
+    onUpdate({
+      options: (field.options || []).filter(opt => opt.id !== optionId),
+    })
+  }
+
+  const needsOptions = ['select', 'checkbox', 'radio'].includes(field.type)
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div>
         <label className="text-sm font-medium block mb-1">Etiqueta</label>
         <input
@@ -564,8 +593,10 @@ function FieldProperties({ field, onUpdate }: { field: FormField; onUpdate: (upd
           value={field.label}
           onChange={(e) => onUpdate({ label: e.target.value })}
           className="w-full px-3 py-2 border rounded-md text-sm"
+          placeholder="Ej: Nombre completo"
         />
       </div>
+      
       <div>
         <label className="text-sm font-medium block mb-1">Nombre interno</label>
         <input
@@ -573,27 +604,11 @@ function FieldProperties({ field, onUpdate }: { field: FormField; onUpdate: (upd
           value={field.name}
           onChange={(e) => onUpdate({ name: e.target.value })}
           className="w-full px-3 py-2 border rounded-md text-sm font-mono"
+          placeholder="Ej: nombre_completo"
         />
       </div>
-      <div>
-        <label className="text-sm font-medium block mb-1">Texto de ayuda</label>
-        <textarea
-          value={field.helpText || ''}
-          onChange={(e) => onUpdate({ helpText: e.target.value })}
-          rows={2}
-          className="w-full px-3 py-2 border rounded-md text-sm"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={field.required || false}
-          onChange={(e) => onUpdate({ required: e.target.checked })}
-          id="required"
-        />
-        <label htmlFor="required" className="text-sm">Campo requerido</label>
-      </div>
-      {field.type === 'text' || field.type === 'textarea' ? (
+
+      {(field.type === 'text' || field.type === 'textarea' || field.type === 'number' || field.type === 'decimal') && (
         <div>
           <label className="text-sm font-medium block mb-1">Placeholder</label>
           <input
@@ -601,9 +616,107 @@ function FieldProperties({ field, onUpdate }: { field: FormField; onUpdate: (upd
             value={field.placeholder || ''}
             onChange={(e) => onUpdate({ placeholder: e.target.value })}
             className="w-full px-3 py-2 border rounded-md text-sm"
+            placeholder="Ej: Ingresa tu respuesta aquí"
           />
         </div>
-      ) : null}
+      )}
+      
+      <div>
+        <label className="text-sm font-medium block mb-1">Texto de ayuda</label>
+        <textarea
+          value={field.helpText || ''}
+          onChange={(e) => onUpdate({ helpText: e.target.value })}
+          rows={2}
+          className="w-full px-3 py-2 border rounded-md text-sm"
+          placeholder="Información adicional para el usuario"
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={field.required || false}
+          onChange={(e) => onUpdate({ required: e.target.checked })}
+          id="required"
+        />
+        <label htmlFor="required" className="text-sm font-medium">Campo requerido</label>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={field.active !== false}
+          onChange={(e) => onUpdate({ active: e.target.checked })}
+          id="active"
+        />
+        <label htmlFor="active" className="text-sm font-medium">Campo activo</label>
+      </div>
+
+      {/* Editor de opciones para select, checkbox, radio */}
+      {needsOptions && (
+        <div className="pt-4 border-t">
+          <label className="text-sm font-medium block mb-2">
+            Opciones {field.type === 'select' ? '(lista desplegable)' : field.type === 'checkbox' ? '(selección múltiple)' : '(opción única)'}
+          </label>
+          
+          <div className="space-y-2 mb-3">
+            {(field.options || []).map((option, index) => (
+              <div key={option.id} className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 w-6">{index + 1}.</span>
+                <input
+                  type="text"
+                  value={option.label}
+                  onChange={(e) => updateOption(option.id, { label: e.target.value })}
+                  className="flex-1 px-3 py-2 border rounded-md text-sm"
+                  placeholder="Texto de la opción"
+                />
+                <button
+                  onClick={() => deleteOption(option.id)}
+                  className="px-2 py-2 text-rose-600 hover:bg-rose-50 rounded text-lg"
+                  title="Eliminar opción"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newOptionLabel}
+              onChange={(e) => setNewOptionLabel(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addOption()}
+              className="flex-1 px-3 py-2 border rounded-md text-sm"
+              placeholder="Nueva opción..."
+            />
+            <button
+              onClick={addOption}
+              className="px-4 py-2 bg-sky-600 text-white rounded-md text-sm hover:bg-sky-700"
+            >
+              + Agregar
+            </button>
+          </div>
+          
+          {(field.options || []).length === 0 && (
+            <p className="text-xs text-amber-600 mt-2">
+              ⚠ Este campo necesita al menos una opción
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Información adicional para campos de archivo */}
+      {(field.type === 'file' || field.type === 'image') && (
+        <div className="pt-4 border-t">
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+            <p className="text-xs text-blue-800">
+              <strong>Nota:</strong> Los archivos se cargarán en el módulo de documentos del postulante.
+              {field.type === 'image' ? ' Solo se aceptarán imágenes (JPG, PNG, etc.).' : ' Se aceptarán archivos PDF y documentos.'}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -611,50 +724,94 @@ function FieldProperties({ field, onUpdate }: { field: FormField; onUpdate: (upd
 // Panel de vista previa
 function PreviewPanel({ sections }: { sections: FormSection[] }) {
   return (
-    <div className="bg-white rounded-lg border p-6 sticky top-6">
-      <h3 className="font-semibold mb-4">👁️ Vista Previa</h3>
+    <div className="bg-white rounded-lg border p-6 sticky top-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
+      <h3 className="font-semibold mb-4 flex items-center gap-2">
+        <span>👁</span> Vista Previa
+      </h3>
       <div className="space-y-6">
         {sections.map((section) => (
           <div key={section.id} className="space-y-3">
-            <div>
+            <div className="border-b pb-2">
               <h4 className="font-medium text-lg">{section.title}</h4>
               {section.description && (
                 <p className="text-sm text-slate-600 mt-1">{section.description}</p>
               )}
             </div>
-            <div className="space-y-3">
-              {section.fields.filter(f => f.active).map((field) => (
+            <div className="space-y-4">
+              {section.fields.filter(f => f.active !== false).map((field) => (
                 <div key={field.id}>
-                  <label className="text-sm font-medium block mb-1">
+                  <label className="text-sm font-medium block mb-1.5">
                     {field.label} {field.required && <span className="text-rose-500">*</span>}
                   </label>
+                  
                   {field.type === 'textarea' ? (
                     <textarea
                       placeholder={field.placeholder}
-                      className="w-full px-3 py-2 border rounded-md text-sm"
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-slate-50"
                       rows={3}
                       disabled
                     />
                   ) : field.type === 'select' ? (
-                    <select className="w-full px-3 py-2 border rounded-md text-sm" disabled>
-                      <option>Seleccione una opción</option>
+                    <select className="w-full px-3 py-2 border rounded-md text-sm bg-slate-50" disabled>
+                      <option>-- Seleccione una opción --</option>
+                      {(field.options || []).map(opt => (
+                        <option key={opt.id} value={opt.value}>{opt.label}</option>
+                      ))}
                     </select>
+                  ) : field.type === 'checkbox' ? (
+                    <div className="space-y-2">
+                      {(field.options || []).map(opt => (
+                        <div key={opt.id} className="flex items-center gap-2">
+                          <input type="checkbox" disabled className="rounded" />
+                          <span className="text-sm">{opt.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : field.type === 'radio' ? (
+                    <div className="space-y-2">
+                      {(field.options || []).map(opt => (
+                        <div key={opt.id} className="flex items-center gap-2">
+                          <input type="radio" name={field.id} disabled />
+                          <span className="text-sm">{opt.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : field.type === 'file' || field.type === 'image' ? (
+                    <div className="border-2 border-dashed rounded-md p-4 text-center bg-slate-50">
+                      <p className="text-sm text-slate-600">
+                        {field.type === 'image' ? '📷 Clic para subir imagen' : '📎 Clic para subir archivo'}
+                      </p>
+                    </div>
+                  ) : field.type === 'date' ? (
+                    <input
+                      type="date"
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-slate-50"
+                      disabled
+                    />
                   ) : (
                     <input
-                      type={field.type === 'number' || field.type === 'decimal' ? 'number' : field.type}
+                      type={field.type === 'number' || field.type === 'decimal' ? 'number' : 'text'}
+                      step={field.type === 'decimal' ? '0.01' : undefined}
                       placeholder={field.placeholder}
-                      className="w-full px-3 py-2 border rounded-md text-sm"
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-slate-50"
                       disabled
                     />
                   )}
+                  
                   {field.helpText && (
-                    <p className="text-xs text-slate-500 mt-1">{field.helpText}</p>
+                    <p className="text-xs text-slate-500 mt-1.5">{field.helpText}</p>
                   )}
                 </div>
               ))}
             </div>
           </div>
         ))}
+        
+        {sections.length === 0 && (
+          <p className="text-sm text-slate-400 text-center py-8">
+            No hay secciones para previsualizar
+          </p>
+        )}
       </div>
     </div>
   )
