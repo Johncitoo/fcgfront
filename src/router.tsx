@@ -23,7 +23,7 @@ const ApplicantDetailPage = lazy(() => import('./pages/admin/ApplicantDetailPage
 const CallsListPage = lazy(() => import('./pages/admin/CallsListPage'))
 const CallDetailPage = lazy(() => import('./pages/admin/CallDetailPage'))
 const InvitesPage = lazy(() => import('./pages/admin/InvitesPage'))
-const FormsBuilderPage = lazy(() => import('./pages/admin/FormsBuilderPage'))
+const FormDesignerPage = lazy(() => import('./pages/admin/FormDesignerPage'))
 const EmailTemplatesPage = lazy(() => import('./pages/admin/EmailTemplatesPage'))
 const EmailLogsPage = lazy(() => import('./pages/admin/EmailLogsPage'))
 const ApplicationsListPage = lazy(() => import('./pages/admin/ApplicationsListPage'))
@@ -65,7 +65,7 @@ export const router = createBrowserRouter([
     { path: 'invites', element: <InvitesPage /> },
     { path: 'applications', element: <ApplicationsListPage /> },
     { path: 'applications/:id', element: <ApplicationDetailPage /> },
-    { path: 'forms', element: <FormsBuilderPage /> }, // ✅ constructor de formularios
+    { path: 'forms', element: <FormDesignerPage /> }, // ✅ nuevo diseñador de formularios
     { path: 'forms/:formId/sections/:sectionId', element: <FormSectionEditorPage /> },
     { path: 'email/templates', element: <EmailTemplatesPage /> },
     { path: 'email/logs', element: <EmailLogsPage /> },

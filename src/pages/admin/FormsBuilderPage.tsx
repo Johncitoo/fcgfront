@@ -960,27 +960,42 @@ function normalizeSection(sec: FormSection): FormSection {
     title: sec.title || 'Sección',
     description: sec.description ?? '',
     commentBox: !!sec.commentBox,
-    fields: (sec.fields ?? []).map((f) => ({
-      id: f.id || tmpId('fld'),
-      name: f.name || suggestName(f.type ?? 'text'),
-      label: f.label || suggestLabel(f.type ?? 'text'),
-      type: f.type ?? 'text',
-      helpText: f.helpText ?? '',
-      required: !!f.required,
-      active: f.active !== false,
-      readOnly: !!f.readOnly,
-      placeholder: f.placeholder ?? '',
-      min: f.min ?? null,
-      max: f.max ?? null,
-      step: f.step ?? null,
-      multiple: !!f.multiple,
-      maxLength: f.maxLength ?? null,
-      options: (f.options ?? []).map((o) => ({
-        id: o.id || tmpId('opt'),
-        value: o.value ?? '',
-        label: o.label ?? '',
-      })),
-    })),
+    fields: (sec.fields ?? []).map((f) => {
+      // Asegurar que options sea siempre un array
+      let opts: FormOption[] = []
+      if (Array.isArray(f.options)) {
+        opts = f.options
+      } else if (f.options && typeof f.options === 'string') {
+        try {
+          const parsed = JSON.parse(f.options)
+          opts = Array.isArray(parsed) ? parsed : []
+        } catch {
+          opts = []
+        }
+      }
+
+      return {
+        id: f.id || tmpId('fld'),
+        name: f.name || suggestName(f.type ?? 'text'),
+        label: f.label || suggestLabel(f.type ?? 'text'),
+        type: f.type ?? 'text',
+        helpText: f.helpText ?? '',
+        required: !!f.required,
+        active: f.active !== false,
+        readOnly: !!f.readOnly,
+        placeholder: f.placeholder ?? '',
+        min: f.min ?? null,
+        max: f.max ?? null,
+        step: f.step ?? null,
+        multiple: !!f.multiple,
+        maxLength: f.maxLength ?? null,
+        options: opts.map((o) => ({
+          id: o.id || tmpId('opt'),
+          value: o.value ?? '',
+          label: o.label ?? '',
+        })),
+      }
+    }),
   }
 }
 
