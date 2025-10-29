@@ -1,6 +1,27 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { apiGet, apiPatch, apiPost, apiDelete } from '../../lib/api'
+import { 
+  ArrowLeft, 
+  Save, 
+  Plus, 
+  Trash2, 
+  Edit, 
+  Info,
+  Type,
+  Hash,
+  AlignLeft,
+  List,
+  CheckSquare,
+  Circle,
+  Upload,
+  Image as ImageIcon,
+  Calendar,
+  HelpCircle,
+  Eye,
+  EyeOff,
+  Lock
+} from 'lucide-react'
 
 type FieldType =
   | 'text'
@@ -42,6 +63,20 @@ interface Section {
   order: number
   comment_box?: boolean     // caja de comentarios para entrevista
   fields: Field[]
+}
+
+// Iconos para cada tipo de campo
+const FIELD_TYPE_INFO: Record<FieldType, { icon: any; label: string; description: string }> = {
+  text: { icon: Type, label: 'Texto corto', description: 'Campo de una línea (ej: nombre, email)' },
+  textarea: { icon: AlignLeft, label: 'Texto largo', description: 'Área de texto multilínea (ej: comentarios)' },
+  integer: { icon: Hash, label: 'Número entero', description: 'Solo números sin decimales (ej: edad)' },
+  decimal: { icon: Hash, label: 'Número decimal', description: 'Números con decimales (ej: promedio)' },
+  select: { icon: List, label: 'Lista desplegable', description: 'Seleccionar una opción de varias' },
+  checkbox: { icon: CheckSquare, label: 'Casillas de verificación', description: 'Seleccionar múltiples opciones' },
+  radio: { icon: Circle, label: 'Botones de opción', description: 'Seleccionar solo una opción' },
+  file: { icon: Upload, label: 'Archivo', description: 'Subir cualquier tipo de archivo' },
+  image: { icon: ImageIcon, label: 'Imagen', description: 'Subir una imagen (jpg, png, etc.)' },
+  date: { icon: Calendar, label: 'Fecha', description: 'Selector de fecha' },
 }
 
 export default function FormSectionEditorPage() {
