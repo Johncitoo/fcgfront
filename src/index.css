@@ -1,0 +1,59 @@
+/* Tailwind v4: entrada única (vite + postcss ya configurados en tu proyecto) */
+@import "tailwindcss";
+
+/* 
+  Utilidades de diseño comunes del proyecto
+  - "card" y "card-body" ya usadas en tus páginas.
+*/
+@layer components {
+  .card {
+    @apply rounded-xl border bg-white shadow-sm;
+  }
+  .card-body {
+    @apply p-4 md:p-5;
+  }
+
+  /* Botón base (opcional, útil en varias vistas) */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition;
+  }
+  .btn:hover {
+    @apply bg-slate-50;
+  }
+  .btn-primary {
+    @apply bg-sky-600 text-white hover:bg-sky-700 border-transparent;
+  }
+  .btn-danger {
+    @apply border-rose-200 text-rose-700 hover:bg-rose-50;
+  }
+
+  /* Inputs base */
+  .input {
+    @apply w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500;
+  }
+
+  /* Badges por estado (coinciden con las usadas en páginas) */
+  .badge {
+    @apply rounded-md border px-2 py-0.5 text-xs;
+  }
+  .badge-neutral {
+    @apply border-slate-200 bg-slate-50 text-slate-700;
+  }
+  .badge-info {
+    @apply border-sky-200 bg-sky-50 text-sky-700;
+  }
+  .badge-warn {
+    @apply border-amber-200 bg-amber-50 text-amber-700;
+  }
+  .badge-success {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-700;
+  }
+  .badge-error {
+    @apply border-rose-200 bg-rose-50 text-rose-700;
+  }
+}
+
+/* Layout base del body */
+html, body, #root {
+  height: 100%;
+}
