@@ -84,7 +84,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <ApplicantHome /> },
-      { path: 'form', element: <FormPage /> },
+      { path: 'form/:id', element: <FormPage /> },
       { path: 'fixes', element: <FixesPage /> },
       { path: 'documents', element: <DocumentsPage /> },
     ],

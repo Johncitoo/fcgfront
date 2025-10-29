@@ -699,8 +699,8 @@ function FieldProperties({ field, onUpdate }: { field: FormField; onUpdate: (upd
           </div>
           
           {(field.options || []).length === 0 && (
-            <p className="text-xs text-amber-600 mt-2">
-              ⚠ Este campo necesita al menos una opción
+            <p className="text-xs text-amber-600 mt-2 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+              Advertencia: Este campo necesita al menos una opción
             </p>
           )}
         </div>
@@ -725,9 +725,7 @@ function FieldProperties({ field, onUpdate }: { field: FormField; onUpdate: (upd
 function PreviewPanel({ sections }: { sections: FormSection[] }) {
   return (
     <div className="bg-white rounded-lg border p-6 sticky top-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
-      <h3 className="font-semibold mb-4 flex items-center gap-2">
-        <span>👁</span> Vista Previa
-      </h3>
+      <h3 className="font-semibold mb-4">Vista Previa</h3>
       <div className="space-y-6">
         {sections.map((section) => (
           <div key={section.id} className="space-y-3">
@@ -779,7 +777,7 @@ function PreviewPanel({ sections }: { sections: FormSection[] }) {
                   ) : field.type === 'file' || field.type === 'image' ? (
                     <div className="border-2 border-dashed rounded-md p-4 text-center bg-slate-50">
                       <p className="text-sm text-slate-600">
-                        {field.type === 'image' ? '📷 Clic para subir imagen' : '📎 Clic para subir archivo'}
+                        {field.type === 'image' ? 'Clic para subir imagen' : 'Clic para subir archivo'}
                       </p>
                     </div>
                   ) : field.type === 'date' ? (
