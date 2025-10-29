@@ -55,8 +55,8 @@ export const router = createBrowserRouter([
   { path: '/auth/set-password', element: <SetPasswordPage /> },
   { path: '/auth/reset-password', element: <ResetPasswordPage /> },
 
-  // Public - Vista previa de formularios
-  { path: '/form/:callId', element: <PublicFormPage /> },
+  // Public - Vista previa de formulario de convocatoria activa
+  { path: '/form', element: <PublicFormPage /> },
 
   // Admin (protegido)
   {

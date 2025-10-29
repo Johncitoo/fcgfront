@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
 
 type FieldType = 'text' | 'number' | 'decimal' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'date' | 'file' | 'image'
 
@@ -46,7 +45,6 @@ function mapFieldType(dbType: string): FieldType {
 }
 
 export default function PublicFormPage() {
-  const { callId } = useParams<{ callId: string }>()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [sections, setSections] = useState<FormSection[]>([])
@@ -54,11 +52,10 @@ export default function PublicFormPage() {
   const [values, setValues] = useState<Record<string, any>>({})
 
   useEffect(() => {
-    if (!callId) return
     ;(async () => {
       try {
         setLoading(true)
-        const res = await fetch(`${API_BASE}/public/forms/${callId}`)
+        const res = await fetch(`${API_BASE}/public/form`)
         if (!res.ok) throw new Error('No se pudo cargar el formulario')
         const data = await res.json()
         
@@ -78,7 +75,7 @@ export default function PublicFormPage() {
         setLoading(false)
       }
     })()
-  }, [callId])
+  }, [])
 
   const handleChange = (fieldName: string, value: any) => {
     setValues(prev => ({ ...prev, [fieldName]: value }))
