@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useCall } from '../../contexts/CallContext'
 
 interface ApplicantRow {
   id: string
@@ -33,6 +34,7 @@ const API_BASE =
   (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
 export default function ApplicantsListPage() {
+  const { selectedCallId } = useCall()
   const [rows, setRows] = useState<ApplicantRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -81,6 +83,7 @@ export default function ApplicantsListPage() {
       params.set('limit', String(limit))
       params.set('offset', String(offset))
       if (q.trim()) params.set('q', q.trim())
+      if (selectedCallId) params.set('callId', selectedCallId)
 
       const res = await fetch(`${API_BASE}/applicants?${params.toString()}`, {
         headers,
@@ -113,7 +116,7 @@ export default function ApplicantsListPage() {
     load()
     loadInstitutions()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limit, offset])
+  }, [limit, offset, selectedCallId])
 
   async function loadInstitutions() {
     try {
