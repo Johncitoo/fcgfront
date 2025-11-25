@@ -25,6 +25,16 @@ interface ListResponse<T> {
   meta?: { total: number; limit: number; offset: number }
 }
 
+// Genera código único de 8 caracteres alfanuméricos
+function generateInviteCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // Sin O, 0, I, 1 para evitar confusión
+  let code = ''
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return code
+}
+
 export default function InvitesPage() {
   const [sp, setSp] = useSearchParams()
   const callIdFromQuery = sp.get('callId') ?? ''
@@ -48,6 +58,7 @@ export default function InvitesPage() {
 
   const [createSaving, setCreateSaving] = useState(false)
   const [createErr, setCreateErr] = useState<string | null>(null)
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null)
   const [createForm, setCreateForm] = useState({
     email: '',
     call_id: callIdFromQuery || '',
@@ -122,18 +133,32 @@ export default function InvitesPage() {
   async function onCreate(e: React.FormEvent) {
     e.preventDefault()
     setCreateErr(null)
+    setCreateSuccess(null)
     setCreateSaving(true)
     try {
       if (!createForm.email.trim()) throw new Error('El correo es obligatorio')
       if (!createForm.call_id.trim()) throw new Error('Selecciona una convocatoria')
+      
+      // Generar código único de 8 caracteres alfanuméricos
+      const code = generateInviteCode()
+      
       await apiPost('/invites', {
         email: createForm.email.trim(),
         callId: createForm.call_id.trim(),
+        code,
+        sendEmail: true, // Enviar email automáticamente
       })
-      setCreateOpen(false)
+      
+      setCreateSuccess(`✅ Invitación creada y enviada a ${createForm.email}`)
       setCreateForm({ email: '', call_id: callId || '' })
       setOffset(0)
       await load()
+      
+      // Cerrar modal después de 2 segundos
+      setTimeout(() => {
+        setCreateOpen(false)
+        setCreateSuccess(null)
+      }, 2000)
     } catch (e: any) {
       setCreateErr(e.message ?? 'No fue posible crear la invitación')
     } finally {
@@ -361,6 +386,11 @@ export default function InvitesPage() {
               {createErr && (
                 <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
                   {createErr}
+                </div>
+              )}
+              {createSuccess && (
+                <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                  {createSuccess}
                 </div>
               )}
               <div className="space-y-1">
