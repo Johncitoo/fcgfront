@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import RutInput from '../../components/RutInput'
+import { Save, Send, ArrowLeft, CheckCircle2 } from 'lucide-react'
 
 type FieldType =
   | 'text'
@@ -50,6 +52,13 @@ interface FormSchema {
   sections: FormSection[]
 }
 
+interface Institution {
+  id: string
+  name: string
+  type: string
+  active: boolean
+}
+
 type ApplicationStatus =
   | 'DRAFT'
   | 'SUBMITTED'
@@ -70,6 +79,7 @@ export default function FormPage() {
   const [values, setValues] = useState<Record<string, any>>({})
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [institutions, setInstitutions] = useState<Institution[]>([])
   const token = localStorage.getItem('fcg.access_token') ?? ''
 
   const headers = useMemo(
@@ -86,6 +96,13 @@ export default function FormPage() {
       try {
         setLoading(true)
         setError(null)
+
+        // 0) Cargar instituciones
+        const instRes = await fetch(`${API_BASE}/institutions?active=true&limit=200`, { headers })
+        if (instRes.ok) {
+          const instData = await instRes.json()
+          setInstitutions(instData.data || [])
+        }
 
         // 1) Metadatos de la postulación (para validar estado editable)
         const appRes = await fetch(`${API_BASE}/applications/${id}`, { headers })
@@ -184,12 +201,53 @@ export default function FormPage() {
     setValues((s) => ({ ...s, [name]: next }))
   }
 
+  // Calcular progreso del formulario
+  const progress = useMemo(() => {
+    if (!schema) return 0
+    const allFields = schema.sections.flatMap(s => s.fields.filter(f => f.active !== false && f.required))
+    const filled = allFields.filter(f => {
+      const val = values[f.name]
+      if (Array.isArray(val)) return val.length > 0
+      return val !== '' && val !== null && val !== undefined
+    })
+    return allFields.length > 0 ? Math.round((filled.length / allFields.length) * 100) : 0
+  }, [schema, values])
+
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       <div className="mx-auto w-full max-w-5xl">
         <header className="mb-6">
-          <h1 className="text-2xl font-semibold">Formulario de postulación</h1>
-          <p className="text-slate-600">
+          <Link
+            to="/applicant"
+            className="mb-4 inline-flex items-center gap-2 text-sm text-sky-600 hover:text-sky-700 hover:underline"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver a mis postulaciones
+          </Link>
+          
+          <h1 className="text-3xl font-bold text-slate-900">Formulario de postulación</h1>
+          
+          {schema && (
+            <div className="mt-2">
+              <p className="text-sm text-slate-600 mb-2">
+                Convocatoria: <span className="font-semibold text-slate-900">{schema.call.title}</span>
+              </p>
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-slate-700">Progreso del formulario</span>
+                  <span className="text-xs font-medium text-sky-600">{progress}%</span>
+                </div>
+                <div className="h-2 w-full rounded-full bg-slate-200">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-sky-500 to-sky-600 transition-all duration-500"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <p className="mt-4 text-sm text-slate-600">
             Completa las secciones y guarda como <b>borrador</b> o{' '}
             <b>envía</b> tu postulación cuando termines.
           </p>
@@ -233,6 +291,7 @@ export default function FormPage() {
                             field={f}
                             value={values[f.name]}
                             onChange={onChange}
+                            institutions={institutions}
                           />
                         ))}
                     </div>
@@ -248,30 +307,38 @@ export default function FormPage() {
               ))}
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               <button
                 onClick={onSaveDraft}
                 disabled={saving || submitting}
-                className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-slate-50 disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
               >
+                <Save className="h-4 w-4" />
                 {saving ? 'Guardando…' : 'Guardar borrador'}
               </button>
 
               <button
                 onClick={onSubmit}
-                disabled={submitting || saving}
-                className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-60"
+                disabled={submitting || saving || progress < 100}
+                className="inline-flex items-center gap-2 rounded-md bg-sky-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
               >
+                <Send className="h-4 w-4" />
                 {submitting ? 'Enviando…' : 'Enviar postulación'}
               </button>
-
-              <Link
-                to="/applicant"
-                className="rounded-md px-4 py-2 text-sm font-medium hover:underline"
-              >
-                Volver
-              </Link>
+              
+              {progress === 100 && (
+                <div className="flex items-center gap-2 text-sm text-green-600 ml-2">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span className="font-medium">Formulario completo</span>
+                </div>
+              )}
             </div>
+            
+            {progress < 100 && (
+              <p className="mt-3 text-xs text-slate-500">
+                ⚠️ Completa todos los campos obligatorios para poder enviar la postulación
+              </p>
+            )}
           </>
         )}
       </div>
@@ -283,10 +350,12 @@ function FieldControl({
   field,
   value,
   onChange,
+  institutions = [],
 }: {
   field: FormField
   value: any
   onChange: (name: string, next: any) => void
+  institutions?: Institution[]
 }) {
   const {
     name,
@@ -310,6 +379,47 @@ function FieldControl({
     required: !!required,
     disabled: !!readOnly,
     placeholder,
+  }
+
+  // Si el campo es 'rut', usar el componente RutInput
+  if (name === 'rut' || name.toLowerCase().includes('rut')) {
+    return (
+      <RutInput
+        value={value || ''}
+        onChange={(val) => onChange(name, val)}
+        label={label}
+        required={required}
+        disabled={readOnly}
+        placeholder={placeholder}
+        name={name}
+        helpText={helpText}
+      />
+    )
+  }
+
+  // Si el campo es institution_id, usar selector especial
+  if (name === 'institution_id' || name === 'institution') {
+    return (
+      <div className="space-y-1.5">
+        <label htmlFor={name} className="block text-sm font-medium">
+          {label} {required && <span className="text-rose-600">*</span>}
+        </label>
+        <select
+          {...common}
+          value={value ?? ''}
+          onChange={(e) => onChange(name, e.target.value)}
+          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500 disabled:bg-slate-50 disabled:text-slate-500"
+        >
+          <option value="">Seleccione una institución...</option>
+          {institutions.map((inst) => (
+            <option key={inst.id} value={inst.id}>
+              {inst.name} ({inst.type})
+            </option>
+          ))}
+        </select>
+        {helpText && <p className="text-xs text-slate-500">{helpText}</p>}
+      </div>
+    )
   }
 
   return (
