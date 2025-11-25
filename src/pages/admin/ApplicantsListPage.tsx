@@ -3,15 +3,19 @@ import { useEffect, useMemo, useState } from 'react'
 interface ApplicantRow {
   id: string
   email: string
-  first_name?: string | null
-  last_name?: string | null
-  rut?: string | null
+  fullName?: string
+  firstName?: string
+  lastName?: string
+  rutNumber?: number
+  rutDv?: string
   phone?: string | null
-  birth_date?: string | null
+  birthDate?: string | null
   address?: string | null
   commune?: string | null
   region?: string | null
-  created_at?: string
+  institutionName?: string | null
+  institutionCommune?: string | null
+  createdAt?: string
 }
 
 interface PageMeta {
@@ -159,8 +163,8 @@ export default function ApplicantsListPage() {
   }
 
   function fullName(r: ApplicantRow) {
-    const a = (r.first_name ?? '').trim()
-    const b = (r.last_name ?? '').trim()
+    const a = (r.firstName ?? '').trim()
+    const b = (r.lastName ?? '').trim()
     return (a + (b ? ` ${b}` : '')).trim()
   }
 
@@ -217,33 +221,45 @@ export default function ApplicantsListPage() {
                 <thead className="text-left text-slate-600">
                   <tr className="border-b">
                     <th className="py-2 pr-3">Nombre</th>
-                    <th className="py-2 pr-3">Correo</th>
                     <th className="py-2 pr-3">RUT</th>
+                    <th className="py-2 pr-3">Correo</th>
                     <th className="py-2 pr-3">Teléfono</th>
+                    <th className="py-2 pr-3">Escuela/Colegio</th>
                     <th className="py-2">Creado</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-6 text-center text-slate-500">
+                      <td colSpan={6} className="py-6 text-center text-slate-500">
                         No hay registros.
                       </td>
                     </tr>
                   ) : (
-                    rows.map((r) => (
-                      <tr key={r.id} className="border-b last:border-0">
-                        <td className="py-2 pr-3">{fullName(r) || '—'}</td>
-                        <td className="py-2 pr-3">{r.email}</td>
-                        <td className="py-2 pr-3">{r.rut || '—'}</td>
-                        <td className="py-2 pr-3">{r.phone || '—'}</td>
-                        <td className="py-2">
-                          {r.created_at
-                            ? new Date(r.created_at).toLocaleString()
-                            : '—'}
-                        </td>
-                      </tr>
-                    ))
+                    rows.map((r) => {
+                      const name = r.fullName || fullName(r) || '—'
+                      const rut = r.rutNumber && r.rutDv 
+                        ? `${r.rutNumber.toLocaleString('es-CL')}-${r.rutDv}` 
+                        : '—'
+                      const school = r.institutionName 
+                        ? `${r.institutionName}${r.institutionCommune ? ` (${r.institutionCommune})` : ''}`
+                        : '—'
+                      
+                      return (
+                        <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50">
+                          <td className="py-2 pr-3 font-medium">{name}</td>
+                          <td className="py-2 pr-3 font-mono text-xs">{rut}</td>
+                          <td className="py-2 pr-3 text-slate-600">{r.email}</td>
+                          <td className="py-2 pr-3">{r.phone || '—'}</td>
+                          <td className="py-2 pr-3 text-slate-600">{school}</td>
+                          <td className="py-2">
+                            {r.createdAt
+                              ? new Date(r.createdAt).toLocaleDateString('es-CL')
+                              : '—'}
+                          </td>
+                        </tr>
+                      )
+                    })
                   )}
                 </tbody>
               </table>
