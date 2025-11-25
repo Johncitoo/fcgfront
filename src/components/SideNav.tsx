@@ -10,6 +10,7 @@ export default function SideNav() {
 
         <Section title="Gestión">
           <Item to="/admin/applicants" label="Postulantes" />
+          <Item to="/admin/institutions" label="Escuelas/Colegios" />
           <Item to="/admin/calls" label="Convocatorias" />
           <Item to="/admin/invites" label="Invitaciones" />
           <Item to="/admin/applications" label="Postulaciones" />

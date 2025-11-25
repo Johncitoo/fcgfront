@@ -45,7 +45,7 @@ export default function ApplicantsListPage() {
 
   // crear manualmente (modal simple inline)
   const [creating, setCreating] = useState(false)
-  const [form, setForm] = useState({
+  const [createForm, setCreateForm] = useState({
     email: '',
     first_name: '',
     last_name: '',
@@ -55,11 +55,15 @@ export default function ApplicantsListPage() {
     address: '',
     commune: '',
     region: '',
+    institution_id: '',
   })
   // Campos extra opcionales que el usuario puede agregar dinámicamente
   const [extraFields, setExtraFields] = useState<string[]>([])
   const [createError, setCreateError] = useState<string | null>(null)
   const [createLoading, setCreateLoading] = useState(false)
+
+  // Instituciones para selector
+  const [institutions, setInstitutions] = useState<Array<{id: string, name: string, commune?: string}>>([])
 
   const headers = useMemo(() => {
     const token = localStorage.getItem('fcg.access_token') ?? ''
@@ -107,11 +111,23 @@ export default function ApplicantsListPage() {
 
   useEffect(() => {
     load()
+    loadInstitutions()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit, offset])
 
-  function onChange<K extends keyof typeof form>(k: K, v: (typeof form)[K]) {
-    setForm((s) => ({ ...s, [k]: v }))
+  async function loadInstitutions() {
+    try {
+      const res = await fetch(`${API_BASE}/institutions?active=true&limit=500`, { headers })
+      if (!res.ok) return
+      const json = await res.json()
+      setInstitutions(json.data ?? [])
+    } catch {
+      // silencioso
+    }
+  }
+
+  function onChange<K extends keyof typeof createForm>(k: K, v: (typeof createForm)[K]) {
+    setCreateForm((s) => ({ ...s, [k]: v }))
   }
 
   async function createApplicant(e: React.FormEvent) {
@@ -120,27 +136,28 @@ export default function ApplicantsListPage() {
     setCreateLoading(true)
     try {
       // Construir fullName ya que el backend espera `fullName`
-      const first = form.first_name?.trim() || ''
-      const last = form.last_name?.trim() || ''
+      const first = createForm.first_name?.trim() || ''
+      const last = createForm.last_name?.trim() || ''
       let fullName = (first + (last ? ` ${last}` : '')).trim()
       if (!fullName) {
         // Derivar nombre del correo antes de la @ si no hay nombre
-        const local = form.email.split('@')[0] || ''
-        fullName = local.replace(/[._\-]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase())
+        const local = createForm.email.split('@')[0] || ''
+        fullName = local.replace(/[._\-]/g, ' ').replace(/\b\w/g, (m: string) => m.toUpperCase())
       }
 
       const payload: any = {
-        email: form.email.trim(),
+        email: createForm.email.trim(),
         fullName,
       }
-      if (form.first_name?.trim()) payload.first_name = form.first_name.trim()
-      if (form.last_name?.trim()) payload.last_name = form.last_name.trim()
-      if (form.rut?.trim()) payload.rut = form.rut.trim()
-      if (form.phone?.trim()) payload.phone = form.phone.trim()
-      if (form.birth_date?.trim()) payload.birth_date = form.birth_date.trim()
-      if (form.address?.trim()) payload.address = form.address.trim()
-      if (form.commune?.trim()) payload.commune = form.commune.trim()
-      if (form.region?.trim()) payload.region = form.region.trim()
+      if (createForm.first_name?.trim()) payload.first_name = createForm.first_name.trim()
+      if (createForm.last_name?.trim()) payload.last_name = createForm.last_name.trim()
+      if (createForm.rut?.trim()) payload.rut = createForm.rut.trim()
+      if (createForm.phone?.trim()) payload.phone = createForm.phone.trim()
+      if (createForm.birth_date?.trim()) payload.birth_date = createForm.birth_date.trim()
+      if (createForm.address?.trim()) payload.address = createForm.address.trim()
+      if (createForm.commune?.trim()) payload.commune = createForm.commune.trim()
+      if (createForm.region?.trim()) payload.region = createForm.region.trim()
+      if (createForm.institution_id?.trim()) payload.institution_id = createForm.institution_id.trim()
 
       const res = await fetch(`${API_BASE}/applicants`, {
         method: 'POST',
@@ -150,7 +167,7 @@ export default function ApplicantsListPage() {
       if (!res.ok) throw new Error(await safeError(res))
       // recargar
       setCreating(false)
-      setForm({ email: '', first_name: '', last_name: '', rut: '', phone: '', birth_date: '', address: '', commune: '', region: '' })
+      setCreateForm({ email: '', first_name: '', last_name: '', rut: '', phone: '', birth_date: '', address: '', commune: '', region: '', institution_id: '' })
       setExtraFields([])
       // volver a primera página para ver el nuevo si el backend ordena por fecha desc
       setOffset(0)
@@ -335,7 +352,7 @@ export default function ApplicantsListPage() {
                   <input
                     type="email"
                     required
-                    value={form.email}
+                    value={createForm.email}
                     onChange={(e) => onChange('email', e.target.value)}
                     className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                     placeholder="alumno@colegio.cl"
@@ -347,7 +364,7 @@ export default function ApplicantsListPage() {
                   <input
                     type="text"
                     required
-                    value={form.first_name}
+                    value={createForm.first_name}
                     onChange={(e) => onChange('first_name', e.target.value)}
                     className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                     placeholder="Ej: María José"
@@ -359,7 +376,7 @@ export default function ApplicantsListPage() {
                   <input
                     type="text"
                     required
-                    value={form.last_name}
+                    value={createForm.last_name}
                     onChange={(e) => onChange('last_name', e.target.value)}
                     className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                     placeholder="Ej: Pérez Soto"
@@ -371,11 +388,28 @@ export default function ApplicantsListPage() {
                   <input
                     type="text"
                     required
-                    value={form.rut}
+                    value={createForm.rut}
                     onChange={(e) => onChange('rut', e.target.value)}
                     className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                     placeholder="12.345.678-9"
                   />
+                </div>
+
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-sm font-medium">Escuela/Colegio *</label>
+                  <select
+                    required
+                    value={createForm.institution_id}
+                    onChange={(e) => onChange('institution_id', e.target.value)}
+                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                  >
+                    <option value="">Seleccione una institución...</option>
+                    {institutions.map((inst) => (
+                      <option key={inst.id} value={inst.id}>
+                        {inst.name}{inst.commune ? ` - ${inst.commune}` : ''}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -410,7 +444,7 @@ export default function ApplicantsListPage() {
                         <label className="text-sm font-medium">Teléfono</label>
                         <input
                           type="tel"
-                          value={form.phone}
+                          value={createForm.phone}
                           onChange={(e) => onChange('phone', e.target.value)}
                           className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                           placeholder="+56 9 1234 5678"
@@ -422,7 +456,7 @@ export default function ApplicantsListPage() {
                         <label className="text-sm font-medium">Fecha de nacimiento</label>
                         <input
                           type="date"
-                          value={form.birth_date}
+                          value={createForm.birth_date}
                           onChange={(e) => onChange('birth_date', e.target.value)}
                           className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                         />
@@ -433,7 +467,7 @@ export default function ApplicantsListPage() {
                         <label className="text-sm font-medium">Dirección</label>
                         <input
                           type="text"
-                          value={form.address}
+                          value={createForm.address}
                           onChange={(e) => onChange('address', e.target.value)}
                           className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                           placeholder="Calle, número, depto"
@@ -445,7 +479,7 @@ export default function ApplicantsListPage() {
                         <label className="text-sm font-medium">Comuna</label>
                         <input
                           type="text"
-                          value={form.commune}
+                          value={createForm.commune}
                           onChange={(e) => onChange('commune', e.target.value)}
                           className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                           placeholder="Ej: Santiago"
@@ -457,7 +491,7 @@ export default function ApplicantsListPage() {
                         <label className="text-sm font-medium">Región</label>
                         <input
                           type="text"
-                          value={form.region}
+                          value={createForm.region}
                           onChange={(e) => onChange('region', e.target.value)}
                           className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                           placeholder="Ej: Metropolitana"

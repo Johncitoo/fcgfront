@@ -30,6 +30,7 @@ const ApplicationsListPage = lazy(() => import('./pages/admin/ApplicationsListPa
 const ApplicationDetailPage = lazy(() => import('./pages/admin/ApplicationDetailPage'))
 const AuditPage = lazy(() => import('./pages/admin/AuditPage'))
 const FormSectionEditorPage = lazy(() => import('./pages/admin/FormSectionEditorPage'))
+const InstitutionsPage = lazy(() => import('./pages/admin/InstitutionsPage'))
 
 // Applicant
 const ApplicantHome = lazy(() => import('./pages/applicant/ApplicantHome'))
@@ -69,6 +70,7 @@ export const router = createBrowserRouter([
     { path: 'calls', element: <CallsListPage /> },
     { path: 'calls/:id', element: <CallDetailPage /> },
     { path: 'invites', element: <InvitesPage /> },
+    { path: 'institutions', element: <InstitutionsPage /> },
     { path: 'applications', element: <ApplicationsListPage /> },
     { path: 'applications/:id', element: <ApplicationDetailPage /> },
     { path: 'forms', element: <FormDesignerPage /> }, // ✅ nuevo diseñador de formularios
