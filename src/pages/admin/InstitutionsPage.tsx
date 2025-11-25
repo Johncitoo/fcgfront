@@ -33,13 +33,20 @@ export default function InstitutionsPage() {
 
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState<Institution | null>(null)
-  const [createForm, setCreateForm] = useState({
+  const [createForm, setCreateForm] = useState<{
+    name: string
+    code: string
+    commune: string
+    province: string
+    region: string
+    type: 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO'
+  }>({
     name: '',
     code: '',
     commune: '',
     province: '',
     region: '',
-    type: 'LICEO' as const,
+    type: 'LICEO',
   })
   const [createError, setCreateError] = useState<string | null>(null)
   const [createLoading, setCreateLoading] = useState(false)
@@ -85,7 +92,7 @@ export default function InstitutionsPage() {
 
       setCreating(false)
       setEditing(null)
-      setCreateForm({ name: '', code: '', commune: '', province: '', region: '', type: 'LICEO' })
+      setCreateForm({ name: '', code: '', commune: '', province: '', region: '', type: 'LICEO' as 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO' })
       setOffset(0)
       await load()
     } catch (err: any) {
@@ -147,7 +154,7 @@ export default function InstitutionsPage() {
             <button
               onClick={() => {
                 setEditing(null)
-                setCreateForm({ name: '', code: '', commune: '', province: '', region: '', type: 'LICEO' })
+                setCreateForm({ name: '', code: '', commune: '', province: '', region: '', type: 'LICEO' as 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO' })
                 setCreating(true)
               }}
               className="btn-primary"
