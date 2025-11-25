@@ -61,6 +61,9 @@ export const router = createBrowserRouter([
 
   // Public - Vista previa de formulario de convocatoria activa
   { path: '/form', element: <PublicFormPage /> },
+  
+  // Demo público de file upload
+  { path: '/demo/files', element: <FileUploadDemo /> },
 
   // Admin (protegido)
   {
