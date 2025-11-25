@@ -11,9 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import { Loader2, AlertCircle, HelpCircle } from 'lucide-react'
 import { PasswordInput } from './PasswordInput'
-
-const API_BASE =
-  (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
+import { authService } from '@/lib/auth'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -39,23 +37,25 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const res = await fetch(`${API_BASE}/auth/enter-invite`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: invitationCode.trim() }),
-      })
-
-      if (!res.ok) throw new Error('El código no existe o expiró.')
-
-      const data = await res.json()
-      localStorage.setItem('fcg.access_token', data.access_token)
-      localStorage.setItem('fcg.refresh_token', data.refresh_token)
-      localStorage.setItem('fcg.role', 'APPLICANT')
+      const response = await authService.loginWithInviteCode(invitationCode)
 
       toast.success('Postulación iniciada exitosamente')
-      navigate('/applicant', { replace: true })
+
+      // Redirigir a la página del postulante
+      const homeRoute = authService.getHomeRouteByRole(response.user.role)
+      navigate(homeRoute, { replace: true })
     } catch (err: any) {
-      setCodeError(err.message ?? 'Error al ingresar el código.')
+      console.error('Error en login con código:', err)
+
+      if (err.response?.status === 404) {
+        setCodeError('El código de invitación no existe o ha expirado.')
+      } else if (err.response?.status === 400) {
+        setCodeError('El código de invitación no es válido.')
+      } else if (err.response?.status === 410) {
+        setCodeError('El código de invitación ya fue utilizado.')
+      } else {
+        setCodeError('Error al procesar el código. Por favor, intenta nuevamente.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -69,31 +69,31 @@ export default function LoginPage() {
     setLoginError('')
     setIsLoading(true)
 
+    console.log('🔐 Iniciando login con:', { email })
+
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password }),
-      })
+      const response = await authService.loginStaff(email, password)
+      
+      console.log('✅ Login exitoso:', response)
 
-      if (!res.ok) throw new Error('Correo o contraseña incorrectos.')
-
-      const data = await res.json()
-
-      localStorage.setItem('fcg.access_token', data.access_token)
-      localStorage.setItem('fcg.refresh_token', data.refresh_token)
-      localStorage.setItem('fcg.role', data.user.role)
-
-      toast.success('Sesión iniciada correctamente')
+      toast.success(`Bienvenido/a, ${response.user.fullName}`)
 
       // Redirigir según rol
-      const role = data.user.role?.toUpperCase()
-      if (role === 'ADMIN') navigate('/admin', { replace: true })
-      else if (role === 'REVIEWER') navigate('/reviewer', { replace: true })
-      else if (role === 'APPLICANT') navigate('/applicant', { replace: true })
-      else navigate('/', { replace: true })
+      const homeRoute = authService.getHomeRouteByRole(response.user.role)
+      console.log('🚀 Redirigiendo a:', homeRoute)
+      navigate(homeRoute, { replace: true })
     } catch (err: any) {
-      setLoginError(err.message ?? 'Error de autenticación.')
+      console.error('❌ Error en login:', err)
+      console.error('Response:', err.response)
+      console.error('Message:', err.message)
+
+      if (err.response?.status === 401) {
+        setLoginError('Correo o contraseña incorrectos.')
+      } else if (err.response?.status === 403) {
+        setLoginError('Tu cuenta está inactiva. Contacta al administrador.')
+      } else {
+        setLoginError('Error al iniciar sesión. Por favor, intenta nuevamente.')
+      }
     } finally {
       setIsLoading(false)
     }

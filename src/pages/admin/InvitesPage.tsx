@@ -68,7 +68,7 @@ export default function InvitesPage() {
         const res = await apiGet<ListResponse<CallOption> | CallOption[]>('/calls?limit=200')
         const list = Array.isArray(res) ? res : res.data ?? []
         // ordenar por fecha inicio desc si hay
-        list.sort((a, b) => (a.start_date < b.start_date ? 1 : -1))
+        list.sort((a: CallOption, b: CallOption) => (a.start_date < b.start_date ? 1 : -1))
         setCalls(list)
       } catch {
         setCalls([])

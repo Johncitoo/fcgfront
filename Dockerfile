@@ -1,31 +1,35 @@
 # ---------- Build stage ----------
-FROM node:20-alpine AS builder
+FROM node:20-alpine AS build
 WORKDIR /app
 
-# 1) Dependencias
-COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
-RUN \
-  if [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm i --frozen-lockfile; \
-  elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-  else npm i; fi
+# 1️⃣ Copiar archivos de dependencias
+COPY package*.json ./
 
-# 2) Código fuente
+# 2️⃣ Instalar dependencias (solo npm, más estable en CI)
+RUN npm ci
+
+# 3️⃣ Copiar el resto del código (src, public, etc.)
+# ⚠️ Asegúrate de NO tener src/ en .dockerignore
 COPY . .
 
-# 3) Variables Vite en build (puedes sobreescribir con --build-arg)
+# 4️⃣ Variables de entorno para Vite
 ARG VITE_API_BASE_URL=http://localhost:3000/api
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
-# 4) Build de producción
+# 5️⃣ Build de producción
 RUN npm run build
 
 # ---------- Runtime stage ----------
-FROM nginx:1.27-alpine AS runtime
-# SPA fallback para rutas de React Router
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-# Archivos estáticos
-COPY --from=builder /app/dist /usr/share/nginx/html
+FROM nginx:alpine
 
+# Copiar configuración SPA (fallback para React Router)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copiar archivos generados por Vite
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Exponer el puerto de Nginx
 EXPOSE 80
+
+# Iniciar Nginx
 CMD ["nginx", "-g", "daemon off;"]

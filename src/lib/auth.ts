@@ -1,117 +1,169 @@
-/**
- * Helpers de autenticación (frontend) para FCG Scholarships
- * - Maneja almacenamiento de tokens y usuario
- * - Expone funciones para login/refresh/logout
- * - No usa cookies (solo Authorization: Bearer)
- */
+import { api } from './api';
 
-export type UserRole = 'ADMIN' | 'REVIEWER' | 'APPLICANT'
-
-export interface UserSession {
-  id: string
-  email: string
-  role: UserRole
+interface LoginStaffResponse {
+  user: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: 'ADMIN' | 'REVIEWER' | 'APPLICANT';
+  };
+  accessToken: string;
+  refreshToken: string;
 }
 
-export interface AuthResponse {
-  access_token: string
-  refresh_token: string
-  user: UserSession
+interface EnterInviteResponse {
+  user: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: 'APPLICANT';
+  };
+  accessToken: string;
+  refreshToken: string;
 }
 
-/* ================== storage keys ================== */
-
-const ACCESS_KEY = 'fcg.access_token'
-const REFRESH_KEY = 'fcg.refresh_token'
-const USER_KEY = 'fcg.user'
-
-/* ================== getters/setters ================== */
-
-export function getAccessToken(): string | null {
-  return localStorage.getItem(ACCESS_KEY)
+interface User {
+  id: string;
+  email: string;
+  fullName: string;
+  role: 'ADMIN' | 'REVIEWER' | 'APPLICANT';
 }
 
-export function getRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_KEY)
-}
+const TOKEN_KEY = 'fcg.access_token';
+const REFRESH_KEY = 'fcg.refresh_token';
+const USER_KEY = 'fcg.user_data';
+const ROLE_KEY = 'fcg.role';
 
-export function getUser(): UserSession | null {
-  try {
-    const raw = localStorage.getItem(USER_KEY)
-    return raw ? (JSON.parse(raw) as UserSession) : null
-  } catch {
-    return null
-  }
-}
+export const authService = {
+  /**
+   * Login con código de invitación (APPLICANT)
+   */
+  async loginWithInviteCode(code: string): Promise<EnterInviteResponse> {
+    const response = await api.post<EnterInviteResponse>('/auth/enter-invite', {
+      code: code.trim(),
+    });
+    
+    // Guardar tokens y datos del usuario
+    this.setTokens(response.data.accessToken, response.data.refreshToken);
+    this.setUser(response.data.user);
+    
+    return response.data;
+  },
 
-export function setAuth(resp: AuthResponse) {
-  localStorage.setItem(ACCESS_KEY, resp.access_token)
-  localStorage.setItem(REFRESH_KEY, resp.refresh_token)
-  localStorage.setItem(USER_KEY, JSON.stringify(resp.user))
-}
+  /**
+   * Login tradicional con email y contraseña (ADMIN/REVIEWER)
+   */
+  async loginStaff(email: string, password: string): Promise<LoginStaffResponse> {
+    const response = await api.post<LoginStaffResponse>('/auth/login-staff', {
+      email: email.trim(),
+      password,
+    });
+    
+    // Guardar tokens y datos del usuario
+    this.setTokens(response.data.accessToken, response.data.refreshToken);
+    this.setUser(response.data.user);
+    
+    return response.data;
+  },
 
-export function clearAuth() {
-  localStorage.removeItem(ACCESS_KEY)
-  localStorage.removeItem(REFRESH_KEY)
-  localStorage.removeItem(USER_KEY)
-}
+  /**
+   * Cierra sesión del usuario
+   */
+  async logout(): Promise<void> {
+    const refreshToken = this.getRefreshToken();
+    
+    try {
+      if (refreshToken) {
+        await api.post('/auth/logout', { refreshToken });
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      this.clearAuth();
+    }
+  },
 
-/* ================== api helpers ================== */
+  /**
+   * Guarda los tokens en localStorage
+   */
+  setTokens(accessToken: string, refreshToken: string): void {
+    localStorage.setItem(TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_KEY, refreshToken);
+  },
 
-const API_BASE =
-  (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
+  /**
+   * Guarda los datos del usuario en localStorage
+   */
+  setUser(user: User): void {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    localStorage.setItem(ROLE_KEY, user.role);
+  },
 
-/**
- * Realiza login contra /auth/login y persiste tokens+usuario en storage.
- */
-export async function login(email: string, password: string): Promise<UserSession> {
-  const res = await fetch(`${API_BASE}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  })
-  const json = await safeJson(res)
-  if (!res.ok) throw new Error(json?.message || json?.error || res.statusText)
-  setAuth(json as AuthResponse)
-  return (json as AuthResponse).user
-}
+  /**
+   * Obtiene el access token
+   */
+  getAccessToken(): string | null {
+    return localStorage.getItem(TOKEN_KEY);
+  },
 
-/**
- * Intenta refrescar tokens con /auth/refresh.
- */
-export async function refresh(): Promise<boolean> {
-  const token = getRefreshToken()
-  if (!token) return false
+  /**
+   * Obtiene el refresh token
+   */
+  getRefreshToken(): string | null {
+    return localStorage.getItem(REFRESH_KEY);
+  },
 
-  const res = await fetch(`${API_BASE}/auth/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refresh_token: token }),
-  })
-  const json = await safeJson(res)
-  if (!res.ok) {
-    // refresh inválido → limpiar sesión
-    clearAuth()
-    return false
-  }
-  setAuth(json as AuthResponse)
-  return true
-}
+  /**
+   * Obtiene los datos del usuario actual
+   */
+  getCurrentUser(): User | null {
+    const userData = localStorage.getItem(USER_KEY);
+    if (!userData) return null;
+    
+    try {
+      return JSON.parse(userData);
+    } catch {
+      return null;
+    }
+  },
 
-/**
- * Logout local (opcionalmente podrías notificar al backend).
- */
-export async function logout() {
-  // Si el backend guarda hash de refresh y expone /auth/logout, podrías llamar aquí.
-  clearAuth()
-}
+  /**
+   * Obtiene el rol del usuario
+   */
+  getUserRole(): 'ADMIN' | 'REVIEWER' | 'APPLICANT' | null {
+    return localStorage.getItem(ROLE_KEY) as 'ADMIN' | 'REVIEWER' | 'APPLICANT' | null;
+  },
 
-/* ================== util ================== */
+  /**
+   * Verifica si el usuario está autenticado
+   */
+  isAuthenticated(): boolean {
+    return !!this.getAccessToken() && !!this.getCurrentUser();
+  },
 
-async function safeJson(res: Response) {
-  try {
-    return await res.json()
-  } catch {
-    return null
-  }
-}
+  /**
+   * Limpia todos los datos de autenticación
+   */
+  clearAuth(): void {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(ROLE_KEY);
+  },
+
+  /**
+   * Obtiene la ruta de inicio según el rol del usuario
+   */
+  getHomeRouteByRole(role: 'ADMIN' | 'REVIEWER' | 'APPLICANT'): string {
+    switch (role) {
+      case 'ADMIN':
+        return '/admin';
+      case 'REVIEWER':
+        return '/reviewer';
+      case 'APPLICANT':
+        return '/applicant';
+      default:
+        return '/';
+    }
+  },
+};

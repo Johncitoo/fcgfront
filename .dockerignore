@@ -1,8 +1,25 @@
+# 🧹 Dependencias locales
 node_modules
 dist
+
+# 🧾 Configs de git
 .git
 .gitignore
+
+# 🐋 Archivos de Docker
 Dockerfile
 docker-compose*.yml
+
+# 🧩 Config de VSCode, logs y temporales
 .vscode
 *.log
+*.md
+.DS_Store
+.env.local
+.env.development
+.env.production
+
+# ❌ NUNCA ignores el código fuente:
+# src/
+# public/
+# index.html

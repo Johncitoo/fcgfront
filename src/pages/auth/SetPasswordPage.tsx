@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { apiPost } from '../../lib/api'
-import { login, setAuth } from '../../lib/auth'
-import type { UserSession, AuthResponse } from '../../lib/auth'
+import { authService } from '../../lib/auth'
 
 /**
  * Escenarios soportados:
@@ -71,15 +70,16 @@ export default function SetPasswordPage() {
 
       // 2) Si el backend devuelve tokens, iniciamos sesión localmente
       if (isAuthResponse(resp)) {
-        setAuth(resp)
+        authService.setTokens(resp.accessToken, resp.refreshToken);
+        authService.setUser(resp.user);
         afterLogin(resp.user)
         return
       }
 
       // 3) Si no devolvió tokens, intentamos login con las credenciales recién definidas
       try {
-        const user = (await login(email.trim(), pwd)) as UserSession
-        afterLogin(user)
+        const loginResp = await authService.loginStaff(email.trim(), pwd);
+        afterLogin(loginResp.user);
         return
       } catch {
         // Si el login falla (por política del backend), solo mostramos éxito
@@ -87,14 +87,20 @@ export default function SetPasswordPage() {
           'Contraseña definida correctamente. Ya puedes iniciar sesión con tus credenciales.',
         )
       }
-    } catch (e: any) {
-      setError(e?.message ?? 'No fue posible definir la contraseña')
+    } catch (e: unknown) {
+      const error = e as { message?: string };
+      setError(error?.message ?? 'No fue posible definir la contraseña')
     } finally {
       setLoading(false)
     }
   }
 
-  function afterLogin(user: UserSession) {
+  function afterLogin(user: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: 'ADMIN' | 'REVIEWER' | 'APPLICANT';
+  }) {
     setSuccess('Tu contraseña se definió y tu sesión ha sido iniciada.')
     setTimeout(() => {
       if (user.role === 'ADMIN' || user.role === 'REVIEWER') {
@@ -292,8 +298,21 @@ export default function SetPasswordPage() {
 
 /* ==================== utilidades ==================== */
 
-function isAuthResponse(x: any): x is AuthResponse {
-  return x && typeof x === 'object' && 'access_token' in x && 'refresh_token' in x && 'user' in x
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: 'ADMIN' | 'REVIEWER' | 'APPLICANT';
+  };
+}
+
+function isAuthResponse(x: unknown): x is AuthResponse {
+  if (!x || typeof x !== 'object') return false;
+  const obj = x as Record<string, unknown>;
+  return 'accessToken' in obj && 'refreshToken' in obj && 'user' in obj;
 }
 
 function scorePassword(p: string): { score: 0 | 1 | 2 | 3 | 4; label: string } {

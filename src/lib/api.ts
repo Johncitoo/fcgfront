@@ -1,71 +1,72 @@
-/**
- * Wrapper de fetch para API FCG:
- * - Inyecta Authorization: Bearer si hay token
- * - Maneja baseURL y parse seguro de errores
- * - Intenta refresh automático (una vez) si 401
- */
+import axios from 'axios';
 
-import { getAccessToken, getRefreshToken, refresh, clearAuth } from './auth'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-const API_BASE =
-  (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
-
-type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
-
-interface ApiOptions {
-  method?: Method
-  headers?: Record<string, string>
-  body?: any
-  retryAuth?: boolean // control para no refrescar en ciclo infinito
-}
-
-export async function api<T = unknown>(path: string, options: ApiOptions = {}): Promise<T> {
-  const url = path.startsWith('http') ? path : `${API_BASE}${path.startsWith('/') ? '' : '/'}${path}`
-
-  const headers: Record<string, string> = {
+export const api = axios.create({
+  baseURL: `${API_BASE_URL}/api`,
+  headers: {
     'Content-Type': 'application/json',
-    ...(options.headers || {}),
-  }
+  },
+  timeout: 10000,
+});
 
-  const access = getAccessToken()
-  if (access) headers.Authorization = `Bearer ${access}`
-
-  const res = await fetch(url, {
-    method: options.method || 'GET',
-    headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  })
-
-  // Intentar refresh si 401 y existe refresh_token (solo una vez)
-  if (res.status === 401 && getRefreshToken() && options.retryAuth !== false) {
-    const ok = await refresh()
-    if (ok) {
-      return api<T>(path, { ...options, retryAuth: false })
-    } else {
-      clearAuth()
-      throw new Error('Sesión expirada. Vuelve a iniciar sesión.')
+// Interceptor para agregar el token a cada petición
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('fcg.access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
 
-  const data = await safeJson(res)
-  if (!res.ok) {
-    const message = data?.message || data?.error || res.statusText
-    throw new Error(message)
-  }
-  return data as T
+// Interceptor para manejar errores de autenticación
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('fcg.access_token');
+      localStorage.removeItem('fcg.refresh_token');
+      localStorage.removeItem('fcg.user_data');
+      localStorage.removeItem('fcg.role');
+
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+
+// Helper functions
+export async function apiGet<T = unknown>(url: string): Promise<T> {
+  const response = await api.get<T>(url);
+  return response.data;
 }
 
-/* Helpers verbosos por conveniencia */
-export const apiGet = <T = unknown>(path: string) => api<T>(path)
-export const apiPost = <T = unknown>(path: string, body?: any) => api<T>(path, { method: 'POST', body })
-export const apiPatch = <T = unknown>(path: string, body?: any) => api<T>(path, { method: 'PATCH', body })
-export const apiPut = <T = unknown>(path: string, body?: any) => api<T>(path, { method: 'PUT', body })
-export const apiDelete = <T = unknown>(path: string) => api<T>(path, { method: 'DELETE' })
-
-async function safeJson(res: Response) {
-  try {
-    return await res.json()
-  } catch {
-    return null
-  }
+export async function apiPost<T = unknown>(
+  url: string,
+  data?: Record<string, unknown>,
+): Promise<T> {
+  const response = await api.post<T>(url, data);
+  return response.data;
 }
+
+export async function apiPatch<T = unknown>(
+  url: string,
+  data?: Record<string, unknown>,
+): Promise<T> {
+  const response = await api.patch<T>(url, data);
+  return response.data;
+}
+
+export async function apiDelete<T = unknown>(url: string): Promise<T> {
+  const response = await api.delete<T>(url);
+  return response.data;
+}
+
+
