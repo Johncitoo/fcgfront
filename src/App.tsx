@@ -46,6 +46,9 @@ import ApplicationFullFormPage from "./pages/reviewer/ApplicationFullFormPage";
 import ApplicationHistoryPage from "./pages/reviewer/ApplicationHistoryPage";
 import ApplicationReviewPage from "./pages/reviewer/ApplicationReviewPage";
 
+// Demo
+import FileUploadDemo from "./pages/demo/FileUploadDemo";
+
 function Ping() {
   return (
     <div style={{ padding: 24 }}>
@@ -100,6 +103,7 @@ export default function App() {
         <Route path="email/templates" element={<EmailTemplatesPage />} />
         <Route path="email/logs" element={<EmailLogsPage />} />
         <Route path="audit" element={<AuditPage />} />
+        <Route path="demo/files" element={<FileUploadDemo />} />
       </Route>
 
       {/* Applicant (protegido) */}
