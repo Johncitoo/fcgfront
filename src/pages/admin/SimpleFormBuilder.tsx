@@ -825,3 +825,5 @@ function FieldEditor({
     </div>
   )
 }
+
+export default SimpleFormBuilder
