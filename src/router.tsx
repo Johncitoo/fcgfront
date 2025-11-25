@@ -40,6 +40,7 @@ const DocumentsPage = lazy(() => import('./pages/applicant/DocumentsPage'))
 
 // Demo
 const FileUploadDemo = lazy(() => import('./pages/demo/FileUploadDemo'))
+const TestPage = lazy(() => import('./pages/demo/TestPage'))
 
 // Reviewer
 const ReviewerHome = lazy(() => import('./pages/reviewer/ReviewerHome'))
@@ -63,6 +64,7 @@ export const router = createBrowserRouter([
   { path: '/form', element: <PublicFormPage /> },
   
   // Demo público de file upload
+  { path: '/demo/test', element: <TestPage /> },
   { path: '/demo/files', element: <FileUploadDemo /> },
 
   // Admin (protegido)
