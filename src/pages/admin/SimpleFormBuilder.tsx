@@ -4,6 +4,7 @@ import {
   AlertCircle, CheckCircle2, ArrowLeft
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useCallContext } from '../../contexts/CallContext'
 
 type FieldType =
   | 'text' | 'textarea' | 'number' | 'decimal' | 'date'
@@ -48,12 +49,6 @@ interface Milestone {
   order: number
   required: boolean
   formId?: string
-}
-
-interface Call {
-  id: string
-  name: string
-  year: number
 }
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
@@ -125,8 +120,7 @@ const FIELD_TEMPLATES = [
 ]
 
 export default function SimpleFormBuilder() {
-  const [calls, setCalls] = useState<Call[]>([])
-  const [selectedCallId, setSelectedCallId] = useState('')
+  const { selectedCall } = useCallContext()
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [selectedMilestoneId, setSelectedMilestoneId] = useState('')
   const [formData, setFormData] = useState<FormData | null>(null)
@@ -139,31 +133,16 @@ export default function SimpleFormBuilder() {
   const token = localStorage.getItem('fcg.access_token') ?? ''
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 
-  // Cargar convocatorias
-  useEffect(() => {
-    ;(async () => {
-      try {
-        const res = await fetch(`${API_BASE}/calls?limit=100`, { headers })
-        if (res.ok) {
-          const data = await res.json()
-          setCalls(data.data || [])
-        }
-      } catch (err) {
-        console.error(err)
-      }
-    })()
-  }, [])
-
   // Cargar hitos cuando cambia convocatoria
   useEffect(() => {
-    if (!selectedCallId) {
+    if (!selectedCall?.id) {
       setMilestones([])
       setSelectedMilestoneId('')
       setFormData(null)
       return
     }
     loadMilestones()
-  }, [selectedCallId])
+  }, [selectedCall?.id])
 
   // Cargar formulario cuando cambia hito
   useEffect(() => {
@@ -177,7 +156,7 @@ export default function SimpleFormBuilder() {
   async function loadMilestones() {
     try {
       setLoading(true)
-      const res = await fetch(`${API_BASE}/milestones?callId=${selectedCallId}`, { headers })
+      const res = await fetch(`${API_BASE}/milestones?callId=${selectedCall?.id}`, { headers })
       if (res.ok) {
         const data = await res.json()
         setMilestones(data)
@@ -403,46 +382,44 @@ export default function SimpleFormBuilder() {
             )}
           </div>
 
-          {/* Selectores */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">1. Selecciona la convocatoria</label>
+          {/* Selector de hito */}
+          {!selectedCall ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-amber-900 mb-1">
+                    Selecciona una Convocatoria
+                  </h3>
+                  <p className="text-amber-700 text-sm">
+                    Usa el selector de convocatorias en el menú lateral para comenzar.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-md">
+              <label className="block text-sm font-medium mb-2">Selecciona el hito</label>
               <select
-                value={selectedCallId}
-                onChange={(e) => setSelectedCallId(e.target.value)}
+                value={selectedMilestoneId}
+                onChange={(e) => setSelectedMilestoneId(e.target.value)}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500"
+                disabled={loading}
               >
-                <option value="">Selecciona una convocatoria...</option>
-                {calls.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} {c.year}</option>
+                <option value="">Selecciona un hito...</option>
+                {milestones.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.order}. {m.title} {m.formId ? '✅' : ''}
+                  </option>
                 ))}
               </select>
+              {milestones.length === 0 && !loading && (
+                <p className="text-sm text-amber-600 mt-1">
+                  ⚠️ Esta convocatoria no tiene hitos. <Link to="/admin/hitos" className="underline">Configúralos aquí</Link>
+                </p>
+              )}
             </div>
-
-            {selectedCallId && (
-              <div>
-                <label className="block text-sm font-medium mb-2">2. Selecciona el hito</label>
-                <select
-                  value={selectedMilestoneId}
-                  onChange={(e) => setSelectedMilestoneId(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500"
-                  disabled={loading}
-                >
-                  <option value="">Selecciona un hito...</option>
-                  {milestones.map(m => (
-                    <option key={m.id} value={m.id}>
-                      {m.order}. {m.title} {m.formId ? '✅' : ''}
-                    </option>
-                  ))}
-                </select>
-                {milestones.length === 0 && !loading && (
-                  <p className="text-sm text-amber-600 mt-1">
-                    ⚠️ Esta convocatoria no tiene hitos configurados
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
 

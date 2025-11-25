@@ -14,7 +14,11 @@ export default function SideNav() {
           <Item to="/admin/calls" label="Convocatorias" />
           <Item to="/admin/invites" label="Invitaciones" />
           <Item to="/admin/applications" label="Postulaciones" />
-          <Item to="/admin/formularios" label="✨ Formularios" />
+        </Section>
+
+        <Section title="Formularios">
+          <Item to="/admin/hitos" label="📍 Configurar Hitos" />
+          <Item to="/admin/formularios" label="✨ Diseñar Formularios" />
         </Section>
 
         <Section title="Comunicaciones">

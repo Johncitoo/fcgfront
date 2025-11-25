@@ -110,3 +110,6 @@ export function useCall() {
   }
   return context
 }
+
+// Alias para consistencia
+export const useCallContext = useCall

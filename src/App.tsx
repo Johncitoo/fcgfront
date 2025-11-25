@@ -36,6 +36,7 @@ import InstitutionsPage from "./pages/admin/InstitutionsPage";
 import MilestoneManagement from "./pages/admin/MilestoneManagement";
 import SimpleFormBuilder from "./pages/admin/SimpleFormBuilder";
 import FormBuilderV2 from "./pages/admin/FormBuilderV2";
+import MilestoneCreator from "./pages/admin/MilestoneCreator";
 
 // Applicant
 import ApplicantHome from "./pages/applicant/ApplicantHome";
@@ -108,6 +109,7 @@ export default function App() {
         <Route path="email/logs" element={<EmailLogsPage />} />
         <Route path="audit" element={<AuditPage />} />
         <Route path="institutions" element={<InstitutionsPage />} />
+        <Route path="hitos" element={<MilestoneCreator />} />
         <Route path="formularios" element={<SimpleFormBuilder />} />
         <Route path="forms-v2" element={<FormBuilderV2 />} />
         <Route path="calls/:callId/milestones" element={<MilestoneManagement />} />
