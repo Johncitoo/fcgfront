@@ -38,6 +38,9 @@ const FormPage = lazy(() => import('./pages/applicant/FormPage'))
 const FixesPage = lazy(() => import('./pages/applicant/FixesPage'))
 const DocumentsPage = lazy(() => import('./pages/applicant/DocumentsPage'))
 
+// Demo
+const FileUploadDemo = lazy(() => import('./pages/demo/FileUploadDemo'))
+
 // Reviewer
 const ReviewerHome = lazy(() => import('./pages/reviewer/ReviewerHome'))
 const ApplicationFullFormPage = lazy(() => import('./pages/reviewer/ApplicationFullFormPage'))
@@ -78,6 +81,7 @@ export const router = createBrowserRouter([
     { path: 'email/templates', element: <EmailTemplatesPage /> },
     { path: 'email/logs', element: <EmailLogsPage /> },
     { path: 'audit', element: <AuditPage /> },
+    { path: 'demo/files', element: <FileUploadDemo /> }, // Demo de file upload
   ],
 },
 
