@@ -25,6 +25,10 @@ export default function SideNav() {
         <Section title="Monitoreo">
           <Item to="/admin/audit" label="Auditoría" />
         </Section>
+
+        <Section title="Desarrollo">
+          <Item to="/admin/demo/files" label="Demo - Upload Files" />
+        </Section>
       </div>
     </aside>
   )
