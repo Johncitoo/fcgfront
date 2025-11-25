@@ -161,6 +161,7 @@ export default function ApplicantsListPage() {
       if (createForm.commune?.trim()) payload.commune = createForm.commune.trim()
       if (createForm.region?.trim()) payload.region = createForm.region.trim()
       if (createForm.institution_id?.trim()) payload.institution_id = createForm.institution_id.trim()
+      if (selectedCallId) payload.call_id = selectedCallId
 
       const res = await fetch(`${API_BASE}/applicants`, {
         method: 'POST',
