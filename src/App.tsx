@@ -32,6 +32,10 @@ import ApplicationsListPage from "./pages/admin/ApplicationsListPage";
 import ApplicationDetailPage from "./pages/admin/ApplicationDetailPage";
 import AuditPage from "./pages/admin/AuditPage";
 import FormSectionEditorPage from "./pages/admin/FormSectionEditorPage";
+import InstitutionsPage from "./pages/admin/InstitutionsPage";
+import MilestoneManagement from "./pages/admin/MilestoneManagement";
+import SimpleFormBuilder from "./pages/admin/SimpleFormBuilder";
+import FormBuilderV2 from "./pages/admin/FormBuilderV2";
 
 // Applicant
 import ApplicantHome from "./pages/applicant/ApplicantHome";
@@ -103,6 +107,10 @@ export default function App() {
         <Route path="email/templates" element={<EmailTemplatesPage />} />
         <Route path="email/logs" element={<EmailLogsPage />} />
         <Route path="audit" element={<AuditPage />} />
+        <Route path="institutions" element={<InstitutionsPage />} />
+        <Route path="formularios" element={<SimpleFormBuilder />} />
+        <Route path="forms-v2" element={<FormBuilderV2 />} />
+        <Route path="calls/:callId/milestones" element={<MilestoneManagement />} />
         <Route path="demo/files" element={<FileUploadDemo />} />
       </Route>
 
