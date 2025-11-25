@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import ProgressTracker from '../../components/ProgressTracker'
 
 type ApplicationStatus =
   | 'DRAFT'
@@ -96,8 +97,16 @@ export default function ApplicantHome() {
         )}
 
         {!loading && !error && (
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Estado actual */}
+          <>
+            {/* Widget de progreso */}
+            {app?.id && (
+              <div className="mb-6">
+                <ProgressTracker applicationId={app.id} />
+              </div>
+            )}
+            
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Estado actual */}
             <section className="card md:col-span-2">
               <div className="card-body">
                 <div className="mb-4 flex items-center justify-between">
@@ -209,6 +218,7 @@ export default function ApplicantHome() {
               </div>
             </aside>
           </div>
+          </>
         )}
       </div>
     </div>

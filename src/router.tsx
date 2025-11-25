@@ -31,6 +31,9 @@ const ApplicationDetailPage = lazy(() => import('./pages/admin/ApplicationDetail
 const AuditPage = lazy(() => import('./pages/admin/AuditPage'))
 const FormSectionEditorPage = lazy(() => import('./pages/admin/FormSectionEditorPage'))
 const InstitutionsPage = lazy(() => import('./pages/admin/InstitutionsPage'))
+const MilestoneManagement = lazy(() => import('./pages/admin/MilestoneManagement'))
+const FormBuilderV2 = lazy(() => import('./pages/admin/FormBuilderV2'))
+const SimpleFormBuilder = lazy(() => import('./pages/admin/SimpleFormBuilder'))
 
 // Applicant
 const ApplicantHome = lazy(() => import('./pages/applicant/ApplicantHome'))
@@ -81,11 +84,14 @@ export const router = createBrowserRouter([
     { path: 'institutions', element: <InstitutionsPage /> },
     { path: 'applications', element: <ApplicationsListPage /> },
     { path: 'applications/:id', element: <ApplicationDetailPage /> },
-    { path: 'forms', element: <FormDesignerPage /> }, // ✅ nuevo diseñador de formularios
+    { path: 'formularios', element: <SimpleFormBuilder /> }, // ✅ NUEVO diseñador super simple
+    { path: 'forms', element: <FormDesignerPage /> }, // antiguo
+    { path: 'forms-v2', element: <FormBuilderV2 /> }, // antiguo v2
     { path: 'forms/:formId/sections/:sectionId', element: <FormSectionEditorPage /> },
     { path: 'email/templates', element: <EmailTemplatesPage /> },
     { path: 'email/logs', element: <EmailLogsPage /> },
     { path: 'audit', element: <AuditPage /> },
+    { path: 'calls/:callId/milestones', element: <MilestoneManagement /> }, // Configuración de hitos
     { path: 'demo/files', element: <FileUploadDemo /> }, // Demo de file upload
   ],
 },

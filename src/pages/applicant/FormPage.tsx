@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import RutInput from '../../components/RutInput'
+import FileUpload from '../../components/FileUpload'
 import { Save, Send, ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { filesService } from '../../services/files.service'
+import { formSubmissionsService } from '../../services/formSubmissions.service'
 
 type FieldType =
   | 'text'
@@ -80,6 +83,7 @@ export default function FormPage() {
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [institutions, setInstitutions] = useState<Institution[]>([])
+  const [submissionId, setSubmissionId] = useState<string | null>(null)
   const token = localStorage.getItem('fcg.access_token') ?? ''
 
   const headers = useMemo(
@@ -150,6 +154,22 @@ export default function FormPage() {
       }
     })()
   }, [id, headers, navigate])
+
+  // Crear FormSubmission automáticamente si no existe
+  useEffect(() => {
+    if (!id || !schema || submissionId) return
+    ;(async () => {
+      try {
+        const submission = await formSubmissionsService.create(
+          { applicationId: id, formData: {} },
+          token,
+        )
+        setSubmissionId(submission.id)
+      } catch (err) {
+        console.error('Error creating form submission:', err)
+      }
+    })()
+  }, [id, schema, submissionId, token])
 
   async function onSaveDraft() {
     if (!id) return
@@ -292,6 +312,9 @@ export default function FormPage() {
                             value={values[f.name]}
                             onChange={onChange}
                             institutions={institutions}
+                            applicationId={id}
+                            submissionId={submissionId}
+                            token={token}
                           />
                         ))}
                     </div>
@@ -350,13 +373,20 @@ function FieldControl({
   field,
   value,
   onChange,
-  institutions = [],
+  institutions,
+  applicationId,
+  submissionId,
+  token,
 }: {
   field: FormField
   value: any
   onChange: (name: string, next: any) => void
   institutions?: Institution[]
+  applicationId?: string
+  submissionId?: string | null
+  token?: string
 }) {
+  const [fileState, setFileState] = useState<{ file: File | null; uploading: boolean; error?: string; fileId?: string }>({ file: null, uploading: false })
   const {
     name,
     label,
@@ -411,7 +441,7 @@ function FieldControl({
           className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500 disabled:bg-slate-50 disabled:text-slate-500"
         >
           <option value="">Seleccione una institución...</option>
-          {institutions.map((inst) => (
+          {(institutions || []).map((inst) => (
             <option key={inst.id} value={inst.id}>
               {inst.name} ({inst.type})
             </option>
@@ -557,11 +587,38 @@ function FieldControl({
         </div>
       )}
 
-      {(type === 'file' || type === 'image') && (
-        <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
-          Este campo requiere subir un archivo/imagen. La carga real se hará en el
-          módulo de Documentos.
-        </div>
+      {(type === 'file' || type === 'image') && token && applicationId && (
+        <FileUpload
+          onFileSelect={async (file) => {
+            setFileState({ file, uploading: true })
+            try {
+              const uploadedFile = await filesService.upload(
+                {
+                  file,
+                  category: 'FORM_FIELD',
+                  entityType: 'APPLICATION',
+                  entityId: applicationId,
+                  description: `${label}${submissionId ? ` - Submission: ${submissionId}` : ''}`
+                },
+                token
+              )
+              setFileState({ file, uploading: false, fileId: uploadedFile.file.id })
+              onChange(name, uploadedFile.file.id)
+            } catch (err: any) {
+              setFileState({ file, uploading: false, error: err.message || 'Error al subir archivo' })
+            }
+          }}
+          onFileRemove={() => {
+            setFileState({ file: null, uploading: false })
+            onChange(name, null)
+          }}
+          file={fileState.file}
+          isUploading={fileState.uploading}
+          error={fileState.error}
+          accept={type === 'image' ? 'image/*' : undefined}
+          maxSize={10 * 1024 * 1024}
+          label={label}
+        />
       )}
 
       {helpText && <p className="text-xs text-slate-500">{helpText}</p>}
