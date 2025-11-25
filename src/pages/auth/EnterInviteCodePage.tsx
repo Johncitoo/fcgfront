@@ -26,14 +26,14 @@ export default function EnterInviteCodePage() {
     setSuccessMsg(null)
     setLoading(true)
     try {
-      // Llama al backend según el diseño API
-      const res = await apiPost<{ message?: string }>('/invites/consume', {
+      // Llama al nuevo endpoint de validación
+      const res = await apiPost<{ message?: string; success?: boolean }>('/onboarding/validate-invite', {
         email: email.trim(),
         code: code.trim(),
       })
       const msg =
         res?.message ||
-        'Código validado. Hemos creado tu postulación en borrador para la convocatoria correspondiente.'
+        'Código validado exitosamente. Revisa tu correo para establecer tu contraseña.'
       setSuccessMsg(msg)
     } catch (e: any) {
       setError(e?.message ?? 'No fue posible validar el código')

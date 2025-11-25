@@ -15,7 +15,6 @@ interface FormField {
   helpText?: string
   required?: boolean
   active?: boolean
-  placeholder?: string
   options?: FormOption[]
 }
 
@@ -140,7 +139,6 @@ export default function PublicFormPage() {
                       <textarea
                         value={values[field.name] || ''}
                         onChange={(e) => handleChange(field.name, e.target.value)}
-                        placeholder={field.placeholder}
                         className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                         rows={4}
                       />
@@ -219,7 +217,6 @@ export default function PublicFormPage() {
                         step={field.type === 'decimal' ? '0.01' : undefined}
                         value={values[field.name] || ''}
                         onChange={(e) => handleChange(field.name, e.target.value)}
-                        placeholder={field.placeholder}
                         className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       />
                     )}
