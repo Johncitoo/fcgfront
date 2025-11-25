@@ -2,14 +2,36 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import TopNav from '../components/TopNav'
 import SideNav from '../components/SideNav'
+import { useCall } from '../contexts/CallContext'
 
 export default function AdminLayout() {
   const [open, setOpen] = useState(false)
+  const { selectedCall, calls, setSelectedCallId, loading } = useCall()
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Top bar global */}
       <TopNav />
+
+      {/* Selector de convocatoria global */}
+      <div className="border-b bg-white px-4 py-3">
+        <div className="mx-auto flex w-full max-w-7xl items-center gap-3">
+          <span className="text-sm font-medium text-slate-700">Convocatoria:</span>
+          <select
+            value={selectedCall?.id || ''}
+            onChange={(e) => setSelectedCallId(e.target.value)}
+            disabled={loading || calls.length === 0}
+            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 disabled:bg-slate-100 disabled:text-slate-500"
+          >
+            {calls.length === 0 && <option value="">Sin convocatorias</option>}
+            {calls.map((call) => (
+              <option key={call.id} value={call.id}>
+                {call.name} {call.year} ({call.status === 'OPEN' ? 'Abierta' : call.status === 'CLOSED' ? 'Cerrada' : 'Borrador'})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       {/* Barra móvil con botón de menú (solo sm) */}
       <div className="border-b bg-white px-4 py-2 md:hidden">

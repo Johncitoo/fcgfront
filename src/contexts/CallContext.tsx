@@ -10,7 +10,9 @@ interface Call {
 
 interface CallContextType {
   selectedCall: Call | null
+  selectedCallId: string | null
   setSelectedCall: (call: Call | null) => void
+  setSelectedCallId: (id: string | null) => void
   calls: Call[]
   loading: boolean
   refreshCalls: () => Promise<void>
@@ -24,6 +26,20 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'https://fcgback-production.up.railway.app/api'
+
+  // Helper para setear por ID
+  function setSelectedCallId(id: string | null) {
+    if (!id) {
+      setSelectedCall(null)
+      localStorage.removeItem('selectedCallId')
+      return
+    }
+    const call = calls.find(c => c.id === id)
+    if (call) {
+      setSelectedCall(call)
+      localStorage.setItem('selectedCallId', id)
+    }
+  }
 
   async function refreshCalls() {
     try {
@@ -78,8 +94,10 @@ export function CallProvider({ children }: { children: ReactNode }) {
     }
   }, [selectedCall])
 
+  const selectedCallId = selectedCall?.id || null
+
   return (
-    <CallContext.Provider value={{ selectedCall, setSelectedCall, calls, loading, refreshCalls }}>
+    <CallContext.Provider value={{ selectedCall, selectedCallId, setSelectedCall, setSelectedCallId, calls, loading, refreshCalls }}>
       {children}
     </CallContext.Provider>
   )
