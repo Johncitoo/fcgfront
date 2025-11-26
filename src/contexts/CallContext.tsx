@@ -60,8 +60,17 @@ export function CallProvider({ children }: { children: ReactNode }) {
         setCalls(callsList)
 
         if (callsList.length > 0) {
-          // 1. Buscar convocatoria con status 'active' primero
-          const active = callsList.find((c: Call) => c.status === 'active')
+          // 1. Buscar convocatorias con status 'active' o 'OPEN'
+          const openCalls = callsList.filter((c: Call) => 
+            c.status === 'active' || c.status === 'OPEN' || c.status === 'open'
+          )
+          
+          // Si hay múltiples OPEN, tomar la de año más alto que sea "Becas FCG"
+          let active = openCalls.find((c: Call) => c.name.includes('Becas FCG'))
+          if (!active && openCalls.length > 0) {
+            // Si no hay "Becas FCG", tomar la primera OPEN
+            active = openCalls[0]
+          }
           
           // 2. Si no hay selectedCall, seleccionar la activa o la más reciente
           if (!selectedCall) {
