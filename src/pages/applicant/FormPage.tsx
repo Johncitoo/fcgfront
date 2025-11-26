@@ -136,15 +136,20 @@ export default function FormPage() {
         // 1) Metadatos de la postulación (para validar estado editable y obtener callId)
         const appRes = await fetch(`${API_BASE}/applications/${applicationId}`, { headers })
         if (!appRes.ok) throw new Error(await safeError(appRes))
-        const appJson = (await appRes.json()) as { status: ApplicationStatus; callId: string }
+        const appJson = (await appRes.json()) as { status: ApplicationStatus; callId?: string; call_id?: string }
 
         if (appJson.status !== 'DRAFT' && appJson.status !== 'NEEDS_FIX') {
           navigate('/applicant', { replace: true })
           return
         }
 
-        // 2) Esquema del formulario usando el callId de la application
-        const formRes = await fetch(`${API_BASE}/calls/${appJson.callId}/form`, {
+        // 2) Esquema del formulario usando el callId de la application (soporta ambos formatos)
+        const callId = appJson.callId || appJson.call_id
+        if (!callId) {
+          throw new Error('No se encontró la convocatoria asociada')
+        }
+        
+        const formRes = await fetch(`${API_BASE}/calls/${callId}/form`, {
           headers,
         })
         if (!formRes.ok) throw new Error(await safeError(formRes))
