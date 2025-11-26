@@ -37,22 +37,21 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await authService.loginWithInviteCode(invitationCode)
+      await authService.loginWithInviteCode(invitationCode)
 
-      toast.success('Postulación iniciada exitosamente')
+      toast.success('Bienvenido/a, comienza a completar tu formulario')
 
-      // Redirigir a la página del postulante
-      const homeRoute = authService.getHomeRouteByRole(response.user.role)
-      navigate(homeRoute, { replace: true })
+      // Redirigir directo al formulario (NO al dashboard)
+      navigate('/applicant/form', { replace: true })
     } catch (err: any) {
       console.error('Error en login con código:', err)
 
       if (err.response?.status === 404) {
         setCodeError('El código de invitación no existe o ha expirado.')
       } else if (err.response?.status === 400) {
-        setCodeError(err.response?.data?.message || 'El código de invitación no es válido.')
+        setCodeError(err.response?.data?.message || 'Este código ya ha sido utilizado.')
       } else if (err.response?.status === 410) {
-        setCodeError('El código de invitación ya fue utilizado.')
+        setCodeError('Este código ya ha sido utilizado.')
       } else {
         setCodeError('Error al procesar el código. Por favor, intenta nuevamente.')
       }

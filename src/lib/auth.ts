@@ -69,6 +69,22 @@ export const authService = {
   },
 
   /**
+   * Login para postulantes con email y contraseña (APPLICANT)
+   */
+  async loginApplicant(email: string, password: string): Promise<LoginStaffResponse> {
+    const response = await api.post<LoginStaffResponse>('/auth/login', {
+      email: email.trim(),
+      password,
+    });
+    
+    // Guardar tokens y datos del usuario
+    this.setTokens(response.data.accessToken, response.data.refreshToken);
+    this.setUser(response.data.user);
+    
+    return response.data;
+  },
+
+  /**
    * Cierra sesión del usuario
    */
   async logout(): Promise<void> {
