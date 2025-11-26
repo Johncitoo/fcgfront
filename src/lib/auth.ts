@@ -37,10 +37,12 @@ const ROLE_KEY = 'fcg.role';
 export const authService = {
   /**
    * Login con código de invitación (APPLICANT)
+   * Solo requiere el código - el email se obtiene del invite en el backend
    */
   async loginWithInviteCode(code: string): Promise<EnterInviteResponse> {
     const response = await api.post<EnterInviteResponse>('/auth/enter-invite', {
       code: code.trim(),
+      // Email es opcional - el backend lo obtiene del meta del invite
     });
     
     // Guardar tokens y datos del usuario

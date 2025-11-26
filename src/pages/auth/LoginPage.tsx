@@ -29,7 +29,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   // =========================
-  // Login con invitación
+  // Login con código de invitación
   // =========================
   const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,7 +50,7 @@ export default function LoginPage() {
       if (err.response?.status === 404) {
         setCodeError('El código de invitación no existe o ha expirado.')
       } else if (err.response?.status === 400) {
-        setCodeError('El código de invitación no es válido.')
+        setCodeError(err.response?.data?.message || 'El código de invitación no es válido.')
       } else if (err.response?.status === 410) {
         setCodeError('El código de invitación ya fue utilizado.')
       } else {
@@ -131,13 +131,12 @@ export default function LoginPage() {
                 <TabsContent value="postular" className="space-y-4">
                   <div className="space-y-2">
                     <p className="text-sm text-slate-600">
-                      Ingresa el código de invitación para iniciar tu
-                      postulación.
+                      Ingresa tu código de invitación para iniciar tu postulación.
                     </p>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-500">Ejemplo:</span>
                       <Badge variant="secondary" className="text-xs">
-                        CG2025-001
+                        TEST-XXXXXXXX
                       </Badge>
                     </div>
                   </div>
@@ -150,7 +149,7 @@ export default function LoginPage() {
                         type="text"
                         value={invitationCode}
                         onChange={(e) => setInvitationCode(e.target.value)}
-                        placeholder="CG2025-XXX"
+                        placeholder="TEST-XXXXXXXX"
                         disabled={isLoading}
                         className={codeError ? 'border-rose-300' : ''}
                       />
@@ -177,15 +176,15 @@ export default function LoginPage() {
                   <div className="flex items-center gap-2 text-xs text-slate-500 pt-2">
                     <HelpCircle className="h-3 w-3" />
                     <span>
-                      ¿Problemas con tu código?{' '}
+                      ¿No tienes código?{' '}
                       <button
                         type="button"
                         className="text-sky-700 hover:underline"
                         onClick={() =>
-                          toast.info('Contacta a soporte: soporte@fcg.org')
+                          toast.info('Contacta a tu institución educacional o a soporte@fcg.org')
                         }
                       >
-                        Contacta soporte
+                        Solicitar invitación
                       </button>
                     </span>
                   </div>
