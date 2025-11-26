@@ -44,6 +44,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
   async function refreshCalls() {
     try {
       setLoading(true)
+      // Limpiar selección previa para forzar selección de la activa
+      setSelectedCall(null)
       const token = localStorage.getItem('accessToken')
       const res = await fetch(`${API_BASE}/calls?limit=100`, {
         headers: {
@@ -57,20 +59,31 @@ export function CallProvider({ children }: { children: ReactNode }) {
         const callsList = Array.isArray(data) ? data : data.data || []
         setCalls(callsList)
 
-        // Si no hay convocatoria seleccionada, seleccionar la activa o la más reciente
-        if (!selectedCall && callsList.length > 0) {
-          // Buscar convocatoria con status 'active' primero
+        if (callsList.length > 0) {
+          // 1. Buscar convocatoria con status 'active' primero
           const active = callsList.find((c: Call) => c.status === 'active')
-          if (active) {
-            setSelectedCall(active)
-            localStorage.setItem('selectedCallId', active.id)
+          
+          // 2. Si no hay selectedCall, seleccionar la activa o la más reciente
+          if (!selectedCall) {
+            if (active) {
+              setSelectedCall(active)
+              localStorage.setItem('selectedCallId', active.id)
+            } else {
+              // Fallback: la más reciente (por año DESC)
+              const latest = callsList.reduce((prev: Call, current: Call) =>
+                current.year > prev.year ? current : prev
+              )
+              setSelectedCall(latest)
+              localStorage.setItem('selectedCallId', latest.id)
+            }
           } else {
-            // Fallback: la más reciente (por año DESC)
-            const latest = callsList.reduce((prev: Call, current: Call) =>
-              current.year > prev.year ? current : prev
-            )
-            setSelectedCall(latest)
-            localStorage.setItem('selectedCallId', latest.id)
+            // Si ya hay selectedCall, verificar si sigue existiendo en la lista
+            const stillExists = callsList.find((c: Call) => c.id === selectedCall.id)
+            if (!stillExists && active) {
+              // Si la que estaba seleccionada ya no existe, cambiar a la activa
+              setSelectedCall(active)
+              localStorage.setItem('selectedCallId', active.id)
+            }
           }
         }
       }
@@ -83,15 +96,6 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refreshCalls()
-    
-    // Restaurar convocatoria seleccionada desde localStorage
-    const savedCallId = localStorage.getItem('selectedCallId')
-    if (savedCallId && calls.length > 0) {
-      const saved = calls.find(c => c.id === savedCallId)
-      if (saved) {
-        setSelectedCall(saved)
-      }
-    }
   }, [])
 
   // Guardar en localStorage cuando cambia
