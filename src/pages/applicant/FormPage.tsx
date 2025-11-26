@@ -465,9 +465,33 @@ export default function FormPage() {
             </div>
             
             {currentStep === schema.sections.length - 1 && progress < 100 && (
-              <p className="mt-3 text-xs text-slate-500 text-center">
-                ⚠️ Completa todos los campos obligatorios para poder enviar la postulación
-              </p>
+              <div className="mt-3 text-xs text-center">
+                <p className="text-slate-500 mb-2">
+                  ⚠️ Completa todos los campos obligatorios para poder enviar la postulación
+                </p>
+                <details className="text-left bg-slate-50 border rounded p-2 max-w-md mx-auto">
+                  <summary className="cursor-pointer text-slate-600 hover:text-slate-900">
+                    Ver campos faltantes ({100 - progress}% restante)
+                  </summary>
+                  <ul className="mt-2 space-y-1 text-slate-700">
+                    {schema.sections.flatMap(s => 
+                      s.fields.filter(f => f.active !== false && f.required).map(f => {
+                        const val = values[f.name]
+                        const isEmpty = Array.isArray(val) ? val.length === 0 : (val === '' || val === null || val === undefined)
+                        if (isEmpty) {
+                          return (
+                            <li key={f.name} className="flex items-start gap-2">
+                              <span className="text-red-500">✗</span>
+                              <span>{f.label || f.name}</span>
+                            </li>
+                          )
+                        }
+                        return null
+                      }).filter(Boolean)
+                    )}
+                  </ul>
+                </details>
+              </div>
             )}
             
             {progress === 100 && (
