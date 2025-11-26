@@ -207,7 +207,7 @@ export default function FormPage() {
     setError(null)
     try {
       const res = await fetch(`${API_BASE}/applications/${applicationId}/answers`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers,
         body: JSON.stringify(values),
       })
@@ -226,7 +226,7 @@ export default function FormPage() {
     try {
       // Guardar antes de enviar
       const saveRes = await fetch(`${API_BASE}/applications/${applicationId}/answers`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers,
         body: JSON.stringify(values),
       })
