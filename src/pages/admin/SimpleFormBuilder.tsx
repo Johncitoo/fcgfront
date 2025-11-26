@@ -5,7 +5,6 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useCallContext } from '../../contexts/CallContext'
-import { CallStatusBadge } from '../../components/CallStatusBadge'
 
 type FieldType =
   | 'text' | 'textarea' | 'number' | 'decimal' | 'date'
@@ -372,8 +371,6 @@ export default function SimpleFormBuilder() {
                 <p className="text-sm text-slate-500">Crea formularios fácil y rápido</p>
               </div>
             </div>
-
-            <CallStatusBadge />
 
             {formData && (
               <div className="flex items-center gap-2">

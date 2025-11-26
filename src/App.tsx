@@ -37,7 +37,6 @@ import MilestoneManagement from "./pages/admin/MilestoneManagement";
 import SimpleFormBuilder from "./pages/admin/SimpleFormBuilder";
 import FormBuilderV2 from "./pages/admin/FormBuilderV2";
 import MilestoneCreator from "./pages/admin/MilestoneCreator";
-import CallActivationManager from "./pages/admin/CallActivationManager";
 
 // Applicant
 import ApplicantHome from "./pages/applicant/ApplicantHome";
@@ -114,7 +113,6 @@ export default function App() {
         <Route path="formularios" element={<SimpleFormBuilder />} />
         <Route path="forms-v2" element={<FormBuilderV2 />} />
         <Route path="calls/:callId/milestones" element={<MilestoneManagement />} />
-        <Route path="activacion-convocatorias" element={<CallActivationManager />} />
         <Route path="demo/files" element={<FileUploadDemo />} />
       </Route>
 
