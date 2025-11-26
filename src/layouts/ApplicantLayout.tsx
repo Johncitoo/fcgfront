@@ -14,34 +14,40 @@ export default function ApplicantLayout() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Navbar simple para postulantes */}
-      <header className="border-b bg-white shadow-sm">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <Link to="/applicant" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-md">
+      {/* Navbar responsive para postulantes */}
+      <header className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur-sm shadow-sm">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4">
+          {/* Logo y título - Responsive */}
+          <Link to="/applicant" className="flex items-center gap-2 sm:gap-3 group min-w-0">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-md transition-transform group-hover:scale-105">
               <span className="text-xl font-bold">F</span>
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-slate-800">
+            <div className="hidden md:block">
+              <h1 className="text-base font-bold text-slate-800 leading-tight">
                 Fundación Carmen Goudie
               </h1>
               <p className="text-xs text-slate-500">Portal de Postulantes</p>
             </div>
+            <div className="md:hidden">
+              <h1 className="text-sm font-bold text-slate-800">FCG Becas</h1>
+            </div>
           </Link>
 
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-medium text-slate-700">
+          {/* User info y logout - Responsive */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="hidden sm:block text-right">
+              <p className="text-sm font-medium text-slate-700 truncate max-w-[150px] lg:max-w-none">
                 {user?.fullName || user?.email}
               </p>
               <p className="text-xs text-slate-500">Postulante</p>
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              className="flex items-center gap-2 rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 active:scale-95"
+              title={user?.fullName || user?.email || 'Cerrar sesión'}
             >
               <LogOut className="h-4 w-4" />
-              Salir
+              <span className="hidden sm:inline">Salir</span>
             </button>
           </div>
         </div>
