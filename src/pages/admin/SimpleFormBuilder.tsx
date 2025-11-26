@@ -156,7 +156,7 @@ export default function SimpleFormBuilder() {
   async function loadMilestones() {
     try {
       setLoading(true)
-      const res = await fetch(`${API_BASE}/milestones?callId=${selectedCall?.id}`, { headers })
+      const res = await fetch(`${API_BASE}/milestones/call/${selectedCall?.id}`, { headers })
       if (res.ok) {
         const data = await res.json()
         setMilestones(data)
