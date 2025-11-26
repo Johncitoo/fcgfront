@@ -127,6 +127,12 @@ export default function AdminHome() {
             cta="Gestionar postulantes"
           />
           <QuickCard
+            title="Invitar Postulante"
+            desc="Crea invitaciones y envíalas automáticamente por email o copia el código para enviar manual."
+            to="/admin/invite-applicant"
+            cta="Invitar postulante"
+          />
+          <QuickCard
             title="Invitaciones"
             desc="Genera códigos por convocatoria y envíalos por correo. Registra si fueron usados."
             to="/admin/invites"
