@@ -550,16 +550,16 @@ export default function SimpleFormBuilder() {
                       </button>
 
                       {showFieldPicker === section.id && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border rounded-lg shadow-xl p-4 z-10 grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-gray-300 rounded-lg shadow-2xl p-4 z-50 grid grid-cols-2 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
                           {FIELD_TEMPLATES.map((template) => (
                             <button
                               key={template.id}
                               onClick={() => addField(section.id, template.id as FieldType)}
-                              className="text-left p-3 border rounded-lg hover:border-sky-400 hover:bg-sky-50 transition-all"
+                              className="text-left p-4 border-2 rounded-lg hover:border-sky-500 hover:bg-sky-50 transition-all bg-white shadow-sm"
                             >
-                              <div className="text-2xl mb-1">{template.icon}</div>
-                              <div className="font-medium text-sm">{template.name}</div>
-                              <div className="text-xs text-slate-500 mt-1">{template.description}</div>
+                              <div className="text-3xl mb-2">{template.icon}</div>
+                              <div className="font-semibold text-sm text-gray-900">{template.name}</div>
+                              <div className="text-xs text-gray-600 mt-1">{template.description}</div>
                             </button>
                           ))}
                         </div>
