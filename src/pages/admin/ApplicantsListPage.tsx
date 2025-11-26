@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCall } from '../../contexts/CallContext'
+import { useCallContext } from '../../contexts/CallContext'
+import { Mail, Copy, X, CheckCircle2, Send } from 'lucide-react'
 
 interface ApplicantRow {
   id: string
@@ -19,6 +21,14 @@ interface ApplicantRow {
   createdAt?: string
 }
 
+interface InviteStatus {
+  [applicantId: string]: {
+    invited: boolean
+    method: 'auto' | 'manual'
+    timestamp: string
+  }
+}
+
 interface PageMeta {
   total: number
   limit: number
@@ -35,6 +45,7 @@ const API_BASE =
 
 export default function ApplicantsListPage() {
   const { selectedCallId } = useCall()
+  const { selectedCall } = useCallContext()
   const [rows, setRows] = useState<ApplicantRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -44,6 +55,17 @@ export default function ApplicantsListPage() {
   const [limit, setLimit] = useState(20)
   const [offset, setOffset] = useState(0)
   const [meta, setMeta] = useState<PageMeta | null>(null)
+
+  // Modal de invitación
+  const [inviteModalOpen, setInviteModalOpen] = useState(false)
+  const [selectedApplicant, setSelectedApplicant] = useState<ApplicantRow | null>(null)
+  const [inviteLoading, setInviteLoading] = useState(false)
+  const [inviteError, setInviteError] = useState<string | null>(null)
+  const [inviteSuccess, setInviteSuccess] = useState(false)
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null)
+  const [emailSubject, setEmailSubject] = useState('')
+  const [emailBody, setEmailBody] = useState('')
+  const [inviteStatuses, setInviteStatuses] = useState<InviteStatus>({})
 
   // crear manualmente (modal simple inline)
   const [creating, setCreating] = useState(false)
@@ -74,6 +96,148 @@ export default function ApplicantsListPage() {
       'Content-Type': 'application/json',
     }
   }, [])
+
+  // Función para abrir modal de invitación
+  function openInviteModal(applicant: ApplicantRow) {
+    if (!selectedCall) {
+      alert('Selecciona una convocatoria primero')
+      return
+    }
+    setSelectedApplicant(applicant)
+    setInviteModalOpen(true)
+    setInviteError(null)
+    setInviteSuccess(false)
+    setGeneratedCode(null)
+    setEmailSubject('')
+    setEmailBody('')
+  }
+
+  // Función para enviar invitación automática
+  async function sendAutoInvite() {
+    if (!selectedApplicant || !selectedCall) return
+
+    setInviteLoading(true)
+    setInviteError(null)
+
+    try {
+      const res = await fetch(`${API_BASE}/invites`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          callId: selectedCall.id,
+          firstName: selectedApplicant.firstName,
+          lastName: selectedApplicant.lastName,
+          email: selectedApplicant.email,
+          sendEmail: true,
+        }),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.message || 'Error al enviar invitación')
+      }
+
+      setInviteSuccess(true)
+      setInviteStatuses({
+        ...inviteStatuses,
+        [selectedApplicant.id]: {
+          invited: true,
+          method: 'auto',
+          timestamp: new Date().toISOString(),
+        },
+      })
+
+      setTimeout(() => {
+        setInviteModalOpen(false)
+        setSelectedApplicant(null)
+      }, 2000)
+    } catch (err: any) {
+      setInviteError(err.message || 'Error al enviar invitación')
+    } finally {
+      setInviteLoading(false)
+    }
+  }
+
+  // Función para generar código manual
+  async function generateManualInvite() {
+    if (!selectedApplicant || !selectedCall) return
+
+    setInviteLoading(true)
+    setInviteError(null)
+
+    try {
+      const res = await fetch(`${API_BASE}/invites`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          callId: selectedCall.id,
+          firstName: selectedApplicant.firstName,
+          lastName: selectedApplicant.lastName,
+          email: selectedApplicant.email,
+          sendEmail: false,
+        }),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.message || 'Error al generar código')
+      }
+
+      const data = await res.json()
+      const code = data.code || data.invitationCode
+
+      setGeneratedCode(code)
+      
+      // Generar asunto y cuerpo del email
+      const name = selectedApplicant.firstName && selectedApplicant.lastName
+        ? `${selectedApplicant.firstName} ${selectedApplicant.lastName}`
+        : selectedApplicant.fullName || 'Postulante'
+
+      const subject = `Invitación para postular - ${selectedCall.name}`
+      const inviteUrl = `${window.location.origin}/#/login`
+      
+      const body = `¡Hola ${name}!
+
+Has sido invitado/a a postular a ${selectedCall.name} de la Fundación Carmen Goudie.
+
+Datos de acceso:
+Email: ${selectedApplicant.email}
+Código: ${code}
+
+Para postular, entra a: ${inviteUrl}
+
+Instrucciones:
+1. Ingresa al portal de postulaciones
+2. Introduce tu código de invitación
+3. Crea tu contraseña
+4. Completa el formulario
+
+¡Te esperamos!
+
+Fundación Carmen Goudie`
+
+      setEmailSubject(subject)
+      setEmailBody(body)
+
+      setInviteStatuses({
+        ...inviteStatuses,
+        [selectedApplicant.id]: {
+          invited: true,
+          method: 'manual',
+          timestamp: new Date().toISOString(),
+        },
+      })
+    } catch (err: any) {
+      setInviteError(err.message || 'Error al generar código')
+    } finally {
+      setInviteLoading(false)
+    }
+  }
+
+  // Función para copiar al portapapeles
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text)
+  }
 
   async function load() {
     try {
@@ -246,13 +410,14 @@ export default function ApplicantsListPage() {
                     <th className="py-2 pr-3">Correo</th>
                     <th className="py-2 pr-3">Teléfono</th>
                     <th className="py-2 pr-3">Escuela/Colegio</th>
-                    <th className="py-2">Creado</th>
+                    <th className="py-2 pr-3">Creado</th>
+                    <th className="py-2">Invitación</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-6 text-center text-slate-500">
+                      <td colSpan={7} className="py-6 text-center text-slate-500">
                         No hay registros.
                       </td>
                     </tr>
@@ -265,6 +430,7 @@ export default function ApplicantsListPage() {
                       const school = r.institutionName 
                         ? `${r.institutionName}${r.institutionCommune ? ` (${r.institutionCommune})` : ''}`
                         : '—'
+                      const inviteStatus = inviteStatuses[r.id]
                       
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50">
@@ -273,10 +439,28 @@ export default function ApplicantsListPage() {
                           <td className="py-2 pr-3 text-slate-600">{r.email}</td>
                           <td className="py-2 pr-3">{r.phone || '—'}</td>
                           <td className="py-2 pr-3 text-slate-600">{school}</td>
-                          <td className="py-2">
+                          <td className="py-2 pr-3">
                             {r.createdAt
                               ? new Date(r.createdAt).toLocaleDateString('es-CL')
                               : '—'}
+                          </td>
+                          <td className="py-2">
+                            {inviteStatus ? (
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                <span className="text-xs text-green-700">
+                                  Invitado ({inviteStatus.method === 'auto' ? 'Email' : 'Manual'})
+                                </span>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => openInviteModal(r)}
+                                className="inline-flex items-center gap-1 rounded-md bg-sky-600 px-2 py-1 text-xs font-medium text-white hover:bg-sky-700"
+                              >
+                                <Send className="w-3 h-3" />
+                                Invitar
+                              </button>
+                            )}
                           </td>
                         </tr>
                       )
@@ -526,6 +710,188 @@ export default function ApplicantsListPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de invitación */}
+      {inviteModalOpen && selectedApplicant && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b p-4">
+              <h2 className="text-lg font-semibold">
+                Invitar a {selectedApplicant.firstName || selectedApplicant.fullName || 'Postulante'}
+              </h2>
+              <button
+                onClick={() => setInviteModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              {!selectedCall ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <p className="text-sm text-amber-900">
+                    Selecciona una convocatoria en el menú lateral para continuar.
+                  </p>
+                </div>
+              ) : !inviteSuccess && !generatedCode ? (
+                <>
+                  <div className="bg-slate-50 rounded-lg p-4 space-y-2">
+                    <p className="text-sm"><strong>Email:</strong> {selectedApplicant.email}</p>
+                    <p className="text-sm"><strong>Convocatoria:</strong> {selectedCall.name}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium mb-3">¿Cómo deseas enviar la invitación?</p>
+                    
+                    <div className="space-y-3">
+                      <button
+                        onClick={sendAutoInvite}
+                        disabled={inviteLoading}
+                        className="w-full flex items-start gap-3 p-4 border-2 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      >
+                        <Mail className="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 text-left">
+                          <div className="font-medium">Enviar automáticamente por email</div>
+                          <p className="text-sm text-slate-600 mt-1">
+                            El sistema enviará un correo electrónico con el código de invitación
+                          </p>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={generateManualInvite}
+                        disabled={inviteLoading}
+                        className="w-full flex items-start gap-3 p-4 border-2 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      >
+                        <Copy className="w-5 h-5 text-slate-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 text-left">
+                          <div className="font-medium">Obtener cuerpo del mensaje (envío manual)</div>
+                          <p className="text-sm text-slate-600 mt-1">
+                            Se generará el código y verás el asunto y cuerpo del email para copiar
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {inviteError && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <p className="text-sm font-medium text-red-900">Error</p>
+                      <p className="text-sm text-red-700">{inviteError}</p>
+                    </div>
+                  )}
+
+                  {inviteLoading && (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-slate-600">Procesando...</p>
+                    </div>
+                  )}
+                </>
+              ) : inviteSuccess && !generatedCode ? (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-6 h-6 text-green-600" />
+                    <div>
+                      <p className="font-medium text-green-900">¡Mensaje enviado!</p>
+                      <p className="text-sm text-green-700 mt-1">
+                        El correo con el código de invitación ha sido enviado a{' '}
+                        <strong>{selectedApplicant.email}</strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : generatedCode ? (
+                <div className="space-y-4">
+                  <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-5 h-5 text-sky-600" />
+                      <p className="font-medium text-sky-900">Código generado</p>
+                    </div>
+                    <p className="text-sm text-sky-700">
+                      Copia el siguiente contenido y envíalo manualmente por WhatsApp, SMS o el medio que prefieras.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Asunto */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-medium">Asunto del correo</label>
+                        <button
+                          onClick={() => copyToClipboard(emailSubject)}
+                          className="text-xs text-sky-600 hover:text-sky-700 flex items-center gap-1"
+                        >
+                          <Copy className="w-3 h-3" />
+                          Copiar
+                        </button>
+                      </div>
+                      <div className="bg-slate-50 border rounded-lg p-3">
+                        <p className="text-sm">{emailSubject}</p>
+                      </div>
+                    </div>
+
+                    {/* Destinatario */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-medium">Correo del destinatario</label>
+                        <button
+                          onClick={() => copyToClipboard(selectedApplicant.email)}
+                          className="text-xs text-sky-600 hover:text-sky-700 flex items-center gap-1"
+                        >
+                          <Copy className="w-3 h-3" />
+                          Copiar
+                        </button>
+                      </div>
+                      <div className="bg-slate-50 border rounded-lg p-3">
+                        <p className="text-sm font-mono">{selectedApplicant.email}</p>
+                      </div>
+                    </div>
+
+                    {/* Cuerpo del mensaje */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-medium">Cuerpo del mensaje</label>
+                        <button
+                          onClick={() => copyToClipboard(emailBody)}
+                          className="text-xs text-sky-600 hover:text-sky-700 flex items-center gap-1"
+                        >
+                          <Copy className="w-3 h-3" />
+                          Copiar
+                        </button>
+                      </div>
+                      <div className="bg-slate-50 border rounded-lg p-3 max-h-64 overflow-y-auto">
+                        <pre className="text-sm whitespace-pre-wrap font-sans">{emailBody}</pre>
+                      </div>
+                    </div>
+
+                    {/* Botón para copiar todo */}
+                    <button
+                      onClick={() => copyToClipboard(`${emailSubject}\n\n${emailBody}`)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700"
+                    >
+                      <Copy className="w-4 h-4" />
+                      Copiar todo (asunto + cuerpo)
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Footer */}
+            <div className="border-t p-4 flex justify-end">
+              <button
+                onClick={() => setInviteModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}
