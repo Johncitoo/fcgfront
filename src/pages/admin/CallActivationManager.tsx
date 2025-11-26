@@ -40,13 +40,28 @@ export default function CallActivationManager() {
   };
 
   const handleToggleActive = async (callId: string, currentValue: boolean) => {
+    const newValue = !currentValue;
+    
+    // Si intenta ACTIVAR, verificar que no haya otra activa
+    if (newValue === true) {
+      const activeCall = calls.find(c => c.isActive && c.status === "OPEN" && c.id !== callId);
+      
+      if (activeCall) {
+        toast.error(
+          `Solo puede haber una convocatoria activa a la vez. "${activeCall.name} ${activeCall.year}" ya está activa.`,
+          { duration: 5000 }
+        );
+        return;
+      }
+    }
+    
     try {
       await callsService.updateCall(callId, {
-        isActive: !currentValue,
+        isActive: newValue,
       });
       toast.success(
-        !currentValue
-          ? "Convocatoria activada"
+        newValue
+          ? "✅ Convocatoria activada. Esta es ahora la convocatoria activa para postulantes."
           : "Convocatoria desactivada"
       );
       loadCalls();
@@ -142,6 +157,9 @@ export default function CallActivationManager() {
     );
   }
 
+  // Encontrar la convocatoria activa actual
+  const activeCall = calls.find(c => c.isActive && c.status === "OPEN");
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-6">
@@ -152,6 +170,45 @@ export default function CallActivationManager() {
           Gestiona qué convocatorias están disponibles para que los postulantes puedan aplicar
         </p>
       </div>
+
+      {/* Alerta de convocatoria activa */}
+      {activeCall ? (
+        <div className="mb-6 bg-green-50 border-2 border-green-500 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-green-900">
+                Convocatoria Activa: {activeCall.name} {activeCall.year}
+              </h3>
+              <p className="text-sm text-green-700 mt-1">
+                Esta es la convocatoria actualmente disponible para postulantes. Los códigos de invitación y formularios están vinculados a esta convocatoria.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="mb-6 bg-yellow-50 border-2 border-yellow-500 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <svg className="w-6 h-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-yellow-900">
+                No hay convocatoria activa
+              </h3>
+              <p className="text-sm text-yellow-700 mt-1">
+                Los postulantes no pueden aplicar hasta que actives una convocatoria. Solo puede haber una convocatoria activa a la vez.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow">
         <div className="overflow-x-auto">
@@ -200,10 +257,20 @@ export default function CallActivationManager() {
       </div>
 
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h3 className="font-semibold text-blue-900 mb-2">⚠️ Regla Importante:</h3>
+        <div className="bg-white border-2 border-blue-300 rounded p-3 mb-3">
+          <p className="text-sm font-semibold text-blue-900">
+            Solo puede haber UNA convocatoria activa a la vez
+          </p>
+          <p className="text-sm text-blue-700 mt-1">
+            Los códigos de invitación y formularios de postulación están vinculados a la convocatoria activa. 
+            Si intentas activar otra, el sistema te pedirá desactivar la actual primero.
+          </p>
+        </div>
         <h3 className="font-semibold text-blue-900 mb-2">Cómo funciona:</h3>
         <ul className="list-disc list-inside space-y-1 text-sm text-blue-800">
           <li>
-            <strong>Activación Manual:</strong> Toggle para activar/desactivar convocatoria
+            <strong>Activación Manual:</strong> Toggle para activar/desactivar convocatoria (solo una a la vez)
           </li>
           <li>
             <strong>Fecha Inicio:</strong> Postulantes no pueden aplicar antes de esta fecha
