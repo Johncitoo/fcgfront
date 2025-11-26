@@ -153,7 +153,7 @@ export default function MilestoneCreator() {
         }
       }
 
-      setSuccess('✅ Hitos guardados exitosamente')
+      setSuccess('Hitos guardados exitosamente')
       setTimeout(() => setSuccess(''), 3000)
       await loadMilestones()
     } catch (err: any) {
@@ -185,7 +185,7 @@ export default function MilestoneCreator() {
     <div className="p-8 max-w-5xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          📍 Configurar Hitos
+          Configurar Hitos
         </h1>
         <p className="text-gray-600">
           Convocatoria: <span className="font-semibold">{selectedCall.name} {selectedCall.year}</span>

@@ -17,8 +17,8 @@ export default function SideNav() {
         </Section>
 
         <Section title="Formularios">
-          <Item to="/admin/hitos" label="📍 Configurar Hitos" />
-          <Item to="/admin/formularios" label="✨ Diseñar Formularios" />
+          <Item to="/admin/hitos" label="Configurar Hitos" />
+          <Item to="/admin/formularios" label="Diseñar Formularios" />
         </Section>
 
         <Section title="Comunicaciones">

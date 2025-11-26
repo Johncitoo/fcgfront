@@ -60,63 +60,63 @@ const FIELD_TEMPLATES = [
     id: 'text',
     name: 'Texto corto',
     description: 'Para nombres, RUT, email, teléfono',
-    icon: '📝',
+    icon: 'T',
     example: 'Ejemplo: Juan Pérez'
   },
   { 
     id: 'textarea',
     name: 'Texto largo',
     description: 'Para descripciones, comentarios',
-    icon: '📄',
+    icon: 'TT',
     example: 'Varias líneas de texto...'
   },
   { 
     id: 'number',
     name: 'Número',
     description: 'Para edad, cantidad, puntaje',
-    icon: '🔢',
+    icon: '#',
     example: '25'
   },
   { 
     id: 'date',
     name: 'Fecha',
     description: 'Para fecha de nacimiento, etc',
-    icon: '📅',
+    icon: 'Cal',
     example: '01/01/2000'
   },
   { 
     id: 'select',
     name: 'Lista de opciones',
     description: 'Elegir una opción de una lista',
-    icon: '📋',
+    icon: '▼',
     example: 'Opción 1, Opción 2...'
   },
   { 
     id: 'radio',
     name: 'Sí/No o múltiples opciones',
     description: 'Elegir solo una opción',
-    icon: '⭕',
+    icon: '○',
     example: 'Sí / No'
   },
   { 
     id: 'checkbox',
     name: 'Varias opciones',
     description: 'Elegir varias opciones',
-    icon: '☑️',
-    example: 'Opción 1 ☑ Opción 2 ☐'
+    icon: '☐',
+    example: 'Opción 1, Opción 2'
   },
   { 
     id: 'file',
     name: 'Subir archivo',
     description: 'Para PDF, Word, etc',
-    icon: '📎',
+    icon: '□',
     example: 'Seleccionar archivo...'
   },
   { 
     id: 'image',
     name: 'Subir imagen',
     description: 'Para fotos, comprobantes',
-    icon: '🖼️',
+    icon: '▢',
     example: 'Seleccionar imagen...'
   },
 ]
@@ -428,7 +428,7 @@ export default function SimpleFormBuilder() {
               </select>
               {milestones.length === 0 && !loading && (
                 <p className="text-sm text-amber-600 mt-1">
-                  ⚠️ Esta convocatoria no tiene hitos. <Link to="/admin/hitos" className="underline">Configúralos aquí</Link>
+                  Esta convocatoria no tiene hitos. <Link to="/admin/hitos" className="underline">Configúralos aquí</Link>
                 </p>
               )}
             </div>
@@ -587,7 +587,7 @@ export default function SimpleFormBuilder() {
                 <div className="flex gap-3">
                   <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-blue-900">
-                    <p className="font-medium mb-1">💡 Consejo:</p>
+                    <p className="font-medium mb-1">Consejo:</p>
                     <ul className="space-y-1 text-blue-800">
                       <li>• Organiza las preguntas en secciones (ej: "Datos Personales", "Antecedentes")</li>
                       <li>• Haz clic en cualquier pregunta para editarla</li>
