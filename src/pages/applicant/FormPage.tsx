@@ -270,6 +270,17 @@ export default function FormPage() {
     return allFields.length > 0 ? Math.round((filled.length / allFields.length) * 100) : 0
   }, [schema, values])
 
+  // Verificar si una sección está completa
+  const isSectionComplete = (section: FormSection): boolean => {
+    const requiredFields = section.fields.filter(f => f.active !== false && f.required)
+    if (requiredFields.length === 0) return true
+    return requiredFields.every(f => {
+      const val = values[f.name]
+      if (Array.isArray(val)) return val.length > 0
+      return val !== '' && val !== null && val !== undefined
+    })
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="mx-auto w-full max-w-5xl">
@@ -330,42 +341,45 @@ export default function FormPage() {
           <>
             {/* Indicadores de pasos */}
             <div className="flex items-center justify-center gap-2 mb-8 overflow-x-auto pb-4">
-              {schema.sections.map((sec, index) => (
-                <div
-                  key={sec.id}
-                  className={`flex items-center ${index < schema.sections.length - 1 ? 'flex-1 max-w-xs' : ''}`}
-                >
-                  <button
-                    onClick={() => setCurrentStep(index)}
-                    className={`flex flex-col items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                      index === currentStep
-                        ? 'bg-sky-100 text-sky-700'
-                        : index < currentStep
-                        ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                    }`}
+              {schema.sections.map((sec, index) => {
+                const isComplete = isSectionComplete(sec)
+                return (
+                  <div
+                    key={sec.id}
+                    className={`flex items-center ${index < schema.sections.length - 1 ? 'flex-1 max-w-xs' : ''}`}
                   >
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${
+                    <button
+                      onClick={() => setCurrentStep(index)}
+                      className={`flex flex-col items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                         index === currentStep
-                          ? 'bg-sky-600 text-white'
-                          : index < currentStep
-                          ? 'bg-green-600 text-white'
-                          : 'bg-slate-300 text-slate-600'
+                          ? 'bg-sky-100 text-sky-700'
+                          : isComplete
+                          ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                       }`}
                     >
-                      {index < currentStep ? '✓' : index + 1}
-                    </div>
-                    <span className="text-xs font-medium text-center whitespace-nowrap">
-                      {sec.title}
-                    </span>
-                  </button>
-                  
-                  {index < schema.sections.length - 1 && (
-                    <div className="flex-1 h-0.5 bg-slate-200 mx-2" />
-                  )}
-                </div>
-              ))}
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${
+                          index === currentStep
+                            ? 'bg-sky-600 text-white'
+                            : isComplete
+                            ? 'bg-green-600 text-white'
+                            : 'bg-slate-300 text-slate-600'
+                        }`}
+                      >
+                        {isComplete ? '✓' : index + 1}
+                      </div>
+                      <span className="text-xs font-medium text-center whitespace-nowrap">
+                        {sec.title}
+                      </span>
+                    </button>
+                    
+                    {index < schema.sections.length - 1 && (
+                      <div className="flex-1 h-0.5 bg-slate-200 mx-2" />
+                    )}
+                  </div>
+                )
+              })}
             </div>
 
             {/* Sección actual */}
