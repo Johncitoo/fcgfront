@@ -262,12 +262,14 @@ export default function FormPage() {
   const progress = useMemo(() => {
     if (!schema) return 0
     const allFields = schema.sections.flatMap(s => s.fields.filter(f => f.active !== false && f.required))
+    // Si no hay campos obligatorios, el progreso es 100% (el formulario es válido)
+    if (allFields.length === 0) return 100
     const filled = allFields.filter(f => {
       const val = values[f.name]
       if (Array.isArray(val)) return val.length > 0
       return val !== '' && val !== null && val !== undefined
     })
-    return allFields.length > 0 ? Math.round((filled.length / allFields.length) * 100) : 0
+    return Math.round((filled.length / allFields.length) * 100)
   }, [schema, values])
 
   // Verificar si una sección está completa
