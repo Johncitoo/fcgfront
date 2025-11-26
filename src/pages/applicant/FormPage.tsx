@@ -50,8 +50,9 @@ interface FormSection {
 }
 
 interface FormSchema {
-  applicationId: string
-  call: { id: string; code: string; title: string }
+  id: string
+  title: string
+  year?: number
   sections: FormSection[]
 }
 
@@ -154,6 +155,11 @@ export default function FormPage() {
         })
         if (!formRes.ok) throw new Error(await safeError(formRes))
         const formJson = (await formRes.json()) as FormSchema
+        
+        if (!formJson || !formJson.title || !formJson.sections) {
+          throw new Error('El formulario de esta convocatoria no está disponible')
+        }
+        
         setSchema(formJson)
 
         // 3) Respuestas existentes
@@ -280,7 +286,7 @@ export default function FormPage() {
           {schema && (
             <div className="mt-2">
               <p className="text-sm text-slate-600 mb-2">
-                Convocatoria: <span className="font-semibold text-slate-900">{schema.call.title}</span>
+                Convocatoria: <span className="font-semibold text-slate-900">{schema.title}</span>
               </p>
               <div className="mt-3">
                 <div className="flex items-center justify-between mb-1">
