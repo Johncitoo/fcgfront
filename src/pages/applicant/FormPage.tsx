@@ -74,7 +74,7 @@ const API_BASE =
   (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
 export default function FormPage() {
-  const { id } = useParams<{ id: string }>()
+  const { id: urlId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -84,6 +84,7 @@ export default function FormPage() {
   const [submitting, setSubmitting] = useState(false)
   const [institutions, setInstitutions] = useState<Institution[]>([])
   const [submissionId, setSubmissionId] = useState<string | null>(null)
+  const [applicationId, setApplicationId] = useState<string | null>(urlId || null)
   const token = localStorage.getItem('fcg.access_token') ?? ''
 
   const headers = useMemo(
@@ -94,8 +95,32 @@ export default function FormPage() {
     [token],
   )
 
+  // Si no hay ID en URL, obtener la application activa
   useEffect(() => {
-    if (!id) return
+    if (urlId) {
+      setApplicationId(urlId)
+      return
+    }
+    ;(async () => {
+      try {
+        setLoading(true)
+        const res = await fetch(`${API_BASE}/applications/my-active`, { headers })
+        if (!res.ok) {
+          setError('No se encontró una postulación activa')
+          setLoading(false)
+          return
+        }
+        const data = await res.json()
+        setApplicationId(data.id)
+      } catch (err: any) {
+        setError('Error al obtener tu postulación activa')
+        setLoading(false)
+      }
+    })()
+  }, [urlId, headers])
+
+  useEffect(() => {
+    if (!applicationId) return
     ;(async () => {
       try {
         setLoading(true)
@@ -109,7 +134,7 @@ export default function FormPage() {
         }
 
         // 1) Metadatos de la postulación (para validar estado editable)
-        const appRes = await fetch(`${API_BASE}/applications/${id}`, { headers })
+        const appRes = await fetch(`${API_BASE}/applications/${applicationId}`, { headers })
         if (!appRes.ok) throw new Error(await safeError(appRes))
         const appJson = (await appRes.json()) as { status: ApplicationStatus }
 
@@ -119,7 +144,7 @@ export default function FormPage() {
         }
 
         // 2) Esquema del formulario
-        const formRes = await fetch(`${API_BASE}/applications/${id}/form`, {
+        const formRes = await fetch(`${API_BASE}/applications/${applicationId}/form`, {
           headers,
         })
         if (!formRes.ok) throw new Error(await safeError(formRes))
@@ -128,7 +153,7 @@ export default function FormPage() {
 
         // 3) Respuestas existentes
         const answersRes = await fetch(
-          `${API_BASE}/applications/${id}/answers`,
+          `${API_BASE}/applications/${applicationId}/answers`,
           { headers },
         )
         const initial: Record<string, any> = answersRes.ok
@@ -153,15 +178,15 @@ export default function FormPage() {
         setLoading(false)
       }
     })()
-  }, [id, headers, navigate])
+  }, [applicationId, headers, navigate])
 
   // Crear FormSubmission automáticamente si no existe
   useEffect(() => {
-    if (!id || !schema || submissionId) return
+    if (!applicationId || !schema || submissionId) return
     ;(async () => {
       try {
         const submission = await formSubmissionsService.create(
-          { applicationId: id, formData: {} },
+          { applicationId, formData: {} },
           token,
         )
         setSubmissionId(submission.id)
@@ -169,14 +194,14 @@ export default function FormPage() {
         console.error('Error creating form submission:', err)
       }
     })()
-  }, [id, schema, submissionId, token])
+  }, [applicationId, schema, submissionId, token])
 
   async function onSaveDraft() {
-    if (!id) return
+    if (!applicationId) return
     setSaving(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/applications/${id}/answers`, {
+      const res = await fetch(`${API_BASE}/applications/${applicationId}/answers`, {
         method: 'PUT',
         headers,
         body: JSON.stringify(values),
@@ -190,12 +215,12 @@ export default function FormPage() {
   }
 
   async function onSubmit() {
-    if (!id) return
+    if (!applicationId) return
     setSubmitting(true)
     setError(null)
     try {
       // Guardar antes de enviar
-      const saveRes = await fetch(`${API_BASE}/applications/${id}/answers`, {
+      const saveRes = await fetch(`${API_BASE}/applications/${applicationId}/answers`, {
         method: 'PUT',
         headers,
         body: JSON.stringify(values),
@@ -204,7 +229,7 @@ export default function FormPage() {
 
       // Enviar postulación
       const submitRes = await fetch(
-        `${API_BASE}/applications/${id}/submit`,
+        `${API_BASE}/applications/${applicationId}/submit`,
         { method: 'POST', headers },
       )
       if (!submitRes.ok) throw new Error(await safeError(submitRes))
@@ -312,7 +337,7 @@ export default function FormPage() {
                             value={values[f.name]}
                             onChange={onChange}
                             institutions={institutions}
-                            applicationId={id}
+                            applicationId={applicationId || undefined}
                             submissionId={submissionId}
                             token={token}
                           />
