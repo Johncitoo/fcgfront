@@ -44,11 +44,13 @@ interface FormData {
 
 interface Milestone {
   id: string
-  title: string
+  name: string
   description?: string
-  order: number
+  orderIndex: number
   required: boolean
   formId?: string
+  callId: string
+  status: string
 }
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
@@ -175,7 +177,7 @@ export default function SimpleFormBuilder() {
       if (!milestone?.formId) {
         // Crear formulario vacío
         setFormData({
-          title: `Formulario: ${milestone?.title}`,
+          title: `Formulario: ${milestone?.name || 'Nuevo'}`,
           description: '',
           sections: []
         })
@@ -184,10 +186,21 @@ export default function SimpleFormBuilder() {
       const res = await fetch(`${API_BASE}/forms/${milestone.formId}`, { headers })
       if (res.ok) {
         const data = await res.json()
-        setFormData(data)
+        // Asegurar que sections siempre sea un array
+        setFormData({
+          ...data,
+          sections: Array.isArray(data.sections) ? data.sections : []
+        })
       }
     } catch (err) {
       console.error(err)
+      // En caso de error, crear formulario vacío
+      const milestone = milestones.find(m => m.id === selectedMilestoneId)
+      setFormData({
+        title: `Formulario: ${milestone?.name || 'Nuevo'}`,
+        description: '',
+        sections: []
+      })
     } finally {
       setLoading(false)
     }
@@ -409,7 +422,7 @@ export default function SimpleFormBuilder() {
                 <option value="">Selecciona un hito...</option>
                 {milestones.map(m => (
                   <option key={m.id} value={m.id}>
-                    {m.order}. {m.title} {m.formId ? '✅' : ''}
+                    {m.orderIndex}. {m.name} {m.formId ? '✅' : ''}
                   </option>
                 ))}
               </select>
