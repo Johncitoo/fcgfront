@@ -86,6 +86,7 @@ export default function FormPage() {
   const [institutions, setInstitutions] = useState<Institution[]>([])
   const [submissionId, setSubmissionId] = useState<string | null>(null)
   const [applicationId, setApplicationId] = useState<string | null>(urlId || null)
+  const [currentStep, setCurrentStep] = useState(0) // Estado para navegación por pasos
   const token = localStorage.getItem('fcg.access_token') ?? ''
 
   const headers = useMemo(
@@ -327,76 +328,139 @@ export default function FormPage() {
 
         {!loading && !error && schema && (
           <>
-            <div className="space-y-6">
-              {schema.sections.map((sec) => (
-                <section key={sec.id} className="card">
-                  <div className="card-body space-y-4">
-                    <div>
-                      <h2 className="text-lg font-semibold">{sec.title}</h2>
-                      {sec.description && (
-                        <p className="text-sm text-slate-600">{sec.description}</p>
-                      )}
+            {/* Indicadores de pasos */}
+            <div className="flex items-center justify-center gap-2 mb-8 overflow-x-auto pb-4">
+              {schema.sections.map((sec, index) => (
+                <div
+                  key={sec.id}
+                  className={`flex items-center ${index < schema.sections.length - 1 ? 'flex-1 max-w-xs' : ''}`}
+                >
+                  <button
+                    onClick={() => setCurrentStep(index)}
+                    className={`flex flex-col items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                      index === currentStep
+                        ? 'bg-sky-100 text-sky-700'
+                        : index < currentStep
+                        ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                    }`}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${
+                        index === currentStep
+                          ? 'bg-sky-600 text-white'
+                          : index < currentStep
+                          ? 'bg-green-600 text-white'
+                          : 'bg-slate-300 text-slate-600'
+                      }`}
+                    >
+                      {index < currentStep ? '✓' : index + 1}
                     </div>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {sec.fields
-                        .filter((f) => f.active !== false)
-                        .map((f) => (
-                          <FieldControl
-                            key={f.id}
-                            field={f}
-                            value={values[f.name]}
-                            onChange={onChange}
-                            institutions={institutions}
-                            applicationId={applicationId || undefined}
-                            submissionId={submissionId}
-                            token={token}
-                          />
-                        ))}
-                    </div>
-
-                    {sec.commentBox && (
-                      <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-                        Nota: esta sección incluye un cuadro de comentarios para la
-                        entrevista (invisible para postulantes).
-                      </div>
-                    )}
-                  </div>
-                </section>
+                    <span className="text-xs font-medium text-center whitespace-nowrap">
+                      {sec.title}
+                    </span>
+                  </button>
+                  
+                  {index < schema.sections.length - 1 && (
+                    <div className="flex-1 h-0.5 bg-slate-200 mx-2" />
+                  )}
+                </div>
               ))}
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            {/* Sección actual */}
+            {schema.sections[currentStep] && (
+              <section className="card">
+                <div className="card-body space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-900">
+                      Paso {currentStep + 1}: {schema.sections[currentStep].title}
+                    </h2>
+                    {schema.sections[currentStep].description && (
+                      <p className="mt-2 text-slate-600">{schema.sections[currentStep].description}</p>
+                    )}
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {schema.sections[currentStep].fields
+                      .filter((f) => f.active !== false)
+                      .map((f) => (
+                        <FieldControl
+                          key={f.id}
+                          field={f}
+                          value={values[f.name]}
+                          onChange={onChange}
+                          institutions={institutions}
+                          applicationId={applicationId || undefined}
+                          submissionId={submissionId}
+                          token={token}
+                        />
+                      ))}
+                  </div>
+
+                  {schema.sections[currentStep].commentBox && (
+                    <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                      Nota: esta sección incluye un cuadro de comentarios para la
+                      entrevista (invisible para postulantes).
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Navegación entre pasos */}
+            <div className="mt-8 flex items-center justify-between gap-4">
               <button
-                onClick={onSaveDraft}
-                disabled={saving || submitting}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+                disabled={currentStep === 0}
+                className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
-                <Save className="h-4 w-4" />
-                {saving ? 'Guardando…' : 'Guardar borrador'}
+                <ArrowLeft className="h-4 w-4" />
+                Anterior
               </button>
 
-              <button
-                onClick={onSubmit}
-                disabled={submitting || saving || progress < 100}
-                className="inline-flex items-center gap-2 rounded-md bg-sky-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-              >
-                <Send className="h-4 w-4" />
-                {submitting ? 'Enviando…' : 'Enviar postulación'}
-              </button>
-              
-              {progress === 100 && (
-                <div className="flex items-center gap-2 text-sm text-green-600 ml-2">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span className="font-medium">Formulario completo</span>
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={onSaveDraft}
+                  disabled={saving || submitting}
+                  className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Save className="h-4 w-4" />
+                  {saving ? 'Guardando…' : 'Guardar borrador'}
+                </button>
+
+                {currentStep === schema.sections.length - 1 ? (
+                  <button
+                    onClick={onSubmit}
+                    disabled={submitting || saving || progress < 100}
+                    className="inline-flex items-center gap-2 rounded-md bg-sky-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Send className="h-4 w-4" />
+                    {submitting ? 'Enviando…' : 'Enviar postulación'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setCurrentStep(Math.min(schema.sections.length - 1, currentStep + 1))}
+                    className="inline-flex items-center gap-2 rounded-md bg-sky-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700 transition-colors"
+                  >
+                    Siguiente
+                    <ArrowLeft className="h-4 w-4 rotate-180" />
+                  </button>
+                )}
+              </div>
             </div>
             
-            {progress < 100 && (
-              <p className="mt-3 text-xs text-slate-500">
+            {currentStep === schema.sections.length - 1 && progress < 100 && (
+              <p className="mt-3 text-xs text-slate-500 text-center">
                 ⚠️ Completa todos los campos obligatorios para poder enviar la postulación
               </p>
+            )}
+            
+            {progress === 100 && (
+              <div className="mt-4 flex items-center justify-center gap-2 text-sm text-green-600">
+                <CheckCircle2 className="h-5 w-5" />
+                <span className="font-medium">Formulario completo - Listo para enviar</span>
+              </div>
             )}
           </>
         )}
