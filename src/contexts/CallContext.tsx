@@ -57,14 +57,21 @@ export function CallProvider({ children }: { children: ReactNode }) {
         const callsList = Array.isArray(data) ? data : data.data || []
         setCalls(callsList)
 
-        // Si no hay convocatoria seleccionada, seleccionar la primera
+        // Si no hay convocatoria seleccionada, seleccionar la activa o la más reciente
         if (!selectedCall && callsList.length > 0) {
-          // Buscar la más reciente (por año DESC)
-          const latest = callsList.reduce((prev: Call, current: Call) =>
-            current.year > prev.year ? current : prev
-          )
-          setSelectedCall(latest)
-          localStorage.setItem('selectedCallId', latest.id)
+          // Buscar convocatoria con status 'active' primero
+          const active = callsList.find((c: Call) => c.status === 'active')
+          if (active) {
+            setSelectedCall(active)
+            localStorage.setItem('selectedCallId', active.id)
+          } else {
+            // Fallback: la más reciente (por año DESC)
+            const latest = callsList.reduce((prev: Call, current: Call) =>
+              current.year > prev.year ? current : prev
+            )
+            setSelectedCall(latest)
+            localStorage.setItem('selectedCallId', latest.id)
+          }
         }
       }
     } catch (error) {
