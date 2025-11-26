@@ -133,18 +133,18 @@ export default function FormPage() {
           setInstitutions(instData.data || [])
         }
 
-        // 1) Metadatos de la postulación (para validar estado editable)
+        // 1) Metadatos de la postulación (para validar estado editable y obtener callId)
         const appRes = await fetch(`${API_BASE}/applications/${applicationId}`, { headers })
         if (!appRes.ok) throw new Error(await safeError(appRes))
-        const appJson = (await appRes.json()) as { status: ApplicationStatus }
+        const appJson = (await appRes.json()) as { status: ApplicationStatus; callId: string }
 
         if (appJson.status !== 'DRAFT' && appJson.status !== 'NEEDS_FIX') {
           navigate('/applicant', { replace: true })
           return
         }
 
-        // 2) Esquema del formulario
-        const formRes = await fetch(`${API_BASE}/applications/${applicationId}/form`, {
+        // 2) Esquema del formulario usando el callId de la application
+        const formRes = await fetch(`${API_BASE}/calls/${appJson.callId}/form`, {
           headers,
         })
         if (!formRes.ok) throw new Error(await safeError(formRes))
