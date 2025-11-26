@@ -1,59 +1,714 @@
-/* Tailwind v4: entrada única (vite + postcss ya configurados en tu proyecto) */
+/* Tailwind v4 - Solo lo esencial para evitar conflictos con @apply */
 @import "tailwindcss";
 
-/* 
-  Utilidades de diseño comunes del proyecto
-  - "card" y "card-body" ya usadas en tus páginas.
-*/
-@layer components {
-  .card {
-    @apply rounded-xl border bg-white shadow-sm;
-  }
+/* ============================================
+   CONFIGURACIÓN BASE
+   ============================================ */
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* ============================================
+   COMPONENTES - CSS VANILLA (sin @apply)
+   ============================================ */
+
+/* ========== CARDS ========== */
+.card {
+  border-radius: 0.75rem;
+  border: 1px solid rgb(229 231 235);
+  background-color: white;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: all 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.card-body {
+  padding: 1.25rem;
+}
+
+@media (min-width: 768px) {
   .card-body {
-    @apply p-4 md:p-5;
-  }
-
-  /* Botón base (opcional, útil en varias vistas) */
-  .btn {
-    @apply inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition;
-  }
-  .btn:hover {
-    @apply bg-slate-50;
-  }
-  .btn-primary {
-    @apply bg-sky-600 text-white hover:bg-sky-700 border-transparent;
-  }
-  .btn-danger {
-    @apply border-rose-200 text-rose-700 hover:bg-rose-50;
-  }
-
-  /* Inputs base */
-  .input {
-    @apply w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500;
-  }
-
-  /* Badges por estado (coinciden con las usadas en páginas) */
-  .badge {
-    @apply rounded-md border px-2 py-0.5 text-xs;
-  }
-  .badge-neutral {
-    @apply border-slate-200 bg-slate-50 text-slate-700;
-  }
-  .badge-info {
-    @apply border-sky-200 bg-sky-50 text-sky-700;
-  }
-  .badge-warn {
-    @apply border-amber-200 bg-amber-50 text-amber-700;
-  }
-  .badge-success {
-    @apply border-emerald-200 bg-emerald-50 text-emerald-700;
-  }
-  .badge-error {
-    @apply border-rose-200 bg-rose-50 text-rose-700;
+    padding: 1.5rem;
   }
 }
 
-/* Layout base del body */
-html, body, #root {
-  height: 100%;
+.card-header {
+  border-bottom: 1px solid rgb(243 244 246);
+  padding: 1rem 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .card-header {
+    padding: 1rem 1.5rem;
+  }
+}
+
+.card-header h2,
+.card-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(17 24 39);
+}
+
+.card-footer {
+  border-top: 1px solid rgb(243 244 246);
+  padding: 1rem 1.25rem;
+  background-color: rgb(249 250 251 / 0.5);
+}
+
+@media (min-width: 768px) {
+  .card-footer {
+    padding: 1rem 1.5rem;
+  }
+}
+
+/* ========== BOTONES ========== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+  outline: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(2 132 199 / 0.5);
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+.btn-primary {
+  background-color: rgb(2 132 199);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: rgb(3 105 161);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.btn-primary:focus-visible {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(2 132 199 / 0.5);
+}
+
+.btn-secondary {
+  background-color: rgb(147 51 234);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: rgb(126 34 206);
+}
+
+.btn-secondary:focus-visible {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(147 51 234 / 0.5);
+}
+
+.btn-success {
+  background-color: rgb(5 150 105);
+  color: white;
+  border-color: transparent;
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: rgb(4 120 87);
+}
+
+.btn-success:focus-visible {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(5 150 105 / 0.5);
+}
+
+.btn-danger {
+  background-color: rgb(225 29 72);
+  color: white;
+  border-color: transparent;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: rgb(190 18 60);
+}
+
+.btn-danger:focus-visible {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(225 29 72 / 0.5);
+}
+
+.btn-warning {
+  background-color: rgb(245 158 11);
+  color: white;
+  border-color: transparent;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background-color: rgb(217 119 6);
+}
+
+.btn-warning:focus-visible {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(245 158 11 / 0.5);
+}
+
+.btn-outline {
+  border-color: rgb(209 213 219);
+  background-color: white;
+  color: rgb(55 65 81);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: rgb(249 250 251);
+  border-color: rgb(156 163 175);
+}
+
+.btn-outline:focus-visible {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(107 114 128 / 0.5);
+}
+
+.btn-ghost {
+  border-color: transparent;
+  background-color: transparent;
+  color: rgb(55 65 81);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background-color: rgb(243 244 246);
+}
+
+.btn-ghost:focus-visible {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(107 114 128 / 0.5);
+}
+
+.btn-icon {
+  padding: 0.5rem;
+  aspect-ratio: 1;
+}
+
+/* ========== INPUTS ========== */
+.input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(209 213 219);
+  background-color: white;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  color: rgb(17 24 39);
+  outline: none;
+  transition: all 0.2s;
+}
+
+.input::placeholder {
+  color: rgb(156 163 175);
+}
+
+.input:focus {
+  border-color: rgb(2 132 199);
+  box-shadow: 0 0 0 3px rgb(2 132 199 / 0.15);
+}
+
+.input:disabled {
+  background-color: rgb(243 244 246);
+  cursor: not-allowed;
+}
+
+.input-error {
+  border-color: rgb(244 63 94);
+}
+
+.input-error:focus {
+  border-color: rgb(244 63 94);
+  box-shadow: 0 0 0 3px rgb(244 63 94 / 0.15);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(209 213 219);
+  background-color: white;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  color: rgb(17 24 39);
+  outline: none;
+  transition: all 0.2s;
+}
+
+.textarea:focus {
+  border-color: rgb(2 132 199);
+  box-shadow: 0 0 0 3px rgb(2 132 199 / 0.15);
+}
+
+.select {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(209 213 219);
+  background-color: white;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  color: rgb(17 24 39);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.select:focus {
+  border-color: rgb(2 132 199);
+  box-shadow: 0 0 0 3px rgb(2 132 199 / 0.15);
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(55 65 81);
+}
+
+.form-error {
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+  color: rgb(220 38 38);
+}
+
+.form-hint {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+}
+
+/* ========== BADGES ========== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge-neutral {
+  border-color: rgb(229 231 235);
+  background-color: rgb(249 250 251);
+  color: rgb(55 65 81);
+}
+
+.badge-primary,
+.badge-info {
+  border-color: rgb(186 230 253);
+  background-color: rgb(240 249 255);
+  color: rgb(3 105 161);
+}
+
+.badge-success {
+  border-color: rgb(167 243 208);
+  background-color: rgb(236 253 245);
+  color: rgb(4 120 87);
+}
+
+.badge-warn {
+  border-color: rgb(253 230 138);
+  background-color: rgb(254 252 232);
+  color: rgb(180 83 9);
+}
+
+.badge-error {
+  border-color: rgb(254 205 211);
+  background-color: rgb(255 241 242);
+  color: rgb(190 18 60);
+}
+
+.badge-purple {
+  border-color: rgb(233 213 255);
+  background-color: rgb(250 245 255);
+  color: rgb(126 34 206);
+}
+
+/* ========== ALERTS ========== */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  padding: 1rem;
+}
+
+.alert-info {
+  border-color: rgb(191 219 254);
+  background-color: rgb(239 246 255);
+  color: rgb(30 58 138);
+}
+
+.alert-success {
+  border-color: rgb(167 243 208);
+  background-color: rgb(236 253 245);
+  color: rgb(6 78 59);
+}
+
+.alert-warning {
+  border-color: rgb(253 230 138);
+  background-color: rgb(254 252 232);
+  color: rgb(120 53 15);
+}
+
+.alert-error {
+  border-color: rgb(254 205 211);
+  background-color: rgb(255 241 242);
+  color: rgb(136 19 55);
+}
+
+/* ========== LOADING ========== */
+.spinner {
+  display: inline-block;
+  height: 1.25rem;
+  width: 1.25rem;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-lg {
+  height: 2rem;
+  width: 2rem;
+  border-width: 4px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.skeleton {
+  border-radius: 0.375rem;
+  background-color: rgb(229 231 235);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton-text {
+  height: 1rem;
+  width: 100%;
+}
+
+.skeleton-title {
+  height: 1.5rem;
+  width: 75%;
+}
+
+/* ========== OTRAS UTILIDADES ========== */
+.divider {
+  margin: 1.5rem 0;
+  height: 1px;
+  border: 0;
+  background-color: rgb(229 231 235);
+}
+
+/* ============================================
+   ANIMACIONES PERSONALIZADAS
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADO
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+  border: 2px solid #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ============================================
+   UTILIDADES GLOBALES
+   ============================================ */
+
+.shadow-soft {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-strong {
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+.transition-smooth {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   RESPONSIVE Y ACCESIBILIDAD
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   ANIMACIONES PERSONALIZADAS
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADO
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+  border: 2px solid #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ============================================
+   UTILIDADES ADICIONALES
+   ============================================ */
+
+/* Transiciones suaves globales */
+.transition-smooth {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sombras personalizadas */
+.shadow-soft {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-strong {
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Fondo con gradiente sutil */
+.bg-gradient-subtle {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+/* ============================================
+   RESPONSIVIDAD Y ACCESIBILIDAD
+   ============================================ */
+
+/* Ajustes para móviles */
+@media (max-width: 640px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .btn {
+    padding: 0.625rem 1rem;
+  }
+  
+  .modal {
+    margin: 1rem;
+  }
+}
+
+/* Reducir movimiento para usuarios que lo prefieran */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Modo oscuro (preparado para futuro) */
+@media (prefers-color-scheme: dark) {
+  /* Se puede activar más adelante */
 }
