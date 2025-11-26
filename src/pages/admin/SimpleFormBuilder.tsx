@@ -470,7 +470,7 @@ export default function SimpleFormBuilder() {
 
             {/* Secciones */}
             {formData.sections.map((section) => (
-              <div key={section.id} className="bg-white rounded-lg border overflow-hidden">
+              <div key={section.id} className="bg-white rounded-lg border">
                 {/* Header sección */}
                 <div className="bg-slate-50 border-b p-4">
                   <div className="flex items-start gap-3">
