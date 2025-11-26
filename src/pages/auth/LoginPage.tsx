@@ -7,9 +7,8 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
-import { Loader2, AlertCircle, HelpCircle } from 'lucide-react'
+import { AlertCircle, HelpCircle } from 'lucide-react'
 import { PasswordInput } from './PasswordInput'
 import { authService } from '@/lib/auth'
 
@@ -102,47 +101,77 @@ export default function LoginPage() {
   // Render
   // =========================
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 text-slate-50">
-      <div className="flex min-h-screen items-center justify-center px-4 py-12">
-        <div className="w-full max-w-[440px]">
-          {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 text-slate-50 relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"></div>
+      
+      <div className="flex min-h-screen items-center justify-center px-4 py-12 relative z-10">
+        <div className="w-full max-w-[480px] animate-fade-in">
+          {/* Header mejorado */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold tracking-tight">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-sky-400 to-sky-600 shadow-lg shadow-sky-600/50 mb-6 animate-scale-in">
+              <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight animate-slide-down" style={{ animationDelay: '0.1s' }}>
               Fundación Carmen Goudie
             </h1>
-            <p className="text-sm text-slate-300 mt-1">
+            <p className="text-base text-slate-300 mt-2 animate-slide-down" style={{ animationDelay: '0.2s' }}>
               Portal de Becas — Ingreso y Postulación
             </p>
           </div>
 
-          <Card className="bg-white/95 backdrop-blur-sm text-slate-900 shadow-2xl border border-slate-200">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-center">Acceso al Portal</CardTitle>
+          <Card className="bg-white/95 backdrop-blur-sm text-slate-900 shadow-2xl border border-slate-200/50 overflow-hidden animate-slide-up" style={{ animationDelay: '0.3s' }}>
+            <CardHeader className="pb-4 bg-gradient-to-r from-sky-50 to-white border-b">
+              <CardTitle className="text-center text-2xl">Acceso al Portal</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <Tabs defaultValue="postular" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="postular">Postular</TabsTrigger>
-                  <TabsTrigger value="acceso">Acceso</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-6 p-1 bg-gray-100">
+                  <TabsTrigger value="postular" className="data-[state=active]:bg-sky-600 data-[state=active]:text-white transition-all">
+                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Postular
+                  </TabsTrigger>
+                  <TabsTrigger value="acceso" className="data-[state=active]:bg-sky-600 data-[state=active]:text-white transition-all">
+                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                    Acceso
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Pestaña POSTULAR */}
-                <TabsContent value="postular" className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-slate-600">
-                      Ingresa tu código de invitación para iniciar tu postulación.
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500">Ejemplo:</span>
-                      <Badge variant="secondary" className="text-xs">
-                        TEST-XXXXXXXX
-                      </Badge>
+                <TabsContent value="postular" className="space-y-5 animate-fade-in">
+                  <div className="p-4 bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-200 rounded-lg space-y-2">
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">
+                          Ingresa tu código de invitación para iniciar tu postulación.
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xs text-slate-600">Ejemplo:</span>
+                          <Badge variant="secondary" className="text-xs font-mono">
+                            TEST-XXXXXXXX
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <form onSubmit={handleCodeSubmit} className="space-y-4">
+                  <form onSubmit={handleCodeSubmit} className="space-y-5">
                     <div className="space-y-2">
-                      <Label htmlFor="invitation-code">Código de invitación</Label>
+                      <Label htmlFor="invitation-code" className="flex items-center gap-2 font-semibold">
+                        <svg className="w-4 h-4 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        Código de invitación
+                      </Label>
                       <Input
                         id="invitation-code"
                         type="text"
@@ -150,25 +179,37 @@ export default function LoginPage() {
                         onChange={(e) => setInvitationCode(e.target.value)}
                         placeholder="TEST-XXXXXXXX"
                         disabled={isLoading}
-                        className={codeError ? 'border-rose-300' : ''}
+                        className={`input ${codeError ? 'border-rose-300 focus:ring-rose-500' : ''}`}
                       />
                       {codeError && (
-                        <Alert variant="destructive" className="mt-2">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription>{codeError}</AlertDescription>
-                        </Alert>
+                        <div className="alert alert-error animate-shake">
+                          <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                          <div>
+                            <p className="font-medium">Error de validación</p>
+                            <p className="text-sm mt-1">{codeError}</p>
+                          </div>
+                        </div>
                       )}
                     </div>
 
                     <Button
                       type="submit"
-                      className="w-full"
+                      className={`btn btn-primary w-full h-12 text-base font-semibold ${isLoading ? '' : 'hover:scale-102'} transition-transform`}
                       disabled={isLoading || !invitationCode.trim()}
                     >
-                      {isLoading && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isLoading ? (
+                        <>
+                          <div className="spinner mr-2" />
+                          Verificando código...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                          </svg>
+                          Iniciar postulación
+                        </>
                       )}
-                      Iniciar postulación
                     </Button>
                   </form>
 
@@ -190,10 +231,15 @@ export default function LoginPage() {
                 </TabsContent>
 
                 {/* Pestaña ACCESO */}
-                <TabsContent value="acceso" className="space-y-4">
-                  <form onSubmit={handleLoginSubmit} className="space-y-4">
+                <TabsContent value="acceso" className="space-y-5 animate-fade-in">
+                  <form onSubmit={handleLoginSubmit} className="space-y-5">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Correo electrónico</Label>
+                      <Label htmlFor="email" className="flex items-center gap-2 font-semibold">
+                        <svg className="w-4 h-4 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Correo electrónico
+                      </Label>
                       <Input
                         id="email"
                         type="email"
@@ -201,12 +247,17 @@ export default function LoginPage() {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="tu@correo.com"
                         disabled={isLoading}
-                        className={loginError ? 'border-rose-300' : ''}
+                        className={`input ${loginError ? 'border-rose-300 focus:ring-rose-500' : ''}`}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password">Contraseña</Label>
+                      <Label htmlFor="password" className="flex items-center gap-2 font-semibold">
+                        <svg className="w-4 h-4 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        Contraseña
+                      </Label>
                       <PasswordInput
                         value={password}
                         onChange={(e) => setPassword(typeof e === 'string' ? e : e.target.value)}
@@ -216,13 +267,16 @@ export default function LoginPage() {
                     </div>
 
                     {loginError && (
-                      <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>{loginError}</AlertDescription>
-                      </Alert>
+                      <div className="alert alert-error animate-shake">
+                        <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium">Error de autenticación</p>
+                          <p className="text-sm mt-1">{loginError}</p>
+                        </div>
+                      </div>
                     )}
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center space-x-2">
                         <Checkbox
                           id="remember"
@@ -234,29 +288,44 @@ export default function LoginPage() {
                         />
                         <Label
                           htmlFor="remember"
-                          className="text-sm cursor-pointer"
+                          className="text-sm cursor-pointer font-medium"
                         >
                           Recordarme
                         </Label>
                       </div>
                       <button
                         type="button"
-                        className="text-sm text-sky-700 hover:underline"
+                        className="text-sm text-sky-700 hover:text-sky-800 hover:underline font-medium transition-colors"
                         onClick={() =>
                           toast.info('Funcionalidad próximamente disponible')
                         }
                       >
-                        Olvidé mi contraseña
+                        <span className="flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Olvidé mi contraseña
+                        </span>
                       </button>
                     </div>
 
                     <Button
                       type="submit"
-                      className="w-full"
+                      className={`btn btn-primary w-full h-12 text-base font-semibold ${isLoading ? '' : 'hover:scale-102'} transition-transform`}
                       disabled={isLoading || !email.trim() || !password.trim()}
                     >
-                      {isLoading && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isLoading ? (
+                        <>
+                          <div className="spinner mr-2" />
+                          Iniciando sesión...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                          </svg>
+                          Iniciar sesión
+                        </>
                       )}
                       Ingresar
                     </Button>

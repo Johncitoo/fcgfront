@@ -54,9 +54,6 @@ import ApplicationFullFormPage from "./pages/reviewer/ApplicationFullFormPage";
 import ApplicationHistoryPage from "./pages/reviewer/ApplicationHistoryPage";
 import ApplicationReviewPage from "./pages/reviewer/ApplicationReviewPage";
 
-// Demo
-import FileUploadDemo from "./pages/demo/FileUploadDemo";
-
 function Ping() {
   return (
     <div style={{ padding: 24 }}>
@@ -120,7 +117,6 @@ export default function App() {
         <Route path="calls/:callId/milestones" element={<MilestoneManagement />} />
         <Route path="activacion-convocatorias" element={<CallActivationManager />} />
         <Route path="invite-applicant" element={<InviteApplicant />} />
-        <Route path="demo/files" element={<FileUploadDemo />} />
       </Route>
 
       {/* Applicant (protegido) */}
