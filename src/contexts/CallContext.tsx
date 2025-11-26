@@ -46,6 +46,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       // Limpiar selección previa para forzar selección de la activa
       setSelectedCall(null)
+      localStorage.removeItem('selectedCallId')
+      console.log('[CallContext] refreshCalls - localStorage limpiado')
       const token = localStorage.getItem('accessToken')
       const res = await fetch(`${API_BASE}/calls?limit=100`, {
         headers: {
@@ -60,16 +62,31 @@ export function CallProvider({ children }: { children: ReactNode }) {
         setCalls(callsList)
 
         if (callsList.length > 0) {
-          // 1. Buscar convocatorias con status 'active' o 'OPEN'
+          // 1. Buscar convocatorias con status 'OPEN' (mayúsculas según BD)
           const openCalls = callsList.filter((c: Call) => 
-            c.status === 'active' || c.status === 'OPEN' || c.status === 'open'
+            c.status === 'OPEN' || c.status === 'open' || c.status === 'active'
           )
           
-          // Si hay múltiples OPEN, tomar la de año más alto que sea "Becas FCG"
-          let active = openCalls.find((c: Call) => c.name.includes('Becas FCG'))
-          if (!active && openCalls.length > 0) {
-            // Si no hay "Becas FCG", tomar la primera OPEN
-            active = openCalls[0]
+          console.log('[CallContext] Convocatorias OPEN:', openCalls.map((c: Call) => `${c.name} (${c.year})`))
+          
+          // Si hay múltiples OPEN, priorizar:
+          // a) Las que incluyan "Becas FCG" en el nombre
+          // b) Las de año más cercano (no futuro lejano)
+          let active: Call | undefined
+          if (openCalls.length > 0) {
+            const becasFCG = openCalls.filter((c: Call) => c.name.includes('Becas FCG'))
+            console.log('[CallContext] Becas FCG encontradas:', becasFCG.map((c: Call) => `${c.name} (${c.year})`))
+            if (becasFCG.length > 0) {
+              // Tomar la más reciente de Becas FCG (año más alto entre Becas FCG)
+              active = becasFCG.reduce((prev: Call, curr: Call) => curr.year > prev.year ? curr : prev)
+              console.log('[CallContext] Seleccionada:', active?.name, active?.year)
+            } else {
+              // Tomar la primera OPEN
+              active = openCalls[0]
+              console.log('[CallContext] No hay Becas FCG, seleccionada primera OPEN:', active?.name)
+            }
+          } else {
+            console.log('[CallContext] No hay convocatorias OPEN')
           }
           
           // 2. Si no hay selectedCall, seleccionar la activa o la más reciente
@@ -77,6 +94,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
             if (active) {
               setSelectedCall(active)
               localStorage.setItem('selectedCallId', active.id)
+              console.log('[CallContext] Set selectedCall:', active.name)
             } else {
               // Fallback: la más reciente (por año DESC)
               const latest = callsList.reduce((prev: Call, current: Call) =>
@@ -84,6 +102,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
               )
               setSelectedCall(latest)
               localStorage.setItem('selectedCallId', latest.id)
+              console.log('[CallContext] Fallback a latest:', latest.name)
             }
           } else {
             // Si ya hay selectedCall, verificar si sigue existiendo en la lista
@@ -92,6 +111,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
               // Si la que estaba seleccionada ya no existe, cambiar a la activa
               setSelectedCall(active)
               localStorage.setItem('selectedCallId', active.id)
+              console.log('[CallContext] Cambiada a activa:', active.name)
+            } else {
+              console.log('[CallContext] Manteniendo selectedCall:', selectedCall.name)
             }
           }
         }
