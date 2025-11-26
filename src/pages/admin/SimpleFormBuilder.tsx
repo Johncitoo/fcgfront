@@ -187,11 +187,19 @@ export default function SimpleFormBuilder() {
       const res = await fetch(`${API_BASE}/forms/${milestone.formId}`, { headers })
       if (res.ok) {
         const data = await res.json()
-        // Asegurar que sections siempre sea un array
+        console.log('[SimpleFormBuilder] Form cargado:', data)
+        
+        // Extraer sections del schema si existe
+        const sections = data.schema?.sections || data.sections || []
+        
         setFormData({
-          ...data,
-          sections: Array.isArray(data.sections) ? data.sections : []
+          id: data.id,
+          title: data.title || data.name || `Formulario: ${milestone?.name || 'Nuevo'}`,
+          description: data.description || '',
+          sections: Array.isArray(sections) ? sections : []
         })
+        
+        console.log('[SimpleFormBuilder] Secciones cargadas:', sections.length)
       }
     } catch (err) {
       console.error(err)
@@ -212,33 +220,57 @@ export default function SimpleFormBuilder() {
     setSaving(true)
     try {
       const milestone = milestones.find(m => m.id === selectedMilestoneId)
+      
+      console.log('[SimpleFormBuilder] Guardando formulario...', {
+        formDataSections: formData.sections.length,
+        milestoneFormId: milestone?.formId
+      })
+      
       if (milestone?.formId) {
         // Actualizar
-        await fetch(`${API_BASE}/forms/${milestone.formId}`, {
+        console.log('[SimpleFormBuilder] PATCH a /forms/' + milestone.formId)
+        const res = await fetch(`${API_BASE}/forms/${milestone.formId}`, {
           method: 'PATCH',
           headers,
           body: JSON.stringify(formData)
         })
+        console.log('[SimpleFormBuilder] PATCH response:', res.status, res.ok)
+        
+        if (!res.ok) {
+          const error = await res.text()
+          console.error('[SimpleFormBuilder] Error PATCH:', error)
+          throw new Error('Error al actualizar: ' + error)
+        }
       } else {
         // Crear
+        console.log('[SimpleFormBuilder] POST a /forms')
         const res = await fetch(`${API_BASE}/forms`, {
           method: 'POST',
           headers,
           body: JSON.stringify({ ...formData, milestoneId: selectedMilestoneId })
         })
+        console.log('[SimpleFormBuilder] POST response:', res.status, res.ok)
+        
         if (res.ok) {
           const newForm = await res.json()
+          console.log('[SimpleFormBuilder] Form creado:', newForm.id)
+          
           // Asociar form al milestone
           await fetch(`${API_BASE}/milestones/${selectedMilestoneId}`, {
             method: 'PATCH',
             headers,
             body: JSON.stringify({ formId: newForm.id })
           })
+        } else {
+          const error = await res.text()
+          console.error('[SimpleFormBuilder] Error POST:', error)
+          throw new Error('Error al crear: ' + error)
         }
       }
       alert('✅ Formulario guardado correctamente')
-      await loadMilestones()
+      await loadForm() // Recargar el formulario para ver los cambios
     } catch (err: any) {
+      console.error('[SimpleFormBuilder] Error al guardar:', err)
       alert('❌ Error al guardar: ' + err.message)
     } finally {
       setSaving(false)
