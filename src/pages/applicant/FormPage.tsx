@@ -284,120 +284,183 @@ export default function FormPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto w-full max-w-5xl">
-        <header className="mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto w-full max-w-6xl">
+        {/* Header mejorado */}
+        <header className="mb-8 animate-fade-in">
           <Link
             to="/applicant"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-sky-600 hover:text-sky-700 hover:underline"
+            className="btn btn-ghost mb-6 inline-flex"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Volver a mis postulaciones
+            <ArrowLeft className="h-5 w-5" />
+            Volver
           </Link>
           
-          <h1 className="text-3xl font-bold text-slate-900">Formulario de postulación</h1>
-          
-          {schema && (
-            <div className="mt-2">
-              <p className="text-sm text-slate-600 mb-2">
-                Convocatoria: <span className="font-semibold text-slate-900">{schema.title}</span>
-              </p>
-              <div className="mt-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-slate-700">Progreso del formulario</span>
-                  <span className="text-xs font-medium text-sky-600">{progress}%</span>
+          <div className="flex items-start justify-between flex-wrap gap-6">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 rounded-lg bg-sky-100">
+                  <svg className="w-6 h-6 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
-                <div className="h-2 w-full rounded-full bg-slate-200">
-                  <div
-                    className="h-2 rounded-full bg-gradient-to-r from-sky-500 to-sky-600 transition-all duration-500"
-                    style={{ width: `${progress}%` }}
-                  />
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Formulario de Postulación</h1>
+                  {schema && (
+                    <p className="text-gray-600 mt-1">
+                      <span className="font-semibold text-sky-600">{schema.title}</span>
+                      {schema.year && <span className="text-gray-500"> • {schema.year}</span>}
+                    </p>
+                  )}
                 </div>
               </div>
+              
+              <p className="text-gray-600">
+                Completa todas las secciones obligatorias. Puedes guardar como borrador y continuar más tarde.
+              </p>
             </div>
-          )}
-          
-          <p className="mt-4 text-sm text-slate-600">
-            Completa las secciones y guarda como <b>borrador</b> o{' '}
-            <b>envía</b> tu postulación cuando termines.
-          </p>
+
+            {/* Progress card flotante */}
+            {schema && (
+              <div className="card min-w-[280px] hover:shadow-lg transition-shadow duration-300">
+                <div className="card-body">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-gray-700">Tu progreso</span>
+                    <span className={`text-2xl font-bold ${progress === 100 ? 'text-emerald-600' : 'text-sky-600'}`}>
+                      {progress}%
+                    </span>
+                  </div>
+                  <div className="progress">
+                    <div
+                      className={`progress-bar ${progress === 100 ? 'progress-bar-success' : ''}`}
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  {progress === 100 && (
+                    <div className="mt-3 flex items-center gap-2 text-emerald-600 animate-scale-in">
+                      <CheckCircle2 className="h-5 w-5" />
+                      <span className="text-sm font-medium">¡Formulario completo!</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </header>
 
         {loading && (
-          <div className="card">
-            <div className="card-body">
-              <p className="text-slate-600">Cargando…</p>
+          <div className="card animate-slide-up">
+            <div className="card-body flex items-center gap-4">
+              <div className="spinner text-sky-600"></div>
+              <p className="text-gray-600">Cargando formulario...</p>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="card border-rose-200">
-            <div className="card-body">
-              <p className="text-sm text-rose-700">{error}</p>
+          <div className="alert alert-error animate-slide-down">
+            <svg className="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="font-semibold">Error al cargar el formulario</p>
+              <p className="text-sm">{error}</p>
             </div>
           </div>
         )}
 
         {!loading && !error && schema && (
           <>
-            {/* Indicadores de pasos */}
-            <div className="flex items-center justify-center gap-2 mb-8 overflow-x-auto pb-4">
-              {schema.sections.map((sec, index) => {
-                const isComplete = isSectionComplete(sec)
-                return (
-                  <div
-                    key={sec.id}
-                    className={`flex items-center ${index < schema.sections.length - 1 ? 'flex-1 max-w-xs' : ''}`}
-                  >
-                    <button
-                      onClick={() => setCurrentStep(index)}
-                      className={`flex flex-col items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                        index === currentStep
-                          ? 'bg-sky-100 text-sky-700'
-                          : isComplete
-                          ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                      }`}
+            {/* Stepper mejorado con animación */}
+            <div className="mb-8 card p-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              <div className="flex items-center justify-between gap-2 overflow-x-auto">
+                {schema.sections.map((sec, index) => {
+                  const isComplete = isSectionComplete(sec)
+                  const isActive = index === currentStep
+                  const isAccessible = index <= currentStep || isComplete
+                  
+                  return (
+                    <div
+                      key={sec.id}
+                      className="flex items-center flex-shrink-0"
                     >
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${
-                          index === currentStep
-                            ? 'bg-sky-600 text-white'
+                      {/* Paso */}
+                      <button
+                        onClick={() => isAccessible && setCurrentStep(index)}
+                        disabled={!isAccessible}
+                        className={`group flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all duration-300 ${
+                          isActive
+                            ? 'bg-sky-50 ring-2 ring-sky-600 ring-offset-2 scale-105'
                             : isComplete
-                            ? 'bg-green-600 text-white'
-                            : 'bg-slate-300 text-slate-600'
+                            ? 'hover:bg-emerald-50 cursor-pointer'
+                            : !isAccessible
+                            ? 'cursor-not-allowed opacity-50'
+                            : 'hover:bg-gray-100 cursor-pointer'
                         }`}
                       >
-                        {isComplete ? '✓' : index + 1}
-                      </div>
-                      <span className="text-xs font-medium text-center whitespace-nowrap">
-                        {sec.title}
-                      </span>
-                    </button>
-                    
-                    {index < schema.sections.length - 1 && (
-                      <div className="flex-1 h-0.5 bg-slate-200 mx-2" />
-                    )}
-                  </div>
-                )
-              })}
+                        <div
+                          className={`relative w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 ${
+                            isActive
+                              ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/30 scale-110'
+                              : isComplete
+                              ? 'bg-emerald-600 text-white shadow-md'
+                              : 'bg-gray-200 text-gray-500 group-hover:bg-gray-300'
+                          }`}
+                        >
+                          {isComplete ? (
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            index + 1
+                          )}
+                          
+                          {isActive && (
+                            <div className="absolute -inset-1 rounded-full bg-sky-600/20 animate-pulse"></div>
+                          )}
+                        </div>
+                        <span className={`text-xs font-medium text-center max-w-[100px] transition-colors ${
+                          isActive ? 'text-sky-700' : isComplete ? 'text-emerald-700' : 'text-gray-600'
+                        }`}>
+                          {sec.title}
+                        </span>
+                      </button>
+                      
+                      {/* Conector */}
+                      {index < schema.sections.length - 1 && (
+                        <div className={`h-0.5 w-8 mx-2 transition-all duration-500 ${
+                          isComplete ? 'bg-emerald-600' : 'bg-gray-300'
+                        }`} />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
-            {/* Sección actual */}
+            {/* Sección actual con transición */}
             {schema.sections[currentStep] && (
-              <section className="card">
-                <div className="card-body space-y-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-slate-900">
-                      Paso {currentStep + 1}: {schema.sections[currentStep].title}
-                    </h2>
-                    {schema.sections[currentStep].description && (
-                      <p className="mt-2 text-slate-600">{schema.sections[currentStep].description}</p>
-                    )}
+              <section className="card animate-fade-in hover:shadow-lg transition-shadow duration-300" style={{ animationDelay: '0.2s' }}>
+                <div className="card-header bg-gradient-to-r from-sky-50 to-white">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-sky-100">
+                      <span className="text-lg font-bold text-sky-600">
+                        {currentStep + 1}
+                      </span>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">
+                        {schema.sections[currentStep].title}
+                      </h2>
+                      {schema.sections[currentStep].description && (
+                        <p className="mt-1 text-gray-600">{schema.sections[currentStep].description}</p>
+                      )}
+                    </div>
                   </div>
+                </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
+                <div className="card-body">
+                  <div className="grid gap-6 md:grid-cols-2">
                     {schema.sections[currentStep].fields
                       .filter((f) => f.active !== false)
                       .map((f) => (
@@ -415,91 +478,150 @@ export default function FormPage() {
                   </div>
 
                   {schema.sections[currentStep].commentBox && (
-                    <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-                      Nota: esta sección incluye un cuadro de comentarios para la
-                      entrevista (invisible para postulantes).
+                    <div className="alert alert-warning mt-6">
+                      <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-sm">
+                        Esta sección incluye un cuadro de comentarios para la entrevista (invisible para postulantes).
+                      </p>
                     </div>
                   )}
                 </div>
               </section>
             )}
 
-            {/* Navegación entre pasos */}
-            <div className="mt-8 flex items-center justify-between gap-4">
-              <button
-                onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
-                disabled={currentStep === 0}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Anterior
-              </button>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={onSaveDraft}
-                  disabled={saving || submitting}
-                  className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                >
-                  <Save className="h-4 w-4" />
-                  {saving ? 'Guardando…' : 'Guardar borrador'}
-                </button>
-
-                {currentStep === schema.sections.length - 1 ? (
+            {/* Navegación mejorada con card flotante */}
+            <div className="mt-8 card sticky bottom-4 shadow-strong animate-slide-up" style={{ animationDelay: '0.3s' }}>
+              <div className="card-body">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  {/* Botón anterior */}
                   <button
-                    onClick={onSubmit}
-                    disabled={submitting || saving || progress < 100}
-                    className="inline-flex items-center gap-2 rounded-md bg-sky-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+                    disabled={currentStep === 0}
+                    className="btn btn-outline"
                   >
-                    <Send className="h-4 w-4" />
-                    {submitting ? 'Enviando…' : 'Enviar postulación'}
+                    <ArrowLeft className="h-5 w-5" />
+                    Anterior
                   </button>
-                ) : (
-                  <button
-                    onClick={() => setCurrentStep(Math.min(schema.sections.length - 1, currentStep + 1))}
-                    className="inline-flex items-center gap-2 rounded-md bg-sky-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700 transition-colors"
-                  >
-                    Siguiente
-                    <ArrowLeft className="h-4 w-4 rotate-180" />
-                  </button>
-                )}
+
+                  {/* Botones de acción */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                      onClick={onSaveDraft}
+                      disabled={saving || submitting}
+                      className="btn btn-ghost"
+                    >
+                      <Save className="h-5 w-5" />
+                      {saving ? (
+                        <>
+                          <span className="spinner"></span>
+                          Guardando...
+                        </>
+                      ) : (
+                        'Guardar borrador'
+                      )}
+                    </button>
+
+                    {currentStep === schema.sections.length - 1 ? (
+                      <button
+                        onClick={onSubmit}
+                        disabled={submitting || saving || progress < 100}
+                        className="btn btn-success relative"
+                      >
+                        {submitting ? (
+                          <>
+                            <span className="spinner"></span>
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-5 w-5" />
+                            Enviar postulación
+                            {progress === 100 && (
+                              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setCurrentStep(Math.min(schema.sections.length - 1, currentStep + 1))}
+                        className="btn btn-primary"
+                      >
+                        Siguiente
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
             
+            {/* Advertencia de campos faltantes */}
             {currentStep === schema.sections.length - 1 && progress < 100 && (
-              <div className="mt-3 text-xs text-center">
-                <p className="text-slate-500 mb-2">
-                  ⚠️ Completa todos los campos obligatorios para poder enviar la postulación
-                </p>
-                <details className="text-left bg-slate-50 border rounded p-2 max-w-md mx-auto">
-                  <summary className="cursor-pointer text-slate-600 hover:text-slate-900">
-                    Ver campos faltantes ({100 - progress}% restante)
-                  </summary>
-                  <ul className="mt-2 space-y-1 text-slate-700">
-                    {schema.sections.flatMap(s => 
-                      s.fields.filter(f => f.active !== false && f.required).map(f => {
-                        const val = values[f.name]
-                        const isEmpty = Array.isArray(val) ? val.length === 0 : (val === '' || val === null || val === undefined)
-                        if (isEmpty) {
-                          return (
-                            <li key={f.name} className="flex items-start gap-2">
-                              <span className="text-red-500">✗</span>
-                              <span>{f.label || f.name}</span>
-                            </li>
-                          )
-                        }
-                        return null
-                      }).filter(Boolean)
-                    )}
-                  </ul>
-                </details>
+              <div className="mt-6 animate-slide-down">
+                <div className="alert alert-warning">
+                  <svg className="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="font-semibold">Campos obligatorios pendientes</p>
+                    <p className="text-sm mt-1">
+                      Completa todos los campos marcados como obligatorios para poder enviar la postulación.
+                    </p>
+                    
+                    <details className="mt-3 text-sm">
+                      <summary className="cursor-pointer font-medium hover:underline">
+                        Ver lista de campos faltantes ({100 - progress}% restante)
+                      </summary>
+                      <ul className="mt-3 space-y-2 max-h-48 overflow-y-auto">
+                        {schema.sections.flatMap(s => 
+                          s.fields.filter(f => f.active !== false && f.required).map(f => {
+                            const val = values[f.name]
+                            const isEmpty = Array.isArray(val) ? val.length === 0 : (val === '' || val === null || val === undefined)
+                            if (isEmpty) {
+                              return (
+                                <li key={f.name} className="flex items-start gap-3 p-2 bg-amber-100 rounded-md">
+                                  <svg className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  <div>
+                                    <p className="font-medium text-gray-900">{f.label || f.name}</p>
+                                    {f.helpText && (
+                                      <p className="text-xs text-gray-600 mt-0.5">{f.helpText}</p>
+                                    )}
+                                  </div>
+                                </li>
+                              )
+                            }
+                            return null
+                          }).filter(Boolean)
+                        )}
+                      </ul>
+                    </details>
+                  </div>
+                </div>
               </div>
             )}
             
+            {/* Mensaje de éxito */}
             {progress === 100 && (
-              <div className="mt-4 flex items-center justify-center gap-2 text-sm text-green-600">
-                <CheckCircle2 className="h-5 w-5" />
-                <span className="font-medium">Formulario completo - Listo para enviar</span>
+              <div className="mt-6 animate-scale-in">
+                <div className="alert alert-success">
+                  <CheckCircle2 className="h-6 w-6 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold">¡Formulario completo!</p>
+                    <p className="text-sm mt-1">
+                      Todos los campos obligatorios están completos. Ya puedes enviar tu postulación.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </>
