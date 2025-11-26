@@ -125,21 +125,30 @@ export default function MilestoneCreator() {
       // Guardar uno por uno
       const token = localStorage.getItem('accessToken') || ''
       for (const milestone of milestones) {
-        const payload = {
-          callId: selectedCall.id,
-          name: milestone.name,
-          description: milestone.description,
-          orderIndex: milestone.order_index,
-          required: milestone.required,
-          formId: milestone.form_id || undefined,
-          status: 'ACTIVE',
-          whoCanFill: ['APPLICANT']
-        }
-
         if (milestone.id) {
-          await milestonesService.update(milestone.id, payload, token)
+          // Update: solo campos editables
+          const updatePayload = {
+            name: milestone.name,
+            description: milestone.description,
+            orderIndex: milestone.order_index,
+            required: milestone.required,
+            formId: milestone.form_id || undefined,
+            status: 'ACTIVE'
+          }
+          await milestonesService.update(milestone.id, updatePayload, token)
         } else {
-          const created = await milestonesService.create(payload as any, token)
+          // Create: incluye callId y whoCanFill
+          const createPayload = {
+            callId: selectedCall.id,
+            name: milestone.name,
+            description: milestone.description,
+            orderIndex: milestone.order_index,
+            required: milestone.required,
+            formId: milestone.form_id || undefined,
+            status: 'ACTIVE',
+            whoCanFill: ['APPLICANT']
+          }
+          const created = await milestonesService.create(createPayload as any, token)
           milestone.id = created.id
         }
       }
