@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCall } from '../../contexts/CallContext'
 import { useCallContext } from '../../contexts/CallContext'
-import { Mail, Copy, X, CheckCircle2, Send } from 'lucide-react'
+import { Mail, Copy, X, CheckCircle2, Send, Eye } from 'lucide-react'
+import ApplicantDetailModal from '../../components/admin/ApplicantDetailModal'
 
 interface ApplicantRow {
   id: string
@@ -66,6 +67,10 @@ export default function ApplicantsListPage() {
   const [emailSubject, setEmailSubject] = useState('')
   const [emailBody, setEmailBody] = useState('')
   const [inviteStatuses, setInviteStatuses] = useState<InviteStatus>({})
+
+  // Modal de detalles del postulante
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null)
 
   // crear manualmente (modal simple inline)
   const [creating, setCreating] = useState(false)
@@ -422,13 +427,14 @@ Fundación Carmen Goudie`
                     <th className="py-2 pr-3">Teléfono</th>
                     <th className="py-2 pr-3">Escuela/Colegio</th>
                     <th className="py-2 pr-3">Creado</th>
-                    <th className="py-2">Invitación</th>
+                    <th className="py-2 pr-3">Invitación</th>
+                    <th className="py-2">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-6 text-center text-slate-500">
+                      <td colSpan={8} className="py-6 text-center text-slate-500">
                         No hay registros.
                       </td>
                     </tr>
@@ -455,7 +461,7 @@ Fundación Carmen Goudie`
                               ? new Date(r.createdAt).toLocaleDateString('es-CL')
                               : '—'}
                           </td>
-                          <td className="py-2">
+                          <td className="py-2 pr-3">
                             {inviteStatus ? (
                               <div className="flex items-center gap-2">
                                 <CheckCircle2 className="w-4 h-4 text-green-600" />
@@ -472,6 +478,18 @@ Fundación Carmen Goudie`
                                 Invitar
                               </button>
                             )}
+                          </td>
+                          <td className="py-2">
+                            <button
+                              onClick={() => {
+                                setSelectedApplicantId(r.id)
+                                setDetailModalOpen(true)
+                              }}
+                              className="inline-flex items-center gap-1 rounded-md bg-slate-600 px-2 py-1 text-xs font-medium text-white hover:bg-slate-700"
+                            >
+                              <Eye className="w-3 h-3" />
+                              Ver Detalles
+                            </button>
                           </td>
                         </tr>
                       )
@@ -723,6 +741,18 @@ Fundación Carmen Goudie`
             </form>
           </div>
         </div>
+      )}
+
+      {/* Modal de detalles del postulante */}
+      {detailModalOpen && selectedApplicantId && (
+        <ApplicantDetailModal
+          applicantId={selectedApplicantId}
+          isOpen={detailModalOpen}
+          onClose={() => {
+            setDetailModalOpen(false)
+            setSelectedApplicantId(null)
+          }}
+        />
       )}
 
       {/* Modal de invitación */}
