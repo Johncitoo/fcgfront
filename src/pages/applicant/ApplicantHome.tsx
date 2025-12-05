@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import ProgressTracker from '../../components/ProgressTracker'
+import MilestoneProgress from '../../components/MilestoneProgress'
 
 type ApplicationStatus =
   | 'DRAFT'
@@ -129,10 +129,10 @@ export default function ApplicantHome() {
 
         {!loading && !error && (
           <>
-            {/* Widget de progreso mejorado */}
+            {/* Progreso de hitos */}
             {app?.id && (
               <div className="mb-6 animate-slide-up">
-                <ProgressTracker applicationId={app.id} />
+                <MilestoneProgress applicationId={app.id} />
               </div>
             )}
             
@@ -268,39 +268,16 @@ function ActionButtons({ app }: { app: MyApplication | null }) {
 
   return (
     <div className="flex flex-wrap gap-3">
-      {app.status === 'DRAFT' && (
-        <Link
-          to={`/applicant/form/${app.id}`}
-          className="btn btn-primary flex-1 sm:flex-none justify-center"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          Completar formulario
-        </Link>
-      )}
-
       {app.status === 'NEEDS_FIX' && (
-        <>
-          <Link
-            to={`/applicant/fixes/${app.id}`}
-            className="btn btn-warning flex-1 sm:flex-none justify-center"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            Ver correcciones
-          </Link>
-          <Link
-            to={`/applicant/form/${app.id}`}
-            className="btn btn-outline flex-1 sm:flex-none justify-center"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            Editar y reenviar
-          </Link>
-        </>
+        <div className="alert alert-warning">
+          <svg className="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <p className="font-semibold">Se requieren correcciones</p>
+            <p className="text-sm">Revisa los hitos abajo para ver qué necesita ser corregido.</p>
+          </div>
+        </div>
       )}
 
       {app.status === 'SUBMITTED' && (

@@ -8,16 +8,16 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { AlertCircle, HelpCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { PasswordInput } from './PasswordInput'
 import { authService } from '@/lib/auth'
+import { api } from '@/lib/api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
 
-  // Estado pestaña "Postular"
+  // Estado pestaña "Postular" - solo código, luego redirige
   const [invitationCode, setInvitationCode] = useState('')
-  const [codeError, setCodeError] = useState('')
 
   // Estado pestaña "Acceso"
   const [email, setEmail] = useState('')
@@ -28,32 +28,23 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   // =========================
-  // Login con código de invitación
+  // Login con código de invitación - valida y redirige directo a set-password
   // =========================
   const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setCodeError('')
     setIsLoading(true)
 
     try {
-      await authService.loginWithInviteCode(invitationCode)
+      // Validar el código directamente
+      const response = await api.post('/onboarding/validate-invite', {
+        code: invitationCode.trim()
+      })
 
-      toast.success('Bienvenido/a, comienza a completar tu formulario')
-
-      // Redirigir directo al formulario (NO al dashboard)
-      navigate('/applicant/form', { replace: true })
+      // Redirigir directo a definir contraseña
+      navigate(`/auth/set-password?email=${encodeURIComponent(response.data.email)}`)
     } catch (err: any) {
-      console.error('Error en login con código:', err)
-
-      if (err.response?.status === 404) {
-        setCodeError('El código de invitación no existe o ha expirado.')
-      } else if (err.response?.status === 400) {
-        setCodeError(err.response?.data?.message || 'Este código ya ha sido utilizado.')
-      } else if (err.response?.status === 410) {
-        setCodeError('Este código ya ha sido utilizado.')
-      } else {
-        setCodeError('Error al procesar el código. Por favor, intenta nuevamente.')
-      }
+      console.error('❌ Error validando código:', err)
+      toast.error(err.response?.data?.message || 'Código de invitación inválido')
     } finally {
       setIsLoading(false)
     }
@@ -70,16 +61,34 @@ export default function LoginPage() {
     console.log('🔐 Iniciando login con:', { email })
 
     try {
-      const response = await authService.loginStaff(email, password)
+      let response;
       
-      console.log('✅ Login exitoso:', response)
+      // Intentar primero como APPLICANT
+      try {
+        response = await authService.loginApplicant(email, password)
+        console.log('✅ Login exitoso como APPLICANT:', response)
+      } catch (applicantErr: any) {
+        // Si falla con 401 o 403, intentar como STAFF
+        if (applicantErr.response?.status === 401 || applicantErr.response?.status === 403) {
+          console.log('⚠️ No es APPLICANT, intentando como STAFF...')
+          response = await authService.loginStaff(email, password)
+          console.log('✅ Login exitoso como STAFF:', response)
+        } else {
+          throw applicantErr
+        }
+      }
 
       toast.success(`Bienvenido/a, ${response.user.fullName}`)
 
       // Redirigir según rol
-      const homeRoute = authService.getHomeRouteByRole(response.user.role)
-      console.log('🚀 Redirigiendo a:', homeRoute)
-      navigate(homeRoute, { replace: true })
+      if (response.user.role === 'APPLICANT') {
+        console.log('🚀 Usuario APPLICANT, redirigiendo al primer hito...')
+        await redirectToFirstMilestone()
+      } else {
+        const homeRoute = authService.getHomeRouteByRole(response.user.role)
+        console.log('🚀 Redirigiendo a:', homeRoute)
+        navigate(homeRoute, { replace: true })
+      }
     } catch (err: any) {
       console.error('❌ Error en login:', err)
       console.error('Response:', err.response)
@@ -94,6 +103,52 @@ export default function LoginPage() {
       }
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // =========================
+  // Redirigir al primer hito disponible
+  // =========================
+  const redirectToFirstMilestone = async () => {
+    try {
+      // Obtener la aplicación activa del postulante
+      const appResponse = await api.get<{ id: string }>('/applications/my-active')
+      const applicationId = appResponse.data.id
+
+      // Obtener los hitos de progreso
+      const progressResponse = await api.get<{
+        progress: Array<{
+          mp_id: string
+          status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED'
+          whoCanFill: string
+          milestoneStatus: 'ACTIVE' | 'PENDING'
+          orderIndex: number
+        }>
+      }>(`/milestones/progress/${applicationId}`)
+
+      // Buscar el primer hito ACTIVE que sea responsabilidad del APPLICANT, no completado y no rechazado
+      const firstMilestone = progressResponse.data.progress
+        .filter(m => 
+          m.whoCanFill === 'APPLICANT' && 
+          m.milestoneStatus === 'ACTIVE' && 
+          m.status !== 'COMPLETED' &&
+          m.status !== 'REJECTED'
+        )
+        .sort((a, b) => a.orderIndex - b.orderIndex)[0]
+
+      if (firstMilestone) {
+        // Redirigir al primer hito disponible
+        console.log('✅ Primer hito encontrado:', firstMilestone.mp_id)
+        navigate(`/applicant/milestone/${firstMilestone.mp_id}?app=${applicationId}`, { replace: true })
+      } else {
+        // Si no hay hitos disponibles o todos están completados, ir al dashboard
+        console.log('⚠️ No hay hitos disponibles, redirigiendo al dashboard')
+        navigate('/applicant', { replace: true })
+      }
+    } catch (error) {
+      console.error('❌ Error al obtener hitos:', error)
+      // En caso de error, redirigir al dashboard
+      navigate('/applicant', { replace: true })
     }
   }
 
@@ -175,21 +230,13 @@ export default function LoginPage() {
                       <Input
                         id="invitation-code"
                         type="text"
+                        required
                         value={invitationCode}
                         onChange={(e) => setInvitationCode(e.target.value)}
                         placeholder="TEST-XXXXXXXX"
                         disabled={isLoading}
-                        className={`input ${codeError ? 'border-rose-300 focus:ring-rose-500' : ''}`}
+                        className="input"
                       />
-                      {codeError && (
-                        <div className="alert alert-error animate-shake">
-                          <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                          <div>
-                            <p className="font-medium">Error de validación</p>
-                            <p className="text-sm mt-1">{codeError}</p>
-                          </div>
-                        </div>
-                      )}
                     </div>
 
                     <Button
@@ -197,36 +244,15 @@ export default function LoginPage() {
                       className={`btn btn-primary w-full h-12 text-base font-semibold ${isLoading ? '' : 'hover:scale-102'} transition-transform`}
                       disabled={isLoading || !invitationCode.trim()}
                     >
-                      {isLoading ? (
-                        <>
-                          <div className="spinner mr-2" />
-                          Verificando código...
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                          </svg>
-                          Iniciar postulación
-                        </>
-                      )}
+                      {isLoading ? 'Verificando...' : 'Iniciar postulación'}
                     </Button>
                   </form>
 
-                  <div className="flex items-center gap-2 text-xs text-slate-500 pt-2">
-                    <HelpCircle className="h-3 w-3" />
-                    <span>
-                      ¿No tienes código?{' '}
-                      <button
-                        type="button"
-                        className="text-sky-700 hover:underline"
-                        onClick={() =>
-                          toast.info('Contacta a tu institución educacional o a soporte@fcg.org')
-                        }
-                      >
-                        Solicitar invitación
-                      </button>
-                    </span>
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>¿No tienes un código? Contacta al administrador para recibir una invitación.</span>
                   </div>
                 </TabsContent>
 

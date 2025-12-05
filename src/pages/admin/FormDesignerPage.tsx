@@ -17,6 +17,13 @@ interface FormOption {
   label: string
 }
 
+interface NumberValidation {
+  min?: number
+  max?: number
+  step?: number
+  decimalSeparator?: '.' | ','  // Para formato de números decimales
+}
+
 interface FormField {
   id: string
   name: string
@@ -27,6 +34,7 @@ interface FormField {
   active?: boolean
   placeholder?: string
   options?: FormOption[]
+  validation?: NumberValidation  // Validaciones para campos numéricos
 }
 
 interface FormSection {
@@ -652,6 +660,133 @@ function FieldProperties({ field, onUpdate }: { field: FormField; onUpdate: (upd
         <label htmlFor="active" className="text-sm font-medium">Campo activo</label>
       </div>
 
+      {/* Validaciones para campos numéricos */}
+      {(field.type === 'number' || field.type === 'decimal') && (
+        <div className="pt-4 border-t space-y-3">
+          <label className="text-sm font-medium block mb-2">Restricciones numéricas</label>
+          
+          <div>
+            <label className="text-xs text-slate-600 block mb-1">Valor mínimo</label>
+            <input
+              type="number"
+              step={field.type === 'decimal' ? '0.1' : '1'}
+              value={field.validation?.min ?? ''}
+              onChange={(e) => {
+                const val = e.target.value === '' ? undefined : parseFloat(e.target.value)
+                onUpdate({ 
+                  validation: { 
+                    ...field.validation, 
+                    min: val 
+                  } 
+                })
+              }}
+              className="w-full px-3 py-2 border rounded-md text-sm"
+              placeholder="Sin mínimo"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-slate-600 block mb-1">Valor máximo</label>
+            <input
+              type="number"
+              step={field.type === 'decimal' ? '0.1' : '1'}
+              value={field.validation?.max ?? ''}
+              onChange={(e) => {
+                const val = e.target.value === '' ? undefined : parseFloat(e.target.value)
+                onUpdate({ 
+                  validation: { 
+                    ...field.validation, 
+                    max: val 
+                  } 
+                })
+              }}
+              className="w-full px-3 py-2 border rounded-md text-sm"
+              placeholder="Sin máximo"
+            />
+          </div>
+
+          {field.type === 'decimal' && (
+            <>
+              <div>
+                <label className="text-xs text-slate-600 block mb-1">Paso (step)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={field.validation?.step ?? ''}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? undefined : parseFloat(e.target.value)
+                    onUpdate({ 
+                      validation: { 
+                        ...field.validation, 
+                        step: val 
+                      } 
+                    })
+                  }}
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                  placeholder="0.1"
+                />
+                <p className="text-xs text-slate-500 mt-1">Incremento permitido (ej: 0.1, 0.5)</p>
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-600 block mb-2">Separador decimal</label>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      id="sep-comma"
+                      name="decimalSeparator"
+                      checked={field.validation?.decimalSeparator === ',' || !field.validation?.decimalSeparator}
+                      onChange={() => onUpdate({ 
+                        validation: { 
+                          ...field.validation, 
+                          decimalSeparator: ',' 
+                        } 
+                      })}
+                    />
+                    <label htmlFor="sep-comma" className="text-sm">Coma (1,5)</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      id="sep-dot"
+                      name="decimalSeparator"
+                      checked={field.validation?.decimalSeparator === '.'}
+                      onChange={() => onUpdate({ 
+                        validation: { 
+                          ...field.validation, 
+                          decimalSeparator: '.' 
+                        } 
+                      })}
+                    />
+                    <label htmlFor="sep-dot" className="text-sm">Punto (1.5)</label>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {field.validation && (field.validation.min !== undefined || field.validation.max !== undefined) && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+              <p className="text-xs text-blue-800">
+                <strong>Restricción activa:</strong>
+                {field.validation.min !== undefined && field.validation.max !== undefined
+                  ? ` Valor entre ${field.validation.min} y ${field.validation.max}`
+                  : field.validation.min !== undefined
+                  ? ` Valor mínimo: ${field.validation.min}`
+                  : ` Valor máximo: ${field.validation.max}`
+                }
+                {field.type === 'decimal' && field.validation.decimalSeparator && (
+                  <span className="block mt-1">
+                    Formato: use {field.validation.decimalSeparator === ',' ? 'coma (1,5)' : 'punto (1.5)'} como separador
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Editor de opciones para select, checkbox, radio */}
       {needsOptions && (
         <div className="pt-4 border-t">
@@ -789,7 +924,9 @@ function PreviewPanel({ sections }: { sections: FormSection[] }) {
                   ) : (
                     <input
                       type={field.type === 'number' || field.type === 'decimal' ? 'number' : 'text'}
-                      step={field.type === 'decimal' ? '0.01' : undefined}
+                      step={field.validation?.step ?? (field.type === 'decimal' ? '0.01' : undefined)}
+                      min={field.validation?.min}
+                      max={field.validation?.max}
                       placeholder={field.placeholder}
                       className="w-full px-3 py-2 border rounded-md text-sm bg-slate-50"
                       disabled
@@ -798,6 +935,24 @@ function PreviewPanel({ sections }: { sections: FormSection[] }) {
                   
                   {field.helpText && (
                     <p className="text-xs text-slate-500 mt-1.5">{field.helpText}</p>
+                  )}
+                  
+                  {(field.type === 'number' || field.type === 'decimal') && field.validation && (
+                    field.validation.min !== undefined || field.validation.max !== undefined
+                  ) && (
+                    <p className="text-xs text-amber-700 mt-1.5 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                      {field.validation.min !== undefined && field.validation.max !== undefined
+                        ? `Rango: ${field.validation.min} - ${field.validation.max}`
+                        : field.validation.min !== undefined
+                        ? `Mínimo: ${field.validation.min}`
+                        : `Máximo: ${field.validation.max}`
+                      }
+                      {field.type === 'decimal' && field.validation.decimalSeparator && (
+                        <span className="ml-2">
+                          · Separador: {field.validation.decimalSeparator === ',' ? 'coma' : 'punto'}
+                        </span>
+                      )}
+                    </p>
                   )}
                 </div>
               ))}

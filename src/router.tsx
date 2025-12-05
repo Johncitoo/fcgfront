@@ -32,12 +32,14 @@ const AuditPage = lazy(() => import('./pages/admin/AuditPage'))
 const FormSectionEditorPage = lazy(() => import('./pages/admin/FormSectionEditorPage'))
 const InstitutionsPage = lazy(() => import('./pages/admin/InstitutionsPage'))
 const MilestoneManagement = lazy(() => import('./pages/admin/MilestoneManagement'))
+const MilestonesManagementPage = lazy(() => import('./pages/admin/MilestonesManagementPage'))
 const FormBuilderV2 = lazy(() => import('./pages/admin/FormBuilderV2'))
 const SimpleFormBuilder = lazy(() => import('./pages/admin/SimpleFormBuilder'))
 
 // Applicant
 const ApplicantHome = lazy(() => import('./pages/applicant/ApplicantHome'))
 const FormPage = lazy(() => import('./pages/applicant/FormPage'))
+const MilestoneFormPage = lazy(() => import('./pages/applicant/MilestoneFormPage'))
 const FixesPage = lazy(() => import('./pages/applicant/FixesPage'))
 const DocumentsPage = lazy(() => import('./pages/applicant/DocumentsPage'))
 
@@ -84,6 +86,7 @@ export const router = createBrowserRouter([
     { path: 'institutions', element: <InstitutionsPage /> },
     { path: 'applications', element: <ApplicationsListPage /> },
     { path: 'applications/:id', element: <ApplicationDetailPage /> },
+    { path: 'hitos', element: <MilestonesManagementPage /> }, // ✅ Gestión de hitos/fases
     { path: 'formularios', element: <SimpleFormBuilder /> }, // ✅ NUEVO diseñador super simple
     { path: 'forms', element: <FormDesignerPage /> }, // antiguo
     { path: 'forms-v2', element: <FormBuilderV2 /> }, // antiguo v2
@@ -108,6 +111,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <ApplicantHome /> },
       { path: 'form/:id', element: <FormPage /> },
+      { path: 'milestone/:milestoneProgressId', element: <MilestoneFormPage /> },
       { path: 'fixes', element: <FixesPage /> },
       { path: 'documents', element: <DocumentsPage /> },
     ],

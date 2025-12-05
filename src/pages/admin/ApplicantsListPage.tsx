@@ -302,6 +302,17 @@ Fundación Carmen Goudie`
     setCreateError(null)
     setCreateLoading(true)
     try {
+      // Validar RUT (obligatorio)
+      if (!createForm.rut?.trim()) {
+        throw new Error('El RUT es obligatorio')
+      }
+
+      // Validar formato del RUT (debe tener guión)
+      const rutTrimmed = createForm.rut.trim()
+      if (!rutTrimmed.includes('-')) {
+        throw new Error('El RUT debe tener el formato: 12345678-9')
+      }
+
       // Construir fullName ya que el backend espera `fullName`
       const first = createForm.first_name?.trim() || ''
       const last = createForm.last_name?.trim() || ''
@@ -315,10 +326,10 @@ Fundación Carmen Goudie`
       const payload: any = {
         email: createForm.email.trim(),
         fullName,
+        rut: rutTrimmed, // RUT es obligatorio
       }
       if (createForm.first_name?.trim()) payload.first_name = createForm.first_name.trim()
       if (createForm.last_name?.trim()) payload.last_name = createForm.last_name.trim()
-      if (createForm.rut?.trim()) payload.rut = createForm.rut.trim()
       if (createForm.phone?.trim()) payload.phone = createForm.phone.trim()
       if (createForm.birth_date?.trim()) payload.birth_date = createForm.birth_date.trim()
       if (createForm.address?.trim()) payload.address = createForm.address.trim()

@@ -155,13 +155,42 @@ export default function FormPage() {
           headers,
         })
         if (!formRes.ok) throw new Error(await safeError(formRes))
-        const formJson = (await formRes.json()) as FormSchema
+        const formJson = (await formRes.json()) as any
         
-        if (!formJson || !formJson.title || !formJson.sections) {
+        if (!formJson || !formJson.sections || !formJson.fields) {
           throw new Error('El formulario de esta convocatoria no está disponible')
         }
         
-        setSchema(formJson)
+        // Mapear fields a sections y extraer validaciones
+        const sectionsWithFields = formJson.sections.map((section: any) => ({
+          id: section.id,
+          title: section.title,
+          fields: formJson.fields
+            .filter((f: any) => f.section_id === section.id)
+            .map((f: any) => {
+              const validation = f.validation || {}
+              return {
+                id: f.id,
+                name: f.name,
+                label: f.label,
+                type: f.type.toLowerCase(),
+                required: f.required,
+                helpText: f.help_text,
+                options: f.options,
+                active: true,
+                min: validation.min,
+                max: validation.max,
+                step: validation.step,
+                decimalSeparator: validation.decimalSeparator
+              }
+            })
+        }))
+        
+        setSchema({
+          id: formJson.call?.id || callId,
+          title: formJson.call?.name || 'Formulario',
+          sections: sectionsWithFields
+        })
 
         // 3) Respuestas existentes
         const answersRes = await fetch(
@@ -732,33 +761,87 @@ function FieldControl({
       )}
 
       {type === 'number' && (
-        <input
-          {...common}
-          type="number"
-          min={min}
-          max={max}
-          step={1}
-          value={value ?? ''}
-          onChange={(e) =>
-            onChange(name, e.target.value === '' ? '' : Number(e.target.value))
-          }
-          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-        />
+        <>
+          <input
+            {...common}
+            type="number"
+            min={min}
+            max={max}
+            step={1}
+            value={value ?? ''}
+            onChange={(e) => {
+              const val = e.target.value === '' ? '' : Number(e.target.value)
+              onChange(name, val)
+            }}
+            onBlur={(e) => {
+              const val = Number(e.target.value)
+              if (isNaN(val)) return
+              
+              if (min !== undefined && val < min) {
+                alert(`El valor debe ser mayor o igual a ${min}`)
+                onChange(name, min)
+                e.target.value = String(min)
+              } else if (max !== undefined && val > max) {
+                alert(`El valor debe ser menor o igual a ${max}`)
+                onChange(name, max)
+                e.target.value = String(max)
+              }
+            }}
+            className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+          />
+          {(min !== undefined || max !== undefined) && (
+            <p className="text-xs text-amber-700 mt-1.5 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+              {min !== undefined && max !== undefined
+                ? `Rango permitido: ${min} - ${max}`
+                : min !== undefined
+                ? `Valor mínimo: ${min}`
+                : `Valor máximo: ${max}`
+              }
+            </p>
+          )}
+        </>
       )}
 
       {type === 'decimal' && (
-        <input
-          {...common}
-          type="number"
-          min={min}
-          max={max}
-          step={step ?? 0.01}
-          value={value ?? ''}
-          onChange={(e) =>
-            onChange(name, e.target.value === '' ? '' : Number(e.target.value))
-          }
-          className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-        />
+        <>
+          <input
+            {...common}
+            type="number"
+            min={min}
+            max={max}
+            step={step ?? 0.01}
+            value={value ?? ''}
+            onChange={(e) => {
+              const val = e.target.value === '' ? '' : Number(e.target.value)
+              onChange(name, val)
+            }}
+            onBlur={(e) => {
+              const val = Number(e.target.value)
+              if (isNaN(val)) return
+              
+              if (min !== undefined && val < min) {
+                alert(`El valor debe ser mayor o igual a ${min}`)
+                onChange(name, min)
+                e.target.value = String(min)
+              } else if (max !== undefined && val > max) {
+                alert(`El valor debe ser menor o igual a ${max}`)
+                onChange(name, max)
+                e.target.value = String(max)
+              }
+            }}
+            className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+          />
+          {(min !== undefined || max !== undefined) && (
+            <p className="text-xs text-amber-700 mt-1.5 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+              {min !== undefined && max !== undefined
+                ? `Rango permitido: ${min} - ${max}`
+                : min !== undefined
+                ? `Valor mínimo: ${min}`
+                : `Valor máximo: ${max}`
+              }
+            </p>
+          )}
+        </>
       )}
 
       {type === 'textarea' && (

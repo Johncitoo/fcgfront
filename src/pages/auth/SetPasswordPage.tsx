@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { apiPost } from '../../lib/api'
+import { api, apiPost } from '../../lib/api'
 import { authService } from '../../lib/auth'
 
 /**
@@ -63,9 +63,15 @@ export default function SetPasswordPage() {
     setLoading(true)
     try {
       // 1) Intento de seteo/activación con el backend
+      // Si no hay token (desarrollo), usar endpoint dev
+      const endpoint = token ? '/onboarding/set-password' : '/onboarding/dev/set-password';
+      const payload = token 
+        ? { token, password: pwd }
+        : { email: email.trim(), password: pwd };
+      
       const resp = await apiPost<AuthResponse | { message?: string }>(
-        '/auth/set-password',
-        { email: email.trim(), password: pwd, token: token || undefined },
+        endpoint,
+        payload,
       )
 
       // 2) Si el backend devuelve tokens, iniciamos sesión localmente
@@ -78,7 +84,13 @@ export default function SetPasswordPage() {
 
       // 3) Si no devolvió tokens, intentamos login con las credenciales recién definidas
       try {
-        const loginResp = await authService.loginStaff(email.trim(), pwd);
+        // Intentar login como postulante (applicant)
+        const loginResp = await apiPost<AuthResponse>('/auth/login', {
+          email: email.trim(),
+          password: pwd,
+        });
+        authService.setTokens(loginResp.accessToken, loginResp.refreshToken);
+        authService.setUser(loginResp.user);
         afterLogin(loginResp.user);
         return
       } catch {
@@ -101,14 +113,79 @@ export default function SetPasswordPage() {
     fullName: string;
     role: 'ADMIN' | 'REVIEWER' | 'APPLICANT';
   }) {
+    console.log('🎯 afterLogin llamado para usuario:', user.role, user.email)
     setSuccess('Tu contraseña se definió y tu sesión ha sido iniciada.')
-    setTimeout(() => {
-      if (user.role === 'ADMIN' || user.role === 'REVIEWER') {
+    
+    // Si es APPLICANT, redirigir al primer hito disponible
+    if (user.role === 'APPLICANT') {
+      console.log('👤 Usuario es APPLICANT, buscando primer hito...')
+      redirectToFirstMilestone()
+    } else {
+      // Admin o Reviewer van a su dashboard
+      console.log('👔 Usuario es', user.role, ', redirigiendo a /admin')
+      setTimeout(() => {
         navigate('/admin', { replace: true })
+      }, 350)
+    }
+  }
+
+  async function redirectToFirstMilestone() {
+    try {
+      console.log('📋 Obteniendo aplicación activa...')
+      // Obtener la aplicación activa del postulante
+      const appResponse = await api.get<{ id: string }>('/applications/my-active')
+      const applicationId = appResponse.data.id
+      console.log('✅ Aplicación activa obtenida:', applicationId)
+
+      console.log('🎯 Obteniendo hitos de progreso...')
+      // Obtener los hitos de progreso
+      const progressResponse = await api.get<{
+        progress: Array<{
+          mp_id: string
+          status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED'
+          whoCanFill: string
+          milestoneStatus: 'ACTIVE' | 'PENDING'
+          orderIndex: number
+          milestoneName?: string
+        }>
+      }>(`/milestones/progress/${applicationId}`)
+
+      console.log('📊 Hitos obtenidos:', progressResponse.data.progress.length)
+      progressResponse.data.progress.forEach(m => {
+        console.log(`  - ${m.milestoneName || 'Hito'} (${m.orderIndex}): status=${m.status}, whoCanFill=${m.whoCanFill}, milestoneStatus=${m.milestoneStatus}`)
+      })
+
+      // Buscar el primer hito ACTIVE que sea responsabilidad del APPLICANT, no completado y no rechazado
+      const firstMilestone = progressResponse.data.progress
+        .filter(m => 
+          m.whoCanFill === 'APPLICANT' && 
+          m.milestoneStatus === 'ACTIVE' && 
+          m.status !== 'COMPLETED' &&
+          m.status !== 'REJECTED'
+        )
+        .sort((a, b) => a.orderIndex - b.orderIndex)[0]
+
+      if (firstMilestone) {
+        // Redirigir al primer hito disponible
+        console.log('🎯 Primer hito encontrado:', firstMilestone.mp_id, firstMilestone.milestoneName)
+        setTimeout(() => {
+          navigate(`/applicant/milestone/${firstMilestone.mp_id}?app=${applicationId}`, { replace: true })
+        }, 350)
       } else {
-        navigate('/me', { replace: true }) // ApplicantHome (lo crearemos luego)
+        // Si no hay hitos disponibles, ir al dashboard
+        console.log('⚠️ No hay hitos disponibles para completar, redirigiendo al dashboard')
+        setTimeout(() => {
+          navigate('/applicant', { replace: true })
+        }, 350)
       }
-    }, 350)
+    } catch (error: any) {
+      console.error('❌ Error al obtener hitos:', error)
+      console.error('Error details:', error.response?.data || error.message)
+      // En caso de error, redirigir al dashboard
+      setTimeout(() => {
+        navigate('/applicant', { replace: true })
+      }, 350)
+    }
   }
 
   return (

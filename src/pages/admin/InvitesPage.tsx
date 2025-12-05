@@ -4,8 +4,9 @@ import { apiGet, apiPost } from '../../lib/api'
 
 interface CallOption {
   id: string
-  code: string
-  title: string
+  name: string
+  year: number
+  status: string
   start_date: string
   end_date: string
 }
@@ -233,7 +234,7 @@ export default function InvitesPage() {
             <option value="">Todas las convocatorias</option>
             {calls.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.code} — {c.title}
+                {c.name} ({c.year})
               </option>
             ))}
           </select>
@@ -270,7 +271,7 @@ export default function InvitesPage() {
                         <tr key={r.id} className="border-b last:border-0">
                           <td className="py-2 pr-3">{r.email}</td>
                           <td className="py-2 pr-3">
-                            {calls.find((c) => c.id === r.call_id)?.code ?? '—'}
+                            {calls.find((c) => c.id === r.call_id)?.name ?? '—'}
                           </td>
                           <td className="py-2 pr-3">
                             <span
@@ -304,7 +305,7 @@ export default function InvitesPage() {
                       <div className="text-xs text-slate-600">
                         Convocatoria:{' '}
                         <span className="font-mono">
-                          {calls.find((c) => c.id === r.call_id)?.code ?? '—'}
+                          {calls.find((c) => c.id === r.call_id)?.name ?? '—'}
                         </span>
                       </div>
                       <div className="mt-1 grid grid-cols-2 gap-2 text-xs text-slate-600">
@@ -413,7 +414,7 @@ export default function InvitesPage() {
                   <option value="">Selecciona</option>
                   {calls.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.code} — {c.title}
+                      {c.name} ({c.year})
                     </option>
                   ))}
                 </select>
@@ -466,7 +467,7 @@ export default function InvitesPage() {
                   <option value="">Selecciona</option>
                   {calls.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.code} — {c.title}
+                      {c.name} ({c.year})
                     </option>
                   ))}
                 </select>

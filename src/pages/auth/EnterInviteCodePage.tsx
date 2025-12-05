@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { apiPost } from '../../lib/api'
 
 /**
@@ -14,8 +14,10 @@ import { apiPost } from '../../lib/api'
  */
 export default function EnterInviteCodePage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
+  const [code, setCode] = useState(searchParams.get('code') || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
@@ -33,8 +35,13 @@ export default function EnterInviteCodePage() {
       })
       const msg =
         res?.message ||
-        'Código validado exitosamente. Revisa tu correo para establecer tu contraseña.'
+        'Código validado exitosamente. Redirigiendo para establecer contraseña...'
       setSuccessMsg(msg)
+      
+      // Redirigir automáticamente después de 1.5 segundos
+      setTimeout(() => {
+        goSetPassword()
+      }, 1500)
     } catch (e: any) {
       setError(e?.message ?? 'No fue posible validar el código')
     } finally {
@@ -45,7 +52,7 @@ export default function EnterInviteCodePage() {
   function goSetPassword() {
     const q = new URLSearchParams()
     if (email.trim()) q.set('email', email.trim())
-    navigate(`/set-password?${q.toString()}`)
+    navigate(`/auth/set-password?${q.toString()}`)
   }
 
   return (

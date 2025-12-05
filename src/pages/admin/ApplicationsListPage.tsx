@@ -3,26 +3,40 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { apiGet } from '../../lib/api'
 
 type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
+type OverallStatus = 'IN_PROGRESS' | 'IN_REVIEW' | 'NEEDS_CHANGES' | 'APPROVED' | 'REJECTED'
 
 interface CallOption {
   id: string
-  code: string
-  title: string
+  name: string
+  year: number
+  status: string
+}
+
+interface Milestone {
+  id: string
+  name: string
+  orderIndex: number
 }
 
 interface Row {
   id: string
-  applicant_id: string
-  call_id: string
-  institution_id?: string | null
+  applicantId: string
+  callId: string
+  institutionId?: string | null
   status: AppStatus
   score?: number | null
-  submitted_at?: string | null
-  updated_at?: string | null
-  // campos “decorados” que tu backend puede retornar opcionalmente
-  applicant_email?: string
-  applicant_name?: string
-  call_code?: string
+  submittedAt?: string | null
+  updatedAt?: string | null
+  // campos "decorados" que el backend retorna
+  applicantEmail?: string
+  applicantName?: string
+  callName?: string
+  callYear?: number
+  createdAt?: string
+  // NUEVO: información de hito y estado general
+  currentMilestoneName?: string
+  currentMilestoneOrder?: number
+  overallStatus?: OverallStatus
 }
 
 interface Paginated<T> {
@@ -30,14 +44,13 @@ interface Paginated<T> {
   meta?: { total: number; limit: number; offset: number }
 }
 
-const STATUS_OPTIONS: { value: '' | AppStatus; label: string }[] = [
+const STATUS_OPTIONS: { value: '' | OverallStatus; label: string }[] = [
   { value: '', label: 'Todos los estados' },
-  { value: 'DRAFT', label: 'Borrador' },
-  { value: 'SUBMITTED', label: 'Enviadas' },
-  { value: 'IN_REVIEW', label: 'En revisión' },
-  { value: 'NEEDS_FIX', label: 'Con correcciones' },
-  { value: 'APPROVED', label: 'Aprobadas' },
-  { value: 'REJECTED', label: 'Rechazadas' },
+  { value: 'IN_PROGRESS', label: '🔄 En Progreso' },
+  { value: 'IN_REVIEW', label: '👀 En Revisión' },
+  { value: 'NEEDS_CHANGES', label: '✏️ Requiere Cambios' },
+  { value: 'APPROVED', label: '✅ Aprobadas' },
+  { value: 'REJECTED', label: '❌ Rechazadas' },
 ]
 
 export default function ApplicationsListPage() {
@@ -45,8 +58,9 @@ export default function ApplicationsListPage() {
 
   // filtros
   const [q, setQ] = useState(sp.get('q') ?? '')
-  const [status, setStatus] = useState<'' | AppStatus>((sp.get('status') as any) ?? '')
+  const [status, setStatus] = useState<'' | OverallStatus>((sp.get('status') as any) ?? '')
   const [callId, setCallId] = useState(sp.get('callId') ?? '')
+  const [milestoneOrder, setMilestoneOrder] = useState(sp.get('milestoneOrder') ?? '')
 
   // paginación
   const [limit, setLimit] = useState(Number(sp.get('limit')) || 20)
@@ -56,23 +70,44 @@ export default function ApplicationsListPage() {
   const [rows, setRows] = useState<Row[]>([])
   const [total, setTotal] = useState(0)
   const [calls, setCalls] = useState<CallOption[]>([])
+  const [milestones, setMilestones] = useState<Milestone[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const deps = useMemo(() => ({ q, status, callId, limit, offset }), [q, status, callId, limit, offset])
+  const deps = useMemo(() => ({ q, status, callId, milestoneOrder, limit, offset }), [q, status, callId, milestoneOrder, limit, offset])
 
   // carga de combos
   useEffect(() => {
     ;(async () => {
       try {
-        const res = await apiGet<Paginated<CallOption> | CallOption[]>('/calls?limit=200')
+        const res = await apiGet<{ data: CallOption[] } | CallOption[]>('/calls?limit=200')
         const list = Array.isArray(res) ? res : res.data ?? []
         setCalls(list)
-      } catch {
+        
+        // Si hay una convocatoria seleccionada, cargar sus hitos
+        if (callId) {
+          console.log('📍 Cargando hitos para callId:', callId)
+          try {
+            const milestonesRes = await apiGet<Milestone[]>(`/milestones/call/${callId}`)
+            const milestonesList = Array.isArray(milestonesRes) ? milestonesRes : []
+            console.log('📍 Hitos cargados:', milestonesList.length, milestonesList)
+            setMilestones(milestonesList.sort((a, b) => a.orderIndex - b.orderIndex))
+          } catch (err) {
+            console.error('❌ Error loading milestones:', err)
+            setMilestones([])
+          }
+        } else {
+          console.log('📍 No hay callId seleccionado, limpiando hitos')
+          setMilestones([])
+          setMilestoneOrder('') // Limpiar selección de hito si no hay convocatoria
+        }
+      } catch (err) {
+        console.error('❌ Error loading calls:', err)
         setCalls([])
+        setMilestones([])
       }
     })()
-  }, [])
+  }, [callId])
 
   // carga principal
   useEffect(() => {
@@ -88,8 +123,9 @@ export default function ApplicationsListPage() {
       params.set('limit', String(limit))
       params.set('offset', String(offset))
       if (q.trim()) params.set('q', q.trim())
-      if (status) params.set('status', status)
+      if (status) params.set('overallStatus', status)
       if (callId) params.set('callId', callId)
+      if (milestoneOrder) params.set('milestoneOrder', milestoneOrder)
 
       const res = await apiGet<Paginated<Row> | Row[]>(`/applications?${params.toString()}`)
       if (Array.isArray(res)) {
@@ -112,6 +148,7 @@ export default function ApplicationsListPage() {
     if (q.trim()) next.set('q', q.trim())
     if (status) next.set('status', status)
     if (callId) next.set('callId', callId)
+    if (milestoneOrder) next.set('milestoneOrder', milestoneOrder)
     next.set('limit', String(limit))
     next.set('offset', '0')
     setSp(next, { replace: true })
@@ -129,7 +166,7 @@ export default function ApplicationsListPage() {
         </header>
 
         {/* Filtros responsivos */}
-        <section className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_16rem_18rem_auto]">
+        <section className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_14rem_16rem_14rem_auto]">
           <input
             type="text"
             value={q}
@@ -150,13 +187,29 @@ export default function ApplicationsListPage() {
           </select>
           <select
             value={callId}
-            onChange={(e) => setCallId(e.target.value)}
+            onChange={(e) => {
+              setCallId(e.target.value)
+              setMilestoneOrder('') // Reset milestone filter when call changes
+            }}
             className="rounded-md border px-3 py-2 text-sm"
           >
             <option value="">Todas las convocatorias</option>
             {calls.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.code} — {c.title}
+                {c.name} — {c.year}
+              </option>
+            ))}
+          </select>
+          <select
+            value={milestoneOrder}
+            onChange={(e) => setMilestoneOrder(e.target.value)}
+            className="rounded-md border px-3 py-2 text-sm"
+            disabled={!callId}
+          >
+            <option value="">Todos los hitos</option>
+            {milestones.map((m) => (
+              <option key={m.id} value={m.orderIndex}>
+                {m.name}
               </option>
             ))}
           </select>
@@ -183,30 +236,32 @@ export default function ApplicationsListPage() {
                         <th className="py-2 pr-3">Postulante</th>
                         <th className="py-2 pr-3">Correo</th>
                         <th className="py-2 pr-3">Convocatoria</th>
+                        <th className="py-2 pr-3">Hito Actual</th>
                         <th className="py-2 pr-3">Estado</th>
-                        <th className="py-2 pr-3">Puntaje</th>
-                        <th className="py-2 pr-3">Enviada</th>
                         <th className="py-2">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {rows.map((r) => (
                         <tr key={r.id} className="border-b last:border-0">
-                          <td className="py-2 pr-3">{r.applicant_name || '—'}</td>
-                          <td className="py-2 pr-3">{r.applicant_email || '—'}</td>
+                          <td className="py-2 pr-3">{r.applicantName || '—'}</td>
+                          <td className="py-2 pr-3">{r.applicantEmail || '—'}</td>
                           <td className="py-2 pr-3">
-                            <span className="font-mono">{r.call_code || shortId(r.call_id)}</span>
+                            <span className="font-mono text-xs">{r.callName || shortId(r.callId)}</span>
                           </td>
                           <td className="py-2 pr-3">
-                            <StatusBadge status={r.status} />
+                            {r.currentMilestoneName ? (
+                              <span className="text-xs font-medium">{r.currentMilestoneName}</span>
+                            ) : (
+                              <span className="text-xs text-slate-400">—</span>
+                            )}
                           </td>
-                          <td className="py-2 pr-3">{r.score ?? '—'}</td>
                           <td className="py-2 pr-3">
-                            {r.submitted_at ? new Date(r.submitted_at).toLocaleString() : '—'}
+                            <OverallStatusBadge status={r.overallStatus} />
                           </td>
                           <td className="py-2">
                             <Link to={`/admin/applications/${r.id}`} className="btn text-xs">
-                              Abrir
+                              Revisar
                             </Link>
                           </td>
                         </tr>
@@ -220,14 +275,14 @@ export default function ApplicationsListPage() {
                   {rows.map((r) => (
                     <div key={r.id} className="rounded-lg border p-3">
                       <div className="mb-1 flex items-center justify-between">
-                        <div className="text-sm font-semibold">{r.applicant_name || '—'}</div>
+                        <div className="text-sm font-semibold">{r.applicantName || '—'}</div>
                         <StatusBadge status={r.status} />
                       </div>
-                      <div className="text-xs text-slate-600">{r.applicant_email || '—'}</div>
+                      <div className="text-xs text-slate-600">{r.applicantEmail || '—'}</div>
                       <div className="mt-1 grid grid-cols-2 gap-2 text-xs text-slate-600">
                         <div>
                           <div className="text-slate-500">Convocatoria</div>
-                          <div className="font-mono">{r.call_code || shortId(r.call_id)}</div>
+                          <div className="font-mono">{r.callName || shortId(r.callId)}</div>
                         </div>
                         <div>
                           <div className="text-slate-500">Puntaje</div>
@@ -236,7 +291,7 @@ export default function ApplicationsListPage() {
                         <div>
                           <div className="text-slate-500">Enviada</div>
                           <div>
-                            {r.submitted_at ? new Date(r.submitted_at).toLocaleString() : '—'}
+                            {r.submittedAt ? new Date(r.submittedAt).toLocaleString() : '—'}
                           </div>
                         </div>
                       </div>
@@ -300,6 +355,26 @@ export default function ApplicationsListPage() {
 }
 
 /* =================== subcomponentes =================== */
+
+function OverallStatusBadge({ status }: { status?: OverallStatus }) {
+  if (!status) return <span className="badge badge-neutral">—</span>
+  
+  const config: Record<OverallStatus, { class: string; label: string }> = {
+    IN_PROGRESS: { class: 'bg-blue-100 text-blue-800', label: '🔄 En Progreso' },
+    IN_REVIEW: { class: 'bg-yellow-100 text-yellow-800', label: '👀 En Revisión' },
+    NEEDS_CHANGES: { class: 'bg-orange-100 text-orange-800', label: '✏️ Requiere Cambios' },
+    APPROVED: { class: 'bg-green-100 text-green-800', label: '✅ Aprobado' },
+    REJECTED: { class: 'bg-red-100 text-red-800', label: '❌ Rechazado' },
+  }
+  
+  const { class: className, label } = config[status] || { class: 'badge-neutral', label: status }
+  
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${className}`}>
+      {label}
+    </span>
+  )
+}
 
 function StatusBadge({ status }: { status: AppStatus }) {
   const map: Record<AppStatus, string> = {

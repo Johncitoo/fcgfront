@@ -7,6 +7,9 @@ const baseURL = API_BASE_URL.endsWith('/api')
   ? API_BASE_URL 
   : `${API_BASE_URL}/api`;
 
+// Exportar la URL base para uso directo con fetch
+export const API_BASE = baseURL;
+
 export const api = axios.create({
   baseURL,
   headers: {

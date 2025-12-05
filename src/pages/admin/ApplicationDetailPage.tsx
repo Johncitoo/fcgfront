@@ -3,34 +3,56 @@ import { Link, useParams } from 'react-router-dom'
 import { apiGet, apiPost, apiPatch } from '../../lib/api'
 
 type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
+type MilestoneStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED' | 'NEEDS_CHANGES'
+type ReviewStatus = 'APPROVED' | 'REJECTED' | 'NEEDS_CHANGES' | 'PENDING_REVIEW'
 
 interface ApplicationDTO {
   id: string
-  applicant_id: string
-  call_id: string
-  institution_id?: string | null
+  applicantId: string
+  callId: string
+  institutionId?: string | null
   status: AppStatus
   score?: number | null
-  submitted_at?: string | null
-  decided_at?: string | null
+  submittedAt?: string | null
+  decidedAt?: string | null
   notes?: string | null
-  created_at?: string
-  updated_at?: string
-  applicant_email?: string
-  applicant_name?: string
-  call_code?: string
-  institution_name?: string | null
+  createdAt?: string
+  updatedAt?: string
+  applicantEmail?: string
+  applicantName?: string
+  callCode?: string
+  institutionName?: string | null
   summary?: Record<string, any> | null
 }
 
 interface HistoryRow {
   id: string
-  application_id: string
-  from_status?: AppStatus | null
-  to_status: AppStatus
+  applicationId: string
+  fromStatus?: AppStatus | null
+  toStatus: AppStatus
   reason?: string | null
-  changed_by?: string | null
-  changed_at: string
+  changedBy?: string | null
+  changedAt: string
+}
+
+interface MilestoneProgress {
+  mp_id: string
+  milestoneId: string
+  status: MilestoneStatus
+  completedAt: string | null
+  createdAt: string
+  updatedAt: string
+  reviewStatus: ReviewStatus | null
+  reviewNotes: string | null
+  reviewedBy: string | null
+  reviewedAt: string | null
+  reviewerName: string | null
+  milestoneName: string
+  orderIndex: number
+  whoCanFill: 'APPLICANT' | 'REVIEWER'
+  milestoneStatus: string
+  formId: string | null
+  m_required: boolean
 }
 
 export default function ApplicationDetailPage() {
@@ -44,6 +66,12 @@ export default function ApplicationDetailPage() {
   const [notes, setNotes] = useState('')
   const [msg, setMsg] = useState<string | null>(null)
   const [actionErr, setActionErr] = useState<string | null>(null)
+  const [milestones, setMilestones] = useState<MilestoneProgress[]>([])
+  const [reviewingMilestone, setReviewingMilestone] = useState<string | null>(null)
+  const [reviewNotes, setReviewNotes] = useState('')
+  const [viewingAnswers, setViewingAnswers] = useState<string | null>(null)
+  const [answers, setAnswers] = useState<any>(null)
+  const [loadingAnswers, setLoadingAnswers] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -60,6 +88,12 @@ export default function ApplicationDetailPage() {
           setHist(h)
         } catch {
           setHist([])
+        }
+        try {
+          const progressData = await apiGet<{ progress: MilestoneProgress[] }>(`/milestones/progress/${id}`)
+          setMilestones(progressData.progress || [])
+        } catch {
+          setMilestones([])
         }
       } catch (e: any) {
         setError(e.message ?? 'No se pudo cargar la postulación')
@@ -108,6 +142,47 @@ export default function ApplicationDetailPage() {
     }
   }
 
+  async function reviewMilestone(progressId: string, reviewStatus: ReviewStatus) {
+    if (!id) return
+    setSaving(true)
+    setActionErr(null)
+    setMsg(null)
+    try {
+      const currentUser = localStorage.getItem('userId') || '1b3234d7-f3f1-4407-8fc0-3d91eb344a76'
+      
+      await apiPatch(`/milestones/progress/${progressId}/review`, {
+        reviewStatus,
+        reviewNotes: reviewNotes.trim() || null,
+        reviewedBy: currentUser,
+      })
+      
+      const progressData = await apiGet<{ progress: MilestoneProgress[] }>(`/milestones/progress/${id}`)
+      setMilestones(progressData.progress || [])
+      
+      setMsg(`Hito ${reviewStatus === 'APPROVED' ? 'aprobado' : reviewStatus === 'REJECTED' ? 'rechazado' : 'marcado para cambios'} correctamente.`)
+      setReviewingMilestone(null)
+      setReviewNotes('')
+    } catch (e: any) {
+      setActionErr(e.message ?? 'No se pudo revisar el hito')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function loadAnswers(progressId: string) {
+    setLoadingAnswers(true)
+    setAnswers(null)
+    try {
+      const data = await apiGet(`/milestones/progress/${progressId}/submission`)
+      setAnswers(data)
+      setViewingAnswers(progressId)
+    } catch (e: any) {
+      setActionErr(e.message ?? 'No se pudieron cargar las respuestas')
+    } finally {
+      setLoadingAnswers(false)
+    }
+  }
+
   return (
     <div className="min-h-screen p-4 md:p-6">
       <div className="mx-auto w-full max-w-7xl">
@@ -115,8 +190,8 @@ export default function ApplicationDetailPage() {
           <Link to="/admin/applications" className="text-sm text-sky-700 hover:underline">
             ← Volver a postulaciones
           </Link>
-          {app?.call_id && (
-            <Link to={`/admin/calls/${app.call_id}`} className="text-sm text-sky-700 hover:underline">
+          {app?.callId && (
+            <Link to={`/admin/calls/${app.callId}`} className="text-sm text-sky-700 hover:underline">
               Ver convocatoria
             </Link>
           )}
@@ -129,9 +204,9 @@ export default function ApplicationDetailPage() {
               <p className="text-slate-600">
                 {app ? (
                   <>
-                    <span className="font-medium">{app.applicant_name || '—'}</span>{' '}
-                    <span className="text-slate-500">({app.applicant_email || '—'})</span> —{' '}
-                    <span className="font-mono">{app.call_code || shortId(app.call_id)}</span>
+                    <span className="font-medium">{app.applicantName || '—'}</span>{' '}
+                    <span className="text-slate-500">({app.applicantEmail || '—'})</span> —{' '}
+                    <span className="font-mono">{app.callCode || shortId(app.callId)}</span>
                   </>
                 ) : (
                   'Cargando…'
@@ -172,9 +247,7 @@ export default function ApplicationDetailPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_22rem]">
-            {/* principal */}
             <section className="space-y-4">
-              {/* Acciones */}
               <div className="card">
                 <div className="card-body">
                   <div className="flex flex-wrap gap-2">
@@ -200,7 +273,186 @@ export default function ApplicationDetailPage() {
                 </div>
               </div>
 
-              {/* Resumen */}
+              <div className="card">
+                <div className="card-body">
+                  <h3 className="mb-3 text-base font-semibold">Hitos de la Postulación</h3>
+                  {milestones.length === 0 ? (
+                    <p className="text-sm text-slate-600">No hay hitos configurados para esta convocatoria.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {milestones.map((m) => {
+                        const isBlocked = m.status === 'REJECTED' && m.reviewNotes === 'Bloqueado por rechazo de hito anterior'
+                        return (
+                        <div key={m.mp_id} className={`rounded-lg border p-4 ${isBlocked ? 'bg-slate-50 opacity-60' : ''}`}>
+                          <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-medium">{m.milestoneName}</h4>
+                                <span className="text-xs text-slate-500">
+                                  ({m.whoCanFill === 'APPLICANT' ? 'Postulante' : 'Revisor'})
+                                </span>
+                                {m.m_required && <span className="text-xs text-rose-600">*Obligatorio</span>}
+                                {isBlocked && <span className="text-xs text-slate-500">🔒 Bloqueado</span>}
+                              </div>
+                              <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+                                <MilestoneStatusBadge status={m.status} />
+                                {m.reviewStatus && <ReviewStatusBadge status={m.reviewStatus} />}
+                              </div>
+                            </div>
+                          </div>
+
+                          {m.reviewStatus && (
+                            <div className="mt-2 rounded bg-slate-50 p-2 text-sm">
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium text-slate-700">
+                                  Revisado por: {m.reviewerName || 'Sistema'}
+                                </span>
+                                <span className="text-xs text-slate-500">
+                                  {m.reviewedAt ? new Date(m.reviewedAt).toLocaleString() : '—'}
+                                </span>
+                              </div>
+                              {m.reviewNotes && (
+                                <div className="mt-1 text-slate-600">
+                                  <span className="font-medium">Notas:</span> {m.reviewNotes}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Botón para ver respuestas si el hito tiene respuestas guardadas */}
+                          {(m.status === 'COMPLETED' || m.status === 'IN_PROGRESS') && m.whoCanFill === 'APPLICANT' && (
+                            <div className="mt-2">
+                              <button
+                                onClick={() => loadAnswers(m.mp_id)}
+                                disabled={loadingAnswers}
+                                className="btn text-xs"
+                              >
+                                👁️ Ver respuestas del formulario
+                              </button>
+                            </div>
+                          )}
+
+                          {!isBlocked && m.reviewStatus !== 'APPROVED' && (
+                            <div className="mt-3 space-y-2">
+                              {reviewingMilestone === m.mp_id ? (
+                                <div className="rounded-md border border-sky-200 bg-sky-50 p-3">
+                                  <label className="mb-2 block text-sm font-medium">Notas de revisión:</label>
+                                  <textarea
+                                    value={reviewNotes}
+                                    onChange={(e) => setReviewNotes(e.target.value)}
+                                    className="input mb-2 min-h-[80px]"
+                                    placeholder="Escribe comentarios sobre la revisión..."
+                                  />
+                                  <div className="flex flex-wrap gap-2">
+                                    <button
+                                      onClick={() => reviewMilestone(m.mp_id, 'APPROVED')}
+                                      disabled={saving}
+                                      className="btn-primary text-xs"
+                                    >
+                                      ✓ Aprobar
+                                    </button>
+                                    <button
+                                      onClick={() => reviewMilestone(m.mp_id, 'REJECTED')}
+                                      disabled={saving}
+                                      className="btn border-rose-300 text-xs text-rose-700"
+                                    >
+                                      ✗ Rechazar
+                                    </button>
+                                    <button
+                                      onClick={() => reviewMilestone(m.mp_id, 'NEEDS_CHANGES')}
+                                      disabled={saving}
+                                      className="btn border-amber-300 text-xs text-amber-700"
+                                    >
+                                      ⚠ Solicitar cambios
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setReviewingMilestone(null)
+                                        setReviewNotes('')
+                                      }}
+                                      disabled={saving}
+                                      className="btn text-xs"
+                                    >
+                                      Cancelar
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setReviewingMilestone(m.mp_id)}
+                                  className="btn text-xs"
+                                >
+                                  📝 Revisar este hito
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {m.whoCanFill === 'APPLICANT' && (
+                            <div className="mt-2 text-xs text-slate-600">
+                              {m.status === 'COMPLETED' ? (
+                                <span className="text-emerald-700">✓ Completado el {m.completedAt ? new Date(m.completedAt).toLocaleString() : '—'}</span>
+                              ) : (
+                                <span>Pendiente de completar por el postulante</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )})}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal para ver respuestas */}
+              {viewingAnswers && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                  <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Respuestas del Formulario</h3>
+                      <button
+                        onClick={() => {
+                          setViewingAnswers(null)
+                          setAnswers(null)
+                        }}
+                        className="text-slate-500 hover:text-slate-700"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    {loadingAnswers ? (
+                      <p className="text-slate-600">Cargando respuestas...</p>
+                    ) : answers ? (
+                      <div className="space-y-4">
+                        <div className="rounded border bg-slate-50 p-3">
+                          <div className="text-xs text-slate-500">Formulario: {answers.formName || '—'}</div>
+                          <div className="text-xs text-slate-500">
+                            Enviado: {answers.submittedAt ? new Date(answers.submittedAt).toLocaleString() : 'No enviado'}
+                          </div>
+                          <div className="text-xs text-slate-500">Estado: {answers.status}</div>
+                        </div>
+                        {answers.answers && Object.keys(answers.answers).length > 0 ? (
+                          <div className="space-y-3">
+                            {Object.entries(answers.answers).map(([key, value]: [string, any]) => (
+                              <div key={key} className="rounded border bg-white p-3">
+                                <div className="mb-1 text-sm font-medium text-slate-700">{key}</div>
+                                <div className="text-sm text-slate-800">
+                                  {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-slate-600">No hay respuestas guardadas.</p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-600">No se encontraron respuestas para este hito.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="card">
                 <div className="card-body">
                   <h3 className="mb-2 text-base font-semibold">Resumen de formulario</h3>
@@ -214,7 +466,6 @@ export default function ApplicationDetailPage() {
                 </div>
               </div>
 
-              {/* Historial */}
               <div className="card">
                 <div className="card-body">
                   <h3 className="mb-2 text-base font-semibold">Historial</h3>
@@ -235,11 +486,11 @@ export default function ApplicationDetailPage() {
                         <tbody>
                           {hist.map((h) => (
                             <tr key={h.id} className="border-b last:border-0">
-                              <td className="py-2 pr-3">{labelStatus(h.from_status)}</td>
-                              <td className="py-2 pr-3"><StatusBadge status={h.to_status} /></td>
+                              <td className="py-2 pr-3">{labelStatus(h.fromStatus)}</td>
+                              <td className="py-2 pr-3"><StatusBadge status={h.toStatus} /></td>
                               <td className="py-2 pr-3">{h.reason || '—'}</td>
-                              <td className="py-2 pr-3">{h.changed_by || '—'}</td>
-                              <td className="py-2">{new Date(h.changed_at).toLocaleString()}</td>
+                              <td className="py-2 pr-3">{h.changedBy || '—'}</td>
+                              <td className="py-2">{new Date(h.changedAt).toLocaleString()}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -249,7 +500,6 @@ export default function ApplicationDetailPage() {
                 </div>
               </div>
 
-              {/* Puntaje/Notas */}
               <div className="card">
                 <div className="card-body">
                   <h3 className="mb-2 text-base font-semibold">Puntaje y notas</h3>
@@ -284,16 +534,15 @@ export default function ApplicationDetailPage() {
               </div>
             </section>
 
-            {/* lateral */}
             <aside className="space-y-4">
               <div className="card">
                 <div className="card-body">
                   <h3 className="mb-2 text-base font-semibold">Datos</h3>
-                  <KV label="Postulante" value={app.applicant_name || '—'} />
-                  <KV label="Correo" value={app.applicant_email || '—'} />
-                  <KV label="Convocatoria" value={app.call_code || shortId(app.call_id)} mono />
-                  <KV label="Institución" value={app.institution_name || '—'} />
-                  <KV label="Actualizada" value={app.updated_at ? new Date(app.updated_at).toLocaleString() : '—'} />
+                  <KV label="Postulante" value={app.applicantName || '—'} />
+                  <KV label="Correo" value={app.applicantEmail || '—'} />
+                  <KV label="Convocatoria" value={app.callCode || shortId(app.callId)} mono />
+                  <KV label="Institución" value={app.institutionName || '—'} />
+                  <KV label="Actualizada" value={app.updatedAt ? new Date(app.updatedAt).toLocaleString() : '—'} />
                 </div>
               </div>
             </aside>
@@ -364,4 +613,38 @@ function StatusBadge({ status }: { status: AppStatus }) {
     REJECTED: 'badge',
   }
   return <span className={classes[status]}>{labelStatus(status)}</span>
+}
+
+function MilestoneStatusBadge({ status }: { status: MilestoneStatus }) {
+  const classes: Record<MilestoneStatus, string> = {
+    PENDING: 'rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700',
+    IN_PROGRESS: 'rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700',
+    COMPLETED: 'rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700',
+    REJECTED: 'rounded-full bg-rose-100 px-2 py-1 text-xs text-rose-700',
+    NEEDS_CHANGES: 'rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-700',
+  }
+  const labels: Record<MilestoneStatus, string> = {
+    PENDING: 'Pendiente',
+    IN_PROGRESS: 'En progreso',
+    COMPLETED: 'Completado',
+    REJECTED: 'Rechazado',
+    NEEDS_CHANGES: 'Requiere cambios',
+  }
+  return <span className={classes[status]}>{labels[status]}</span>
+}
+
+function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
+  const classes: Record<ReviewStatus, string> = {
+    APPROVED: 'rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700',
+    REJECTED: 'rounded-full bg-rose-100 px-2 py-1 text-xs text-rose-700',
+    NEEDS_CHANGES: 'rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-700',
+    PENDING_REVIEW: 'rounded-full bg-sky-100 px-2 py-1 text-xs text-sky-700',
+  }
+  const labels: Record<ReviewStatus, string> = {
+    APPROVED: '✓ Aprobado',
+    REJECTED: '✗ Rechazado',
+    NEEDS_CHANGES: '⚠ Cambios solicitados',
+    PENDING_REVIEW: '⏳ Pendiente revisión',
+  }
+  return <span className={classes[status]}>{labels[status]}</span>
 }
