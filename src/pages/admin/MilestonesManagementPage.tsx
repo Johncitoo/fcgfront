@@ -103,7 +103,7 @@ export default function MilestonesManagementPage() {
         name: milestone.name,
         description: milestone.description || '',
         required: milestone.required,
-        whoCanFill: Array.isArray(milestone.whoCanFill) ? milestone.whoCanFill[0] || 'APPLICANT' : 'APPLICANT',
+        whoCanFill: (Array.isArray(milestone.whoCanFill) ? milestone.whoCanFill[0] : 'APPLICANT') as 'APPLICANT' | 'REVIEWER',
         status: milestone.status,
         dueDate: milestone.dueDate ? milestone.dueDate.split('T')[0] : '',
       })
