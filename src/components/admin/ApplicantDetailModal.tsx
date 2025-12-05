@@ -174,58 +174,63 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div 
+      className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-slideUp">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
           <h2 className="text-xl font-bold text-gray-800">Detalles del Postulante</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-700 hover:bg-white/50 rounded-full p-1 transition-all duration-200"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="border-b">
+        <div className="border-b bg-gray-50/50">
           <div className="flex px-6">
             <button
               onClick={() => setActiveTab('info')}
-              className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+              className={`px-4 py-3 font-medium text-sm border-b-2 transition-all duration-200 ${
                 activeTab === 'info'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-blue-500 text-blue-600 bg-white'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-white/60'
               }`}
             >
               <div className="flex items-center gap-2">
-                <User className="w-4 h-4" />
+                <User className={`w-4 h-4 transition-transform duration-200 ${activeTab === 'info' ? 'scale-110' : ''}`} />
                 Información Personal
               </div>
             </button>
             <button
               onClick={() => setActiveTab('forms')}
-              className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+              className={`px-4 py-3 font-medium text-sm border-b-2 transition-all duration-200 ${
                 activeTab === 'forms'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-blue-500 text-blue-600 bg-white'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-white/60'
               }`}
             >
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
+                <FileText className={`w-4 h-4 transition-transform duration-200 ${activeTab === 'forms' ? 'scale-110' : ''}`} />
                 Formularios ({formSubmissions.length})
               </div>
             </button>
             <button
               onClick={() => setActiveTab('files')}
-              className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+              className={`px-4 py-3 font-medium text-sm border-b-2 transition-all duration-200 ${
                 activeTab === 'files'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-blue-500 text-blue-600 bg-white'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-white/60'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Download className="w-4 h-4" />
+                <Download className={`w-4 h-4 transition-transform duration-200 ${activeTab === 'files' ? 'scale-110' : ''}`} />
                 Archivos ({files.length})
               </div>
             </button>
@@ -295,7 +300,7 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                         {applicant.applications.map((app) => (
                           <div
                             key={app.id}
-                            className="bg-gray-50 border border-gray-200 rounded-lg p-4"
+                            className="bg-gradient-to-r from-gray-50 to-blue-50/30 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200"
                           >
                             <div className="flex items-center justify-between">
                               <div>
@@ -342,11 +347,11 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                     formSubmissions.map((submission) => (
                       <div
                         key={submission.id}
-                        className="border border-gray-200 rounded-lg overflow-hidden"
+                        className="border border-gray-200 rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md"
                       >
                         <button
                           onClick={() => toggleFormExpanded(submission.id)}
-                          className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                          className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-blue-50 transition-all duration-200"
                         >
                           <div className="flex items-center gap-3">
                             <FileText className="w-5 h-5 text-gray-400" />
@@ -370,10 +375,10 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                         </button>
 
                         {expandedForm === submission.id && (
-                          <div className="p-4 space-y-3 bg-white">
+                          <div className="p-4 space-y-3 bg-white animate-slideDown">
                             {submission.answers && Object.keys(submission.answers).length > 0 ? (
                               Object.entries(submission.answers).map(([key, value]) => (
-                                <div key={key} className="border-l-2 border-blue-200 pl-3">
+                                <div key={key} className="border-l-2 border-blue-200 pl-3 hover:border-blue-400 transition-colors duration-200">
                                   <div className="text-sm font-medium text-gray-700">{key}</div>
                                   <div className="text-gray-600 mt-1">
                                     {typeof value === 'object'
@@ -404,7 +409,7 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                     files.map((file) => (
                       <div
                         key={file.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 hover:shadow-md"
                       >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
@@ -420,7 +425,7 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                         </div>
                         <button
                           onClick={() => downloadFile(file.id, file.originalFilename)}
-                          className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex-shrink-0 ml-4"
+                          className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 hover:shadow-lg transition-all duration-200 flex-shrink-0 ml-4 active:scale-95"
                         >
                           <Download className="w-4 h-4" />
                           Descargar
