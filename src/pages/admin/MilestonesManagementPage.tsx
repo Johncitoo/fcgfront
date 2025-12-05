@@ -15,7 +15,7 @@ interface Milestone {
   description?: string
   orderIndex: number
   required: boolean
-  whoCanFill: 'APPLICANT' | 'REVIEWER'
+  whoCanFill: string[]
   status: 'ACTIVE' | 'PENDING'
   formId?: string
   dueDate?: string
@@ -96,7 +96,7 @@ export default function MilestonesManagementPage() {
         name: milestone.name,
         description: milestone.description || '',
         required: milestone.required,
-        whoCanFill: milestone.whoCanFill,
+        whoCanFill: Array.isArray(milestone.whoCanFill) ? milestone.whoCanFill[0] || 'APPLICANT' : 'APPLICANT',
         status: milestone.status,
         dueDate: milestone.dueDate ? milestone.dueDate.split('T')[0] : '',
       })
@@ -128,6 +128,7 @@ export default function MilestonesManagementPage() {
 
       const payload = {
         ...formData,
+        whoCanFill: [formData.whoCanFill], // Convertir a array
         callId: selectedCallId,
         orderIndex: editingMilestone ? editingMilestone.orderIndex : milestones.length + 1,
         dueDate: formData.dueDate || undefined,
@@ -385,8 +386,8 @@ export default function MilestonesManagementPage() {
                             <span className={`badge ${milestone.status === 'ACTIVE' ? 'badge-success' : 'badge-neutral'}`}>
                               {milestone.status === 'ACTIVE' ? '● Activo' : '○ Pendiente'}
                             </span>
-                            <span className={`badge ${milestone.whoCanFill === 'APPLICANT' ? 'badge-info' : 'badge-purple'}`}>
-                              {milestone.whoCanFill === 'APPLICANT' ? 'Postulante' : 'Revisor'}
+                            <span className={`badge ${milestone.whoCanFill?.[0] === 'APPLICANT' ? 'badge-info' : 'badge-purple'}`}>
+                              {milestone.whoCanFill?.[0] === 'APPLICANT' ? 'Postulante' : 'Revisor'}
                             </span>
                             {milestone.required && (
                               <span className="badge badge-warn">Obligatorio</span>
