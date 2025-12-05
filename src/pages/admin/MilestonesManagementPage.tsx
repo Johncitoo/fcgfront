@@ -34,12 +34,19 @@ export default function MilestonesManagementPage() {
   // Modal states
   const [showModal, setShowModal] = useState(false)
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string
+    description: string
+    required: boolean
+    whoCanFill: 'APPLICANT' | 'REVIEWER'
+    status: 'ACTIVE' | 'PENDING'
+    dueDate: string
+  }>({
     name: '',
     description: '',
     required: true,
-    whoCanFill: 'APPLICANT' as 'APPLICANT' | 'REVIEWER',
-    status: 'PENDING' as 'ACTIVE' | 'PENDING',
+    whoCanFill: 'APPLICANT',
+    status: 'PENDING',
     dueDate: '',
   })
 
