@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api'
+import { GripVertical, Lock, Unlock, X } from 'lucide-react'
 
 interface Call {
   id: string
@@ -22,17 +23,10 @@ interface Milestone {
   updatedAt: string
 }
 
-interface Form {
-  id: string
-  name: string
-  description?: string
-}
-
 export default function MilestonesManagementPage() {
   const [calls, setCalls] = useState<Call[]>([])
   const [selectedCallId, setSelectedCallId] = useState<string>('')
   const [milestones, setMilestones] = useState<Milestone[]>([])
-  const [forms, setForms] = useState<Form[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -43,17 +37,18 @@ export default function MilestonesManagementPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    orderIndex: 1,
     required: true,
     whoCanFill: 'APPLICANT' as 'APPLICANT' | 'REVIEWER',
     status: 'PENDING' as 'ACTIVE' | 'PENDING',
-    formId: '',
     dueDate: '',
   })
 
+  // Drag & drop states
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [isReorderLocked, setIsReorderLocked] = useState(true)
+
   useEffect(() => {
     loadCalls()
-    loadForms()
   }, [])
 
   useEffect(() => {
@@ -92,14 +87,7 @@ export default function MilestonesManagementPage() {
     }
   }
 
-  const loadForms = async () => {
-    try {
-      const data = await apiGet<Form[]>('/forms')
-      setForms(data)
-    } catch (err: any) {
-      console.error('Error al cargar formularios:', err)
-    }
-  }
+
 
   const handleOpenModal = (milestone?: Milestone) => {
     if (milestone) {
@@ -107,11 +95,9 @@ export default function MilestonesManagementPage() {
       setFormData({
         name: milestone.name,
         description: milestone.description || '',
-        orderIndex: milestone.orderIndex,
         required: milestone.required,
         whoCanFill: milestone.whoCanFill,
         status: milestone.status,
-        formId: milestone.formId || '',
         dueDate: milestone.dueDate ? milestone.dueDate.split('T')[0] : '',
       })
     } else {
@@ -119,11 +105,9 @@ export default function MilestonesManagementPage() {
       setFormData({
         name: '',
         description: '',
-        orderIndex: milestones.length + 1,
         required: true,
         whoCanFill: 'APPLICANT',
         status: 'PENDING',
-        formId: '',
         dueDate: '',
       })
     }
@@ -145,7 +129,7 @@ export default function MilestonesManagementPage() {
       const payload = {
         ...formData,
         callId: selectedCallId,
-        formId: formData.formId || undefined,
+        orderIndex: editingMilestone ? editingMilestone.orderIndex : milestones.length + 1,
         dueDate: formData.dueDate || undefined,
       }
 
@@ -214,6 +198,43 @@ export default function MilestonesManagementPage() {
     }
   }
 
+  const handleDragStart = (index: number) => {
+    if (!isReorderLocked) {
+      setDraggedIndex(index)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || isReorderLocked) return
+
+    const draggedItem = milestones[draggedIndex]
+    const newMilestones = [...milestones]
+    newMilestones.splice(draggedIndex, 1)
+    newMilestones.splice(index, 0, draggedItem)
+
+    setMilestones(newMilestones)
+    setDraggedIndex(index)
+  }
+
+  const handleDragEnd = async () => {
+    if (draggedIndex === null || isReorderLocked) return
+
+    try {
+      // Actualizar orderIndex en el backend
+      for (let i = 0; i < milestones.length; i++) {
+        await apiPatch(`/milestones/${milestones[i].id}`, { orderIndex: i + 1 })
+      }
+      setSuccess('Orden actualizado correctamente')
+      await loadMilestones()
+    } catch (err: any) {
+      setError('Error al actualizar el orden')
+      await loadMilestones()
+    } finally {
+      setDraggedIndex(null)
+    }
+  }
+
   const selectedCall = Array.isArray(calls) ? calls.find(c => c.id === selectedCallId) : null
 
   return (
@@ -260,13 +281,39 @@ export default function MilestonesManagementPage() {
         <div className="card">
           <div className="card-header">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Hitos configurados</h2>
-              <button onClick={() => handleOpenModal()} className="btn btn-primary">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Crear Hito
-              </button>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-semibold">Hitos configurados</h2>
+                {!isReorderLocked && (
+                  <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full font-medium animate-pulse">
+                    Arrastra para reordenar
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsReorderLocked(!isReorderLocked)}
+                  className={`btn ${isReorderLocked ? 'btn-outline' : 'bg-amber-500 text-white hover:bg-amber-600'} flex items-center gap-2 transition-all duration-200`}
+                  title={isReorderLocked ? 'Desbloquear para reordenar arrastrando' : 'Bloquear orden'}
+                >
+                  {isReorderLocked ? (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      Orden Bloqueado
+                    </>
+                  ) : (
+                    <>
+                      <Unlock className="w-4 h-4" />
+                      Reordenar Activo
+                    </>
+                  )}
+                </button>
+                <button onClick={() => handleOpenModal()} className="btn btn-primary">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Crear Hito
+                </button>
+              </div>
             </div>
           </div>
 
@@ -292,19 +339,33 @@ export default function MilestonesManagementPage() {
 
             {!loading && Array.isArray(milestones) && milestones.length > 0 && (
               <div className="space-y-3">
-                {milestones.map((milestone) => (
+                {milestones.map((milestone, index) => (
                   <div
                     key={milestone.id}
+                    draggable={!isReorderLocked}
+                    onDragStart={() => handleDragStart(index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragEnd={handleDragEnd}
                     className={`border-2 rounded-lg p-4 transition-all ${
+                      !isReorderLocked ? 'cursor-move hover:shadow-lg' : ''
+                    } ${
                       milestone.status === 'ACTIVE'
                         ? 'border-emerald-300 bg-emerald-50'
                         : 'border-gray-200 bg-white'
                     }`}
                   >
                     <div className="flex items-start gap-4">
+                      {/* Drag Handle */}
+                      {!isReorderLocked && (
+                        <div className="flex items-center pt-1">
+                          <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                        </div>
+                      )}
                       {/* Número de orden */}
-                      <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-                        milestone.status === 'ACTIVE' ? 'bg-emerald-600' : 'bg-gray-400'
+                      <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all duration-200 ${
+                        milestone.status === 'ACTIVE' 
+                          ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg' 
+                          : 'bg-gradient-to-br from-gray-300 to-gray-500'
                       }`}>
                         {milestone.orderIndex}
                       </div>
@@ -389,12 +450,28 @@ export default function MilestonesManagementPage() {
 
       {/* Modal para crear/editar */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleCloseModal()
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-slideUp">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+              <h2 className="text-xl font-bold text-gray-800">
                 {editingMilestone ? 'Editar Hito' : 'Crear Nuevo Hito'}
               </h2>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-400 hover:text-gray-700 hover:bg-white/50 rounded-full p-1 transition-all duration-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
 
               <div className="space-y-4">
                 {/* Nombre */}
@@ -421,20 +498,6 @@ export default function MilestonesManagementPage() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="input min-h-[80px]"
                     placeholder="Descripción opcional del hito"
-                  />
-                </div>
-
-                {/* Orden */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Orden *
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.orderIndex}
-                    onChange={(e) => setFormData({ ...formData, orderIndex: parseInt(e.target.value) || 1 })}
-                    className="input"
                   />
                 </div>
 
@@ -471,25 +534,6 @@ export default function MilestonesManagementPage() {
                   </p>
                 </div>
 
-                {/* Formulario */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Formulario asociado
-                  </label>
-                  <select
-                    value={formData.formId}
-                    onChange={(e) => setFormData({ ...formData, formId: e.target.value })}
-                    className="input"
-                  >
-                    <option value="">Sin formulario</option>
-                    {Array.isArray(forms) && forms.map(form => (
-                      <option key={form.id} value={form.id}>
-                        {form.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 {/* Fecha límite */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -518,23 +562,24 @@ export default function MilestonesManagementPage() {
                 </div>
               </div>
 
-              {/* Botones */}
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={handleSave}
-                  disabled={loading || !formData.name.trim()}
-                  className="btn btn-primary flex-1"
-                >
-                  {loading ? 'Guardando...' : editingMilestone ? 'Actualizar' : 'Crear'}
-                </button>
-                <button
-                  onClick={handleCloseModal}
-                  disabled={loading}
-                  className="btn btn-outline flex-1"
-                >
-                  Cancelar
-                </button>
-              </div>
+            </div>
+
+            {/* Footer con botones */}
+            <div className="border-t p-6 bg-gray-50/50 flex gap-3">
+              <button
+                onClick={handleSave}
+                disabled={loading || !formData.name.trim()}
+                className="btn btn-primary flex-1 transition-all duration-200 hover:shadow-lg active:scale-95 disabled:opacity-50"
+              >
+                {loading ? 'Guardando...' : editingMilestone ? 'Actualizar Hito' : 'Crear Hito'}
+              </button>
+              <button
+                onClick={handleCloseModal}
+                disabled={loading}
+                className="btn btn-outline flex-1 transition-all duration-200 hover:bg-gray-100"
+              >
+                Cancelar
+              </button>
             </div>
           </div>
         </div>
