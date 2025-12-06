@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCall } from '../../contexts/CallContext'
 import { useCallContext } from '../../contexts/CallContext'
-import { Mail, Copy, X, CheckCircle2, Send, Eye } from 'lucide-react'
+import { Mail, Copy, X, CheckCircle2, Send, Eye, Users } from 'lucide-react'
 import ApplicantDetailModal from '../../components/admin/ApplicantDetailModal'
+import BulkInviteModal from '../../components/admin/BulkInviteModal'
 
 interface ApplicantRow {
   id: string
@@ -71,6 +72,9 @@ export default function ApplicantsListPage() {
   // Modal de detalles del postulante
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null)
+
+  // Modal de envío masivo
+  const [bulkInviteOpen, setBulkInviteOpen] = useState(false)
 
   // crear manualmente (modal simple inline)
   const [creating, setCreating] = useState(false)
@@ -400,7 +404,16 @@ Fundación Carmen Goudie`
             Buscar
           </button>
 
-          <div className="ml-auto">
+          <div className="ml-auto flex gap-2">
+            {selectedCall && (
+              <button
+                onClick={() => setBulkInviteOpen(true)}
+                className="rounded-md border border-sky-600 px-3 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 flex items-center gap-2"
+              >
+                <Users className="w-4 h-4" />
+                Envío Masivo
+              </button>
+            )}
             <button
               onClick={() => setCreating(true)}
               className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700"
@@ -935,6 +948,18 @@ Fundación Carmen Goudie`
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de envío masivo */}
+      {bulkInviteOpen && selectedCall && (
+        <BulkInviteModal
+          callId={selectedCall.id}
+          callName={selectedCall.name}
+          onClose={() => setBulkInviteOpen(false)}
+          onSuccess={() => {
+            load()
+          }}
+        />
       )}
     </div>
   )
