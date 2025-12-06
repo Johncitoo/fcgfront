@@ -31,15 +31,24 @@ export default function AdminHome() {
         const token = localStorage.getItem('fcg.access_token') ?? ''
         const headers = { Authorization: `Bearer ${token}` }
 
-        // Ajusta estas rutas a las reales del backend si difieren.
+        // Primero obtener la convocatoria activa
+        const callsListRes = await fetch(`${API_BASE}/calls?status=OPEN`, { headers })
+        if (!callsListRes.ok) throw new Error(await safeError(callsListRes))
+        
+        const callsList = await callsListRes.json()
+        const activeCall = Array.isArray(callsList) ? callsList[0] : callsList.data?.[0]
+        
+        // Si hay convocatoria activa, filtra métricas solo para esa convocatoria
+        const callFilter = activeCall ? `&callId=${activeCall.id}` : ''
+        
         const [applicantsRes, callsRes, submittedRes, reviewingRes] =
           await Promise.all([
-            fetch(`${API_BASE}/applicants?limit=1&count=1`, { headers }),
+            fetch(`${API_BASE}/applicants?limit=1&count=1${callFilter}`, { headers }),
             fetch(`${API_BASE}/calls?onlyActive=true&count=1`, { headers }),
-            fetch(`${API_BASE}/applications?status=SUBMITTED&count=1`, {
+            fetch(`${API_BASE}/applications?status=SUBMITTED&count=1${callFilter}`, {
               headers,
             }),
-            fetch(`${API_BASE}/applications?status=IN_REVIEW&count=1`, {
+            fetch(`${API_BASE}/applications?status=IN_REVIEW&count=1${callFilter}`, {
               headers,
             }),
           ])
@@ -55,10 +64,22 @@ export default function AdminHome() {
         const reviewingJson = (await reviewingRes.json()) as CountPayload
 
         setStats([
-          { label: 'Postulantes', value: formatCount(applicantsJson) },
+          { 
+            label: activeCall ? `Postulantes (${activeCall.name})` : 'Postulantes', 
+            value: formatCount(applicantsJson),
+            hint: activeCall ? 'Solo de la convocatoria activa' : undefined
+          },
           { label: 'Convocatorias activas', value: formatCount(callsJson) },
-          { label: 'Enviadas (SUBMITTED)', value: formatCount(submittedJson) },
-          { label: 'En revisión (IN_REVIEW)', value: formatCount(reviewingJson) },
+          { 
+            label: 'Enviadas (SUBMITTED)', 
+            value: formatCount(submittedJson),
+            hint: activeCall ? 'Solo de la convocatoria activa' : undefined
+          },
+          { 
+            label: 'En revisión (IN_REVIEW)', 
+            value: formatCount(reviewingJson),
+            hint: activeCall ? 'Solo de la convocatoria activa' : undefined
+          },
         ])
       } catch (err: any) {
         setError(err.message ?? 'No se pudieron cargar las métricas')
