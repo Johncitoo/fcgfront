@@ -40,6 +40,24 @@ interface FormSubmission {
   createdAt: string
 }
 
+interface FormSchema {
+  sections: FormSection[]
+}
+
+interface FormSection {
+  id: string
+  title: string
+  fields: FormField[]
+}
+
+interface FormField {
+  id: string
+  name: string
+  label: string
+  type: string
+  required?: boolean
+}
+
 interface FileMetadata {
   id: string
   originalFilename: string
@@ -65,6 +83,7 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
   const [files, setFiles] = useState<FileMetadata[]>([])
   const [activeTab, setActiveTab] = useState<'info' | 'forms' | 'files'>('info')
   const [expandedForm, setExpandedForm] = useState<string | null>(null)
+  const [formSchemas, setFormSchemas] = useState<Record<string, FormSchema>>({})
 
   const headers = {
     Authorization: `Bearer ${localStorage.getItem('fcg.access_token') ?? ''}`,
@@ -109,6 +128,25 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
         
         setFormSubmissions(allSubmissions)
 
+        // Cargar schemas de los formularios
+        const uniqueFormIds = [...new Set(allSubmissions.map(s => s.formId).filter(Boolean))] as string[]
+        const schemas: Record<string, FormSchema> = {}
+        
+        for (const formId of uniqueFormIds) {
+          try {
+            const formRes = await fetch(`${API_BASE}/forms/${formId}`, { headers })
+            if (formRes.ok) {
+              const formData = await formRes.json()
+              const schema = typeof formData.schema === 'string' ? JSON.parse(formData.schema) : formData.schema
+              schemas[formId] = schema
+            }
+          } catch (err) {
+            console.error(`Error loading schema for form ${formId}:`, err)
+          }
+        }
+        
+        setFormSchemas(schemas)
+
         // Cargar archivos para cada aplicación
         const allFiles: FileMetadata[] = []
         
@@ -144,6 +182,86 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
     if (bytes < 1024) return `${bytes} B`
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  function getFieldLabel(formId: string | undefined, fieldName: string): string {
+    if (!formId || !formSchemas[formId]) return fieldName
+    
+    const schema = formSchemas[formId]
+    for (const section of schema.sections) {
+      const field = section.fields.find(f => f.name === fieldName)
+      if (field) return field.label || fieldName
+    }
+    
+    return fieldName
+  }
+
+  function getFieldType(formId: string | undefined, fieldName: string): string | undefined {
+    if (!formId || !formSchemas[formId]) return undefined
+    
+    const schema = formSchemas[formId]
+    for (const section of schema.sections) {
+      const field = section.fields.find(f => f.name === fieldName)
+      if (field) return field.type
+    }
+    
+    return undefined
+  }
+
+  function renderFieldValue(value: any, type: string | undefined, fieldName: string) {
+    // Si es un archivo (FILE o IMAGE), buscar en la lista de files
+    if (type === 'FILE' || type === 'IMAGE' || type === 'file' || type === 'image') {
+      const file = files.find(f => 
+        f.category === fieldName || 
+        f.originalFilename.includes(fieldName) ||
+        value === f.id
+      )
+      
+      if (file) {
+        return (
+          <div className="flex items-center gap-3 mt-1">
+            {type?.toLowerCase() === 'image' && (
+              <img 
+                src={`${API_BASE}/files/${file.id}/download`} 
+                alt={file.originalFilename}
+                className="w-20 h-20 object-cover rounded border"
+              />
+            )}
+            <div className="flex-1">
+              <div className="font-medium text-sm">{file.originalFilename}</div>
+              <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
+            </div>
+            <button
+              onClick={() => downloadFile(file.id, file.originalFilename)}
+              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-1"
+            >
+              <Download className="w-3 h-3" />
+              Ver
+            </button>
+          </div>
+        )
+      }
+      
+      // Si no encontramos el archivo pero hay un valor
+      if (value) {
+        return (
+          <div className="text-sm text-gray-500 italic">
+            Archivo: {typeof value === 'string' ? value : JSON.stringify(value)}
+          </div>
+        )
+      }
+      
+      return <div className="text-sm text-gray-400 italic">Sin archivo</div>
+    }
+
+    // Para otros tipos de campo
+    if (!value) return <div className="text-sm text-gray-400 italic">Sin respuesta</div>
+    
+    if (typeof value === 'object') {
+      return <pre className="text-sm bg-gray-50 p-2 rounded">{JSON.stringify(value, null, 2)}</pre>
+    }
+    
+    return <div className="text-gray-600">{String(value)}</div>
   }
 
   function downloadFile(fileId: string, filename: string) {
@@ -375,16 +493,21 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                         </button>
 
                         {expandedForm === submission.id && (
-                          <div className="p-4 space-y-3 bg-white animate-slideDown">
+                          <div className="p-4 space-y-4 bg-white animate-slideDown">
                             {submission.answers && Object.keys(submission.answers).length > 0 ? (
-                              Object.entries(submission.answers).map(([key, value]) => (
-                                <div key={key} className="border-l-2 border-blue-200 pl-3 hover:border-blue-400 transition-colors duration-200">
-                                  <div className="text-sm font-medium text-gray-700">{key}</div>
-                                  <div className="text-gray-600 mt-1">
-                                    {typeof value === 'object'
-                                      ? JSON.stringify(value, null, 2)
-                                      : String(value)}
-                                  </div>
+                              formSchemas[submission.formId || '']?.sections?.map((section) => (
+                                <div key={section.id} className="space-y-3">
+                                  <h4 className="font-semibold text-sm text-gray-700 border-b pb-1">{section.title}</h4>
+                                  {section.fields
+                                    .filter(field => submission.answers[field.name] !== undefined)
+                                    .map((field) => (
+                                      <div key={field.id} className="border-l-2 border-blue-200 pl-3 hover:border-blue-400 transition-colors duration-200">
+                                        <div className="text-sm font-medium text-gray-700">{field.label}</div>
+                                        <div className="mt-1">
+                                          {renderFieldValue(submission.answers[field.name], field.type, field.name)}
+                                        </div>
+                                      </div>
+                                    ))}
                                 </div>
                               ))
                             ) : (
