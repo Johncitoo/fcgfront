@@ -184,30 +184,6 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
-  function getFieldLabel(formId: string | undefined, fieldName: string): string {
-    if (!formId || !formSchemas[formId]) return fieldName
-    
-    const schema = formSchemas[formId]
-    for (const section of schema.sections) {
-      const field = section.fields.find(f => f.name === fieldName)
-      if (field) return field.label || fieldName
-    }
-    
-    return fieldName
-  }
-
-  function getFieldType(formId: string | undefined, fieldName: string): string | undefined {
-    if (!formId || !formSchemas[formId]) return undefined
-    
-    const schema = formSchemas[formId]
-    for (const section of schema.sections) {
-      const field = section.fields.find(f => f.name === fieldName)
-      if (field) return field.type
-    }
-    
-    return undefined
-  }
-
   function renderFieldValue(value: any, type: string | undefined, fieldName: string) {
     // Si es un archivo (FILE o IMAGE), buscar en la lista de files
     if (type === 'FILE' || type === 'IMAGE' || type === 'file' || type === 'image') {
