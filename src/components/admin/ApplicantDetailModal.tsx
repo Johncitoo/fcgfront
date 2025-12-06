@@ -194,45 +194,54 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
-  function renderFieldValue(value: any, type: string | undefined, fieldName: string) {
-    // Si es un archivo (FILE o IMAGE), buscar en la lista de files
+  function renderFieldValue(value: any, type: string | undefined, _fieldName: string) {
+    // Si es un archivo (FILE o IMAGE)
     if (type === 'FILE' || type === 'IMAGE' || type === 'file' || type === 'image') {
-      const file = files.find(f => 
-        f.category === fieldName || 
-        f.originalFilename.includes(fieldName) ||
-        value === f.id
-      )
+      // Si el valor es un UUID (ID del archivo)
+      const isUUID = typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
       
-      if (file) {
+      if (isUUID) {
+        const fileId = value as string
+        
+        // Buscar metadata en el array de files
+        const fileMetadata = files.find(f => f.id === fileId)
+        
         return (
           <div className="flex items-center gap-3 mt-1">
             {type?.toLowerCase() === 'image' && (
               <img 
-                src={`${API_BASE}/files/${file.id}/download`} 
-                alt={file.originalFilename}
+                src={`${API_BASE}/files/${fileId}/view`} 
+                alt={fileMetadata?.originalFilename || 'Imagen'}
                 className="w-20 h-20 object-cover rounded border"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none'
+                }}
               />
             )}
             <div className="flex-1">
-              <div className="font-medium text-sm">{file.originalFilename}</div>
-              <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
+              <div className="font-medium text-sm">
+                {fileMetadata?.originalFilename || `Archivo (${fileId.substring(0, 8)}...)`}
+              </div>
+              {fileMetadata && (
+                <div className="text-xs text-gray-500">{formatFileSize(fileMetadata.size)}</div>
+              )}
             </div>
             <button
-              onClick={() => downloadFile(file.id, file.originalFilename)}
+              onClick={() => downloadFile(fileId, fileMetadata?.originalFilename || 'archivo')}
               className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-1"
             >
               <Download className="w-3 h-3" />
-              Ver
+              Descargar
             </button>
           </div>
         )
       }
       
-      // Si no encontramos el archivo pero hay un valor
+      // Si hay valor pero no es UUID
       if (value) {
         return (
           <div className="text-sm text-gray-500 italic">
-            Archivo: {typeof value === 'string' ? value : JSON.stringify(value)}
+            Valor no válido: {typeof value === 'string' ? value : JSON.stringify(value)}
           </div>
         )
       }
