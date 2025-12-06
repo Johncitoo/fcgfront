@@ -152,18 +152,28 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
         
         for (const app of applicantData.applications) {
           try {
-            const filesRes = await fetch(
-              `${API_BASE}/files/list?entityType=APPLICATION&entityId=${app.id}`,
-              { headers }
-            )
+            const url = `${API_BASE}/files/list?entityType=APPLICATION&entityId=${app.id}`
+            console.log('[ApplicantModal] Cargando archivos:', url)
+            
+            const filesRes = await fetch(url, { headers })
+            console.log('[ApplicantModal] Status:', filesRes.status)
+            
             if (filesRes.ok) {
               const filesData = await filesRes.json()
-              allFiles.push(...(filesData.files || filesData))
+              console.log('[ApplicantModal] Files data:', filesData)
+              
+              const files = filesData.files || filesData
+              console.log('[ApplicantModal] Total archivos:', files.length)
+              allFiles.push(...files)
+            } else {
+              console.error('[ApplicantModal] Error response:', await filesRes.text())
             }
           } catch (err) {
-            console.error(`Error loading files for application ${app.id}:`, err)
+            console.error(`[ApplicantModal] Error loading files for application ${app.id}:`, err)
           }
         }
+        
+        console.log('[ApplicantModal] Total archivos cargados:', allFiles.length)
         
         setFiles(allFiles)
       }
