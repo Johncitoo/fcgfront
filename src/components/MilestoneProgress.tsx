@@ -329,7 +329,7 @@ function MilestoneCard({ milestone, applicationId }: { milestone: Milestone; app
           </div>
 
           {/* Botones de acción */}
-          {isApplicantTask && !isRejected && (
+          {isApplicantTask && !isRejected && milestone.formId && (
             <div className="mt-3">
               {isCompleted ? (
                 <Link
@@ -342,25 +342,15 @@ function MilestoneCard({ milestone, applicationId }: { milestone: Milestone; app
                   </svg>
                   Ver respuestas
                 </Link>
-              ) : isPending && isMilestoneActive ? (
+              ) : (isPending || isInProgress) && isMilestoneActive ? (
                 <Link
                   to={`/applicant/milestone/${milestone.mp_id}?app=${applicationId}`}
-                  className="btn btn-sm btn-primary w-full sm:w-auto"
+                  className={`btn btn-sm ${isInProgress ? 'btn-info' : 'btn-primary'} w-full sm:w-auto`}
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
-                  Completar formulario
-                </Link>
-              ) : isInProgress ? (
-                <Link
-                  to={`/applicant/milestone/${milestone.mp_id}?app=${applicationId}`}
-                  className="btn btn-sm btn-info w-full sm:w-auto"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Continuar formulario
+                  {isInProgress ? 'Continuar formulario' : 'Completar formulario'}
                 </Link>
               ) : null}
             </div>
