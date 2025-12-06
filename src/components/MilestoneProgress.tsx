@@ -8,10 +8,10 @@ interface Milestone {
   milestoneName: string
   orderIndex: number
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED'
-  whoCanFill: string
+  whoCanFill: string | string[]
   milestoneStatus: 'ACTIVE' | 'PENDING'
   required: boolean
-  formId: string
+  formId: string | null
   completedAt?: string
   createdAt: string
   updatedAt: string
@@ -178,8 +178,12 @@ function MilestoneCard({ milestone, applicationId }: { milestone: Milestone; app
   const isInProgress = milestone.status === 'IN_PROGRESS'
   const isPending = milestone.status === 'PENDING'
   const isRejected = milestone.status === 'REJECTED'
-  const isApplicantTask = milestone.whoCanFill === 'APPLICANT'
-  const isReviewerTask = milestone.whoCanFill === 'REVIEWER'
+  
+  // whoCanFill puede ser string o array
+  const whoCanFillArray = Array.isArray(milestone.whoCanFill) ? milestone.whoCanFill : [milestone.whoCanFill]
+  const isApplicantTask = whoCanFillArray.includes('APPLICANT')
+  const isReviewerTask = whoCanFillArray.includes('REVIEWER')
+  
   const isMilestoneActive = milestone.milestoneStatus === 'ACTIVE'
   
   // Detectar si está bloqueado por rechazo de hito anterior vs rechazado directamente
