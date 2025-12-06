@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCall } from '../../contexts/CallContext'
 import { useCallContext } from '../../contexts/CallContext'
-import { Mail, Copy, X, CheckCircle2, Send, Eye, Users } from 'lucide-react'
+import { Mail, Copy, X, CheckCircle2, Send, Eye, Users, Edit } from 'lucide-react'
 import ApplicantDetailModal from '../../components/admin/ApplicantDetailModal'
 import BulkInviteModal from '../../components/admin/BulkInviteModal'
+import EditApplicantModal from '../../components/admin/EditApplicantModal'
+import InstitutionSearchSelector from '../../components/admin/InstitutionSearchSelector'
 
 interface ApplicantRow {
   id: string
@@ -75,6 +77,9 @@ export default function ApplicantsListPage() {
 
   // Modal de envío masivo
   const [bulkInviteOpen, setBulkInviteOpen] = useState(false)
+
+  // Modal de edición
+  const [editingApplicant, setEditingApplicant] = useState<ApplicantRow | null>(null)
 
   // crear manualmente (modal simple inline)
   const [creating, setCreating] = useState(false)
@@ -493,16 +498,25 @@ Fundación Carmen Goudie`
                             )}
                           </td>
                           <td className="py-2">
-                            <button
-                              onClick={() => {
-                                setSelectedApplicantId(r.id)
-                                setDetailModalOpen(true)
-                              }}
-                              className="inline-flex items-center gap-1 rounded-md bg-slate-600 px-2 py-1 text-xs font-medium text-white hover:bg-slate-700"
-                            >
-                              <Eye className="w-3 h-3" />
-                              Ver Detalles
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setEditingApplicant(r)}
+                                className="inline-flex items-center gap-1 rounded-md bg-amber-600 px-2 py-1 text-xs font-medium text-white hover:bg-amber-700"
+                                title="Editar postulante"
+                              >
+                                <Edit className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedApplicantId(r.id)
+                                  setDetailModalOpen(true)
+                                }}
+                                className="inline-flex items-center gap-1 rounded-md bg-slate-600 px-2 py-1 text-xs font-medium text-white hover:bg-slate-700"
+                                title="Ver detalles"
+                              >
+                                <Eye className="w-3 h-3" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       )
@@ -625,21 +639,12 @@ Fundación Carmen Goudie`
                   />
                 </div>
 
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-sm font-medium">Escuela/Colegio *</label>
-                  <select
-                    required
+                <div className="md:col-span-2">
+                  <InstitutionSearchSelector
                     value={createForm.institution_id}
-                    onChange={(e) => onChange('institution_id', e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                  >
-                    <option value="">Seleccione una institución...</option>
-                    {institutions.map((inst) => (
-                      <option key={inst.id} value={inst.id}>
-                        {inst.name}{inst.commune ? ` - ${inst.commune}` : ''}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(id) => onChange('institution_id', id)}
+                    required
+                  />
                 </div>
               </div>
 
@@ -956,6 +961,17 @@ Fundación Carmen Goudie`
           callId={selectedCall.id}
           callName={selectedCall.name}
           onClose={() => setBulkInviteOpen(false)}
+          onSuccess={() => {
+            load()
+          }}
+        />
+      )}
+
+      {/* Modal de edición */}
+      {editingApplicant && (
+        <EditApplicantModal
+          applicant={editingApplicant}
+          onClose={() => setEditingApplicant(null)}
           onSuccess={() => {
             load()
           }}
