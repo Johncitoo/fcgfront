@@ -783,9 +783,9 @@ export default function MilestoneFormPage() {
                       value={values[f.name]}
                       onChange={onChange}
                       applicationId={applicationId || undefined}
-                      submissionId={submissionId}
                       token={token}
                       readOnly={isReadOnly || f.readOnly}
+                      setPendingFiles={setPendingFiles}
                     />
                   ))}
               </div>
@@ -872,17 +872,17 @@ function FieldControl({
   value,
   onChange,
   applicationId,
-  submissionId,
   token,
   readOnly,
+  setPendingFiles,
 }: {
   field: FormField
   value: any
   onChange: (name: string, next: any) => void
   applicationId?: string
-  submissionId?: string | null
   token?: string
   readOnly?: boolean
+  setPendingFiles?: React.Dispatch<React.SetStateAction<Record<string, File>>>
 }) {
   const [fileState, setFileState] = useState<{ file: File | null; uploading: boolean; error?: string; fileId?: string }>({ 
     file: null, 
@@ -1131,18 +1131,18 @@ function FieldControl({
         </div>
       )}
 
-      {(type === 'file' || type === 'image') && token && applicationId && !readOnly && (
+      {(type === 'file' || type === 'image') && token && applicationId && !readOnly && setPendingFiles && (
         <FileUpload
           onFileSelect={(file) => {
             // Solo guardar el archivo en memoria, no subir todavía
             setFileState({ file, uploading: false })
-            setPendingFiles(prev => ({ ...prev, [name]: file }))
+            setPendingFiles((prev: Record<string, File>) => ({ ...prev, [name]: file }))
             // Marcar que hay un archivo seleccionado (pero aún no subido)
             onChange(name, '__PENDING__')
           }}
           onFileRemove={() => {
             setFileState({ file: null, uploading: false })
-            setPendingFiles(prev => {
+            setPendingFiles((prev: Record<string, File>) => {
               const newFiles = { ...prev }
               delete newFiles[name]
               return newFiles
