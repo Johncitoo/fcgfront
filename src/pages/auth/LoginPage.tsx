@@ -30,24 +30,14 @@ export default function LoginPage() {
   const fromSetPassword = searchParams.get('fromSetPassword') === 'true'
 
   // =========================
-  // Login con código de invitación - valida y redirige directo a set-password
+  // Login con código de invitación - redirige a página de invitación
   // =========================
   const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-
-    try {
-      // Validar el código directamente
-      const response = await api.post('/onboarding/validate-invite', {
-        code: invitationCode.trim()
-      })
-
-      // Redirigir directo a definir contraseña
-      navigate(`/auth/set-password?email=${encodeURIComponent(response.data.email)}`)
-    } catch (err: any) {
-      console.error('❌ Error validando código:', err)
-      toast.error(err.response?.data?.message || 'Código de invitación inválido')
-    } finally {
+    
+    // Redirigir a la página de invitación con el código pre-llenado
+    navigate(`/auth/invites?code=${encodeURIComponent(invitationCode.trim())}`)
+  }
       setIsLoading(false)
     }
   }
