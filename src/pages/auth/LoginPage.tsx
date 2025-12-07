@@ -38,9 +38,6 @@ export default function LoginPage() {
     // Redirigir a la página de invitación con el código pre-llenado
     navigate(`/auth/invites?code=${encodeURIComponent(invitationCode.trim())}`)
   }
-      setIsLoading(false)
-    }
-  }
 
   // =========================
   // Login con correo y clave
