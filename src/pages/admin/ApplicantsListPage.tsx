@@ -100,9 +100,6 @@ export default function ApplicantsListPage() {
   const [createError, setCreateError] = useState<string | null>(null)
   const [createLoading, setCreateLoading] = useState(false)
 
-  // Instituciones para selector
-  const [institutions, setInstitutions] = useState<Array<{id: string, name: string, commune?: string}>>([])
-
   const headers = useMemo(() => {
     const token = localStorage.getItem('fcg.access_token') ?? ''
     return {
