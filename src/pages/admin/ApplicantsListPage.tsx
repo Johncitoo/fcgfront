@@ -289,20 +289,8 @@ Fundación Carmen Goudie`
 
   useEffect(() => {
     load()
-    loadInstitutions()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit, offset, selectedCallId])
-
-  async function loadInstitutions() {
-    try {
-      const res = await fetch(`${API_BASE}/institutions?active=true&limit=500`, { headers })
-      if (!res.ok) return
-      const json = await res.json()
-      setInstitutions(json.data ?? [])
-    } catch {
-      // silencioso
-    }
-  }
 
   function onChange<K extends keyof typeof createForm>(k: K, v: (typeof createForm)[K]) {
     setCreateForm((s) => ({ ...s, [k]: v }))
