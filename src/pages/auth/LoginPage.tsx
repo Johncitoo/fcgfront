@@ -36,7 +36,7 @@ export default function LoginPage() {
     e.preventDefault()
     
     // Redirigir a la página de invitación con el código pre-llenado
-    navigate(`/auth/invites?code=${encodeURIComponent(invitationCode.trim())}`)
+    navigate(`/auth/enter-invite?code=${encodeURIComponent(invitationCode.trim())}`)
   }
 
   // =========================
