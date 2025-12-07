@@ -1,10 +1,20 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useCall } from '../contexts/CallContext'
 import { useState } from 'react'
+import { authService } from '../lib/auth'
+import { LogOut } from 'lucide-react'
 
 export default function TopNav() {
+  const navigate = useNavigate()
   const { selectedCall, calls, setSelectedCall } = useCall()
   const [showCallMenu, setShowCallMenu] = useState(false)
+
+  const handleLogout = () => {
+    if (confirm('¿Cerrar sesión?')) {
+      authService.logout()
+      navigate('/auth/login')
+    }
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur-sm shadow-sm">
@@ -93,6 +103,16 @@ export default function TopNav() {
           <NavLinkItem to="/admin/applicants" label="Postulantes" />
           <NavLinkItem to="/admin/calls" label="Convocatorias" />
           <NavLinkItem to="/admin/forms-builder" label="Formularios" />
+          
+          {/* Botón cerrar sesión */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors"
+            title="Cerrar sesión"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden lg:inline">Salir</span>
+          </button>
         </nav>
       </div>
     </header>

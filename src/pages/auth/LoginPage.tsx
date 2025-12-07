@@ -15,17 +15,19 @@ import { api } from '@/lib/api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useState(() => new URLSearchParams(window.location.search))
 
   // Estado pestaña "Postular" - solo código, luego redirige
   const [invitationCode, setInvitationCode] = useState('')
 
   // Estado pestaña "Acceso"
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(searchParams.get('email') || '')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [loginError, setLoginError] = useState('')
 
   const [isLoading, setIsLoading] = useState(false)
+  const fromSetPassword = searchParams.get('fromSetPassword') === 'true'
 
   // =========================
   // Login con código de invitación - valida y redirige directo a set-password
@@ -258,6 +260,18 @@ export default function LoginPage() {
 
                 {/* Pestaña ACCESO */}
                 <TabsContent value="acceso" className="space-y-5 animate-fade-in">
+                  {fromSetPassword && (
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 flex items-start gap-3">
+                      <svg className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-semibold text-emerald-900">¡Contraseña creada exitosamente!</p>
+                        <p className="text-xs text-emerald-700 mt-1">Ahora puedes iniciar sesión con tu email y contraseña.</p>
+                      </div>
+                    </div>
+                  )}
+                  
                   <form onSubmit={handleLoginSubmit} className="space-y-5">
                     <div className="space-y-2">
                       <Label htmlFor="email" className="flex items-center gap-2 font-semibold">

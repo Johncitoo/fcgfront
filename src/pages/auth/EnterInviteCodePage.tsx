@@ -1,47 +1,56 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { apiPost } from '../../lib/api'
+import { Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react'
 
-/**
- * Flujo: el/la postulante ingresa su correo + código de invitación.
- * Backend: POST /invites/consume { email, code }
- * - Marca el código como usado
- * - Vincula/crea applicant
- * - Crea application en DRAFT para la call correspondiente
- * - (Opcional backend) Envía correo con pasos siguientes
- *
- * En éxito mostramos confirmación y ofrecemos ir a "Definir contraseña".
- */
+interface ValidateResponse {
+  success: boolean
+  email: string
+  passwordToken: string
+  tokenExpiresIn: number
+  message: string
+  userId: string
+  userName: string
+}
+
 export default function EnterInviteCodePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   
+  // Step control
+  const [step, setStep] = useState<'enter-code' | 'set-password'>('enter-code')
+  
+  // Step 1: Validar código
   const [email, setEmail] = useState('')
   const [code, setCode] = useState(searchParams.get('code') || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  
+  // Step 2: Datos validados
+  const [validatedData, setValidatedData] = useState<ValidateResponse | null>(null)
+  const [password, setPassword] = useState('')
+  const [password2, setPassword2] = useState('')
+  const [showPwd, setShowPwd] = useState(false)
+  const [showPwd2, setShowPwd2] = useState(false)
+  const [loadingPwd, setLoadingPwd] = useState(false)
+  const [errorPwd, setErrorPwd] = useState<string | null>(null)
 
-  async function onSubmit(e: React.FormEvent) {
+  // Password strength
+  const strength = useMemo(() => scorePassword(password), [password])
+  const match = password.length > 0 && password === password2
+
+  async function onSubmitCode(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    setSuccessMsg(null)
     setLoading(true)
     try {
-      // Llama al nuevo endpoint de validación
-      const res = await apiPost<{ message?: string; success?: boolean }>('/onboarding/validate-invite', {
+      const res = await apiPost<ValidateResponse>('/onboarding/validate-invite', {
         email: email.trim(),
         code: code.trim(),
       })
-      const msg =
-        res?.message ||
-        'Código validado exitosamente. Redirigiendo para establecer contraseña...'
-      setSuccessMsg(msg)
       
-      // Redirigir automáticamente después de 1.5 segundos
-      setTimeout(() => {
-        goSetPassword()
-      }, 1500)
+      setValidatedData(res)
+      setStep('set-password')
     } catch (e: any) {
       setError(e?.message ?? 'No fue posible validar el código')
     } finally {
@@ -49,10 +58,148 @@ export default function EnterInviteCodePage() {
     }
   }
 
-  function goSetPassword() {
-    const q = new URLSearchParams()
-    if (email.trim()) q.set('email', email.trim())
-    navigate(`/auth/set-password?${q.toString()}`)
+  async function onSubmitPassword(e: React.FormEvent) {
+    e.preventDefault()
+    setErrorPwd(null)
+
+    if (password.length < 8) {
+      setErrorPwd('La contraseña debe tener al menos 8 caracteres')
+      return
+    }
+    if (!match) {
+      setErrorPwd('Las contraseñas no coinciden')
+      return
+    }
+    if (!validatedData?.passwordToken) {
+      setErrorPwd('Token no válido. Vuelve a validar el código.')
+      return
+    }
+
+    setLoadingPwd(true)
+    try {
+      await apiPost('/onboarding/set-password', {
+        token: validatedData.passwordToken,
+        password: password,
+      })
+
+      // Redirigir al login para que inicie sesión manualmente
+      navigate('/auth/login?fromSetPassword=true&email=' + encodeURIComponent(validatedData.email))
+    } catch (e: any) {
+      setErrorPwd(e?.message ?? 'No fue posible establecer la contraseña')
+    } finally {
+      setLoadingPwd(false)
+    }
+  }
+
+  if (step === 'set-password' && validatedData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 to-slate-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-lg">
+          <div className="card shadow-xl">
+            <div className="card-body">
+              {/* Success header */}
+              <div className="mb-6 text-center">
+                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                  <CheckCircle2 className="h-10 w-10 text-emerald-600" />
+                </div>
+                <h1 className="text-2xl font-bold text-slate-900">¡Código Validado!</h1>
+                <p className="mt-2 text-sm text-slate-600">
+                  Bienvenido/a, <strong>{validatedData.userName}</strong>
+                </p>
+              </div>
+
+              <div className="mb-4 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3">
+                <p className="text-sm text-sky-900">
+                  Tu código ha sido verificado. Ahora crea tu contraseña para acceder al portal de postulación.
+                </p>
+              </div>
+
+              {/* Email confirmado */}
+              <div className="mb-4 flex items-center gap-2 rounded-md border bg-slate-50 px-3 py-2">
+                <span className="text-sm text-slate-600">📧 Email:</span>
+                <span className="text-sm font-medium text-slate-900">{validatedData.email}</span>
+              </div>
+
+              {errorPwd && (
+                <div className="mb-3 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                  {errorPwd}
+                </div>
+              )}
+
+              <form onSubmit={onSubmitPassword} className="space-y-4">
+                {/* Contraseña */}
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Contraseña Nueva *</label>
+                  <div className="relative">
+                    <input
+                      type={showPwd ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="input pr-10"
+                      placeholder="Mínimo 8 caracteres"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPwd(!showPwd)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPwd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  {password && <PasswordStrength score={strength} />}
+                </div>
+
+                {/* Repetir contraseña */}
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Repetir Contraseña *</label>
+                  <div className="relative">
+                    <input
+                      type={showPwd2 ? 'text' : 'password'}
+                      required
+                      value={password2}
+                      onChange={(e) => setPassword2(e.target.value)}
+                      className="input pr-10"
+                      placeholder="Repite la contraseña"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPwd2(!showPwd2)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPwd2 ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  {password2 && (
+                    <div className="flex items-center gap-1 text-xs">
+                      {match ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                          <span className="text-emerald-600">Las contraseñas coinciden</span>
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-4 w-4 text-rose-600" />
+                          <span className="text-rose-600">Las contraseñas no coinciden</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <button type="submit" disabled={loadingPwd || !match} className="btn-primary w-full">
+                  {loadingPwd ? 'Guardando…' : 'Crear contraseña y continuar →'}
+                </button>
+              </form>
+
+              <p className="mt-4 text-center text-xs text-slate-500">
+                Después de crear tu contraseña, deberás iniciar sesión para acceder al portal.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -80,20 +227,19 @@ export default function EnterInviteCodePage() {
                 <h2 className="text-base font-semibold">¿Dónde encuentro el código?</h2>
                 <p className="text-sm text-slate-600">
                   El código fue enviado por tu establecimiento educacional o por la Fundación a tu
-                  correo personal. Si no lo tienes, solicita asistencia a tu encargado/a o escribe a
-                  soporte.
+                  correo personal. Si no lo tienes, solicita asistencia a tu encargado/a.
                 </p>
 
                 <ul className="list-disc space-y-1 pl-5 text-xs text-slate-600">
                   <li>El código es único y está asociado a tu convocatoria.</li>
                   <li>
-                    Tras validarlo, podrás <strong>definir tu contraseña</strong> y completar el
-                    formulario.
+                    Tras validarlo, crearás tu contraseña inmediatamente.
                   </li>
+                  <li>Puedes entrar y salir cuando quieras con tu email y contraseña.</li>
                 </ul>
 
                 <div className="pt-1">
-                  <Link to="/login" className="text-sm text-sky-700 hover:underline">
+                  <Link to="/auth/login" className="text-sm text-sky-700 hover:underline">
                     ← Volver a iniciar sesión
                   </Link>
                 </div>
@@ -117,13 +263,8 @@ export default function EnterInviteCodePage() {
                     {error}
                   </div>
                 )}
-                {successMsg && (
-                  <div className="mb-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                    {successMsg}
-                  </div>
-                )}
 
-                <form onSubmit={onSubmit} className="space-y-3">
+                <form onSubmit={onSubmitCode} className="space-y-3">
                   <div className="space-y-1">
                     <label className="text-sm font-medium">Correo personal *</label>
                     <input
@@ -152,21 +293,12 @@ export default function EnterInviteCodePage() {
                   </div>
 
                   <button type="submit" disabled={loading} className="btn-primary w-full">
-                    {loading ? 'Validando…' : 'Validar código'}
+                    {loading ? 'Validando…' : 'Validar código →'}
                   </button>
                 </form>
 
-                {/* Acciones posteriores */}
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={goSetPassword}
-                    className="btn w-full"
-                    title="Definir tu contraseña y activar acceso"
-                  >
-                    Definir contraseña
-                  </button>
-                  <Link to="/login" className="btn w-full">
+                <div className="mt-4">
+                  <Link to="/auth/login" className="btn w-full">
                     Volver al login
                   </Link>
                 </div>
@@ -179,6 +311,40 @@ export default function EnterInviteCodePage() {
           </div>
         </section>
       </div>
+    </div>
+  )
+}
+
+// ===== Utilities =====
+
+function scorePassword(pwd: string): number {
+  if (!pwd) return 0
+  let score = 0
+  if (pwd.length >= 8) score++
+  if (pwd.length >= 12) score++
+  if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score++
+  if (/\d/.test(pwd)) score++
+  if (/[^A-Za-z0-9]/.test(pwd)) score++
+  return Math.min(score, 5)
+}
+
+function PasswordStrength({ score }: { score: number }) {
+  const labels = ['Muy débil', 'Débil', 'Media', 'Fuerte', 'Muy fuerte']
+  const colors = ['bg-rose-500', 'bg-orange-500', 'bg-amber-500', 'bg-lime-500', 'bg-emerald-500']
+  
+  return (
+    <div className="space-y-1">
+      <div className="flex gap-1">
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className={`h-1.5 flex-1 rounded-full ${
+              i < score ? colors[score - 1] : 'bg-slate-200'
+            }`}
+          />
+        ))}
+      </div>
+      <p className="text-xs text-slate-600">Fortaleza: {labels[score - 1] || 'N/A'}</p>
     </div>
   )
 }
