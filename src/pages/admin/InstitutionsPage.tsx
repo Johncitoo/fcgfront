@@ -10,6 +10,12 @@ interface Institution {
   region?: string
   type: 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO'
   active: boolean
+  email?: string
+  phone?: string
+  address?: string
+  directorName?: string
+  website?: string
+  notes?: string
   createdAt: string
   updatedAt: string
 }
@@ -40,6 +46,12 @@ export default function InstitutionsPage() {
     province: string
     region: string
     type: 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO'
+    email: string
+    phone: string
+    address: string
+    directorName: string
+    website: string
+    notes: string
   }>({
     name: '',
     code: '',
@@ -47,6 +59,12 @@ export default function InstitutionsPage() {
     province: '',
     region: '',
     type: 'LICEO',
+    email: '',
+    phone: '',
+    address: '',
+    directorName: '',
+    website: '',
+    notes: '',
   })
   const [createError, setCreateError] = useState<string | null>(null)
   const [createLoading, setCreateLoading] = useState(false)
@@ -92,7 +110,7 @@ export default function InstitutionsPage() {
 
       setCreating(false)
       setEditing(null)
-      setCreateForm({ name: '', code: '', commune: '', province: '', region: '', type: 'LICEO' as 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO' })
+      setCreateForm({ name: '', code: '', commune: '', province: '', region: '', type: 'LICEO' as 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO', email: '', phone: '', address: '', directorName: '', website: '', notes: '' })
       setOffset(0)
       await load()
     } catch (err: any) {
@@ -121,6 +139,12 @@ export default function InstitutionsPage() {
       province: inst.province || '',
       region: inst.region || '',
       type: inst.type,
+      email: inst.email || '',
+      phone: inst.phone || '',
+      address: inst.address || '',
+      directorName: inst.directorName || '',
+      website: inst.website || '',
+      notes: inst.notes || '',
     })
     setCreating(true)
   }
@@ -154,7 +178,7 @@ export default function InstitutionsPage() {
             <button
               onClick={() => {
                 setEditing(null)
-                setCreateForm({ name: '', code: '', commune: '', province: '', region: '', type: 'LICEO' as 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO' })
+                setCreateForm({ name: '', code: '', commune: '', province: '', region: '', type: 'LICEO' as 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO', email: '', phone: '', address: '', directorName: '', website: '', notes: '' })
                 setCreating(true)
               }}
               className="btn-primary"
@@ -347,6 +371,75 @@ export default function InstitutionsPage() {
                     <option value="OTRO">Otro</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Email</label>
+                  <input
+                    type="email"
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm((s) => ({ ...s, email: e.target.value }))}
+                    className="input"
+                    placeholder="contacto@liceo.cl"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Teléfono</label>
+                  <input
+                    type="tel"
+                    value={createForm.phone}
+                    onChange={(e) => setCreateForm((s) => ({ ...s, phone: e.target.value }))}
+                    className="input"
+                    placeholder="+56 9 1234 5678"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Dirección</label>
+                <input
+                  type="text"
+                  value={createForm.address}
+                  onChange={(e) => setCreateForm((s) => ({ ...s, address: e.target.value }))}
+                  className="input"
+                  placeholder="Calle Principal #123"
+                />
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Nombre del Director</label>
+                  <input
+                    type="text"
+                    value={createForm.directorName}
+                    onChange={(e) => setCreateForm((s) => ({ ...s, directorName: e.target.value }))}
+                    className="input"
+                    placeholder="Juan Pérez González"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Sitio Web</label>
+                  <input
+                    type="url"
+                    value={createForm.website}
+                    onChange={(e) => setCreateForm((s) => ({ ...s, website: e.target.value }))}
+                    className="input"
+                    placeholder="https://www.liceo.cl"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Notas</label>
+                <textarea
+                  value={createForm.notes}
+                  onChange={(e) => setCreateForm((s) => ({ ...s, notes: e.target.value }))}
+                  className="input min-h-[80px] resize-y"
+                  placeholder="Información adicional sobre la institución..."
+                />
               </div>
 
               <div className="mt-4 flex justify-end gap-2">
