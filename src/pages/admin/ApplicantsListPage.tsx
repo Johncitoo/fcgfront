@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCall } from '../../contexts/CallContext'
 import { useCallContext } from '../../contexts/CallContext'
-import { Mail, Copy, X, CheckCircle2, Send, Eye, Users, Edit } from 'lucide-react'
+import { Mail, Copy, X, CheckCircle2, Send, Eye, Users, Edit, Download } from 'lucide-react'
 import ApplicantDetailModal from '../../components/admin/ApplicantDetailModal'
 import BulkInviteModal from '../../components/admin/BulkInviteModal'
 import EditApplicantModal from '../../components/admin/EditApplicantModal'
@@ -245,6 +245,29 @@ Fundación Carmen Goudie`
     }
   }
 
+  // Función para regenerar código (si el postulante tuvo problemas)
+  async function regenerateInviteCode() {
+    if (!selectedApplicant || !selectedCall) return
+
+    const confirmed = window.confirm(
+      '¿Estás seguro de regenerar el código de invitación? El código anterior dejará de funcionar.'
+    )
+    if (!confirmed) return
+
+    setInviteLoading(true)
+    setInviteError(null)
+
+    try {
+      // Generar nuevo código
+      await generateManualInvite()
+      alert('Código regenerado exitosamente')
+    } catch (err: any) {
+      setInviteError(err.message || 'Error al regenerar código')
+    } finally {
+      setInviteLoading(false)
+    }
+  }
+
   // Función para copiar al portapapeles
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text)
@@ -291,6 +314,106 @@ Fundación Carmen Goudie`
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit, offset, selectedCallId])
+
+  // Función para descargar respuestas en CSV
+  async function downloadCSV() {
+    if (!selectedCall) {
+      alert('Selecciona una convocatoria primero')
+      return
+    }
+
+    try {
+      // 1. Obtener el formulario de la convocatoria
+      const formRes = await fetch(
+        `${API_BASE}/forms/by-call/${selectedCall.id}`,
+        { headers }
+      )
+      if (!formRes.ok) throw new Error('No se pudo obtener el formulario')
+      const formData = await formRes.json()
+
+      // 2. Obtener todas las postulaciones con sus respuestas
+      const appsRes = await fetch(
+        `${API_BASE}/applications?callId=${selectedCall.id}&limit=1000`,
+        { headers }
+      )
+      if (!appsRes.ok) throw new Error('No se pudieron obtener las postulaciones')
+      const appsData = await appsRes.json()
+      const applications = Array.isArray(appsData) ? appsData : appsData.data || []
+
+      // 3. Extraer todas las preguntas del formulario
+      const questions: string[] = []
+      const questionIds: string[] = []
+
+      if (formData.sections && Array.isArray(formData.sections)) {
+        for (const section of formData.sections) {
+          if (section.fields && Array.isArray(section.fields)) {
+            for (const field of section.fields) {
+              questions.push(field.label || field.name || 'Sin título')
+              questionIds.push(field.id)
+            }
+          }
+        }
+      }
+
+      // 4. Construir las filas del CSV
+      const csvRows: string[][] = []
+      
+      // Primera fila: encabezados (Marca temporal + preguntas)
+      csvRows.push(['Marca temporal', ...questions])
+
+      // Siguientes filas: respuestas de cada postulante
+      for (const app of applications) {
+        const row: string[] = []
+        
+        // Timestamp
+        row.push(app.createdAt || app.submitted_at || '')
+
+        // Respuestas
+        const answers = app.answers || {}
+        for (const qId of questionIds) {
+          const answer = answers[qId]
+          if (answer === null || answer === undefined) {
+            row.push('')
+          } else if (typeof answer === 'object') {
+            row.push(JSON.stringify(answer))
+          } else {
+            row.push(String(answer))
+          }
+        }
+
+        csvRows.push(row)
+      }
+
+      // 5. Convertir a formato CSV
+      const csvContent = csvRows
+        .map(row =>
+          row
+            .map(cell => {
+              // Escapar comillas y envolver en comillas si contiene comas/saltos de línea
+              const escaped = String(cell).replace(/"/g, '""')
+              if (escaped.includes(',') || escaped.includes('\n') || escaped.includes('"')) {
+                return `"${escaped}"`
+              }
+              return escaped
+            })
+            .join(',')
+        )
+        .join('\n')
+
+      // 6. Descargar el archivo
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = `respuestas-${selectedCall.name}-${selectedCall.year}.csv`
+      link.click()
+      URL.revokeObjectURL(link.href)
+
+      alert('CSV descargado exitosamente')
+    } catch (err: any) {
+      alert(`Error al descargar CSV: ${err.message}`)
+      console.error(err)
+    }
+  }
 
   function onChange<K extends keyof typeof createForm>(k: K, v: (typeof createForm)[K]) {
     setCreateForm((s) => ({ ...s, [k]: v }))
@@ -396,13 +519,23 @@ Fundación Carmen Goudie`
 
           <div className="ml-auto flex gap-2">
             {selectedCall && (
-              <button
-                onClick={() => setBulkInviteOpen(true)}
-                className="rounded-md border border-sky-600 px-3 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 flex items-center gap-2"
-              >
-                <Users className="w-4 h-4" />
-                Envío Masivo
-              </button>
+              <>
+                <button
+                  onClick={downloadCSV}
+                  className="rounded-md border border-green-600 px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 flex items-center gap-2"
+                  title="Descargar respuestas de formularios en CSV"
+                >
+                  <Download className="w-4 h-4" />
+                  Descargar CSV
+                </button>
+                <button
+                  onClick={() => setBulkInviteOpen(true)}
+                  className="rounded-md border border-sky-600 px-3 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 flex items-center gap-2"
+                >
+                  <Users className="w-4 h-4" />
+                  Envío Masivo
+                </button>
+              </>
             )}
             <button
               onClick={() => setCreating(true)}
@@ -853,9 +986,22 @@ Fundación Carmen Goudie`
               ) : generatedCode ? (
                 <div className="space-y-4">
                   <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle2 className="w-5 h-5 text-sky-600" />
-                      <p className="font-medium text-sky-900">Código generado</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5 text-sky-600" />
+                        <p className="font-medium text-sky-900">Código generado</p>
+                      </div>
+                      <button
+                        onClick={regenerateInviteCode}
+                        disabled={inviteLoading}
+                        className="text-xs px-3 py-1 bg-amber-500 text-white rounded hover:bg-amber-600 disabled:opacity-50 flex items-center gap-1"
+                        title="Regenerar código si el postulante tiene problemas"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Regenerar
+                      </button>
                     </div>
                     <p className="text-sm text-sky-700">
                       Copia el siguiente contenido y envíalo manualmente por WhatsApp, SMS o el medio que prefieras.
