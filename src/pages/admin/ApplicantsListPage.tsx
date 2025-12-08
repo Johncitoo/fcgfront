@@ -506,23 +506,23 @@ Fundación Carmen Goudie`
       // 8. Construir las filas del CSV
       const csvRows: string[][] = []
       
-      // ENCABEZADOS: Datos del usuario + Campos del formulario (en MAYÚSCULAS para destacar)
+      // ENCABEZADOS: Datos del usuario + Campos del formulario
       const userHeaders = [
-        '▶ NOMBRE COMPLETO',
-        '▶ EMAIL',
-        '▶ RUT',
-        '▶ TELÉFONO',
-        '▶ FECHA DE NACIMIENTO',
-        '▶ DIRECCIÓN',
-        '▶ COMUNA',
-        '▶ REGIÓN',
-        '▶ INSTITUCIÓN',
-        '▶ COMUNA INSTITUCIÓN',
-        '▶ FECHA DE REGISTRO',
-        '▶ ESTADO FORMULARIO'
+        'Nombre Completo',
+        'Email',
+        'RUT',
+        'Teléfono',
+        'Fecha de Nacimiento',
+        'Dirección',
+        'Comuna',
+        'Región',
+        'Institución',
+        'Comuna Institución',
+        'Fecha de Registro',
+        'Estado Formulario'
       ]
       
-      const formHeaders = formFields.map(f => `▶ ${f.label.toUpperCase()}`)
+      const formHeaders = formFields.map(f => f.label)
       csvRows.push([...userHeaders, ...formHeaders])
 
       // FILAS: Datos de cada postulante
@@ -794,11 +794,12 @@ Fundación Carmen Goudie`
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FFD3D3D3' } // Gris claro
+          fgColor: { argb: 'FFB19CD9' } // Morado claro
         }
         cell.font = {
           bold: true,
-          size: 12
+          size: 12,
+          color: { argb: 'FFFFFFFF' } // Texto blanco para mejor contraste
         }
         cell.alignment = {
           vertical: 'middle',
