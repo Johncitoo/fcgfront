@@ -323,9 +323,9 @@ Fundación Carmen Goudie`
     }
 
     try {
-      // 1. Obtener el formulario de la convocatoria
+      // 1. Obtener el formulario de la convocatoria (esquema JSONB)
       const formRes = await fetch(
-        `${API_BASE}/forms/by-call/${selectedCall.id}`,
+        `${API_BASE}/calls/${selectedCall.id}/form`,
         { headers }
       )
       if (!formRes.ok) throw new Error('No se pudo obtener el formulario')
