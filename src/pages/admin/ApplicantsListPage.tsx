@@ -331,7 +331,7 @@ Fundación Carmen Goudie`
       if (!formRes.ok) throw new Error('No se pudo obtener el formulario')
       const formData = await formRes.json()
 
-      // 2. Obtener todas las postulaciones con sus respuestas
+      // 2. Obtener todas las postulaciones
       const appsRes = await fetch(
         `${API_BASE}/applications?callId=${selectedCall.id}&limit=1000`,
         { headers }
@@ -348,25 +348,58 @@ Fundación Carmen Goudie`
         for (const section of formData.sections) {
           if (section.fields && Array.isArray(section.fields)) {
             for (const field of section.fields) {
-              questions.push(field.label || field.name || 'Sin título')
-              questionIds.push(field.id)
+              // Solo incluir campos visibles públicamente
+              if (field.visibility !== 'INTERNAL') {
+                questions.push(field.label || field.name || 'Sin título')
+                questionIds.push(field.id)
+              }
             }
           }
         }
       }
 
-      // 4. Construir las filas del CSV
+      // 4. Obtener respuestas de cada aplicación
+      console.log(`Obteniendo respuestas de ${applications.length} aplicaciones...`)
+      
+      const applicationsWithAnswers = await Promise.all(
+        applications.map(async (app: any) => {
+          try {
+            // Intentar obtener respuestas desde la última form_submission
+            const submissionRes = await fetch(
+              `${API_BASE}/form-submissions/application/${app.id}`,
+              { headers }
+            )
+            
+            if (submissionRes.ok) {
+              const submissions = await submissionRes.json()
+              // Tomar la última submission
+              const latest = Array.isArray(submissions) && submissions.length > 0 
+                ? submissions[submissions.length - 1] 
+                : submissions
+              
+              return { ...app, answers: latest?.answers || latest?.form_data || {} }
+            }
+            
+            return { ...app, answers: {} }
+          } catch (error) {
+            console.warn(`No se pudieron obtener respuestas para app ${app.id}`)
+            return { ...app, answers: {} }
+          }
+        })
+      )
+
+      // 5. Construir las filas del CSV
       const csvRows: string[][] = []
       
       // Primera fila: encabezados (Marca temporal + preguntas)
       csvRows.push(['Marca temporal', ...questions])
 
       // Siguientes filas: respuestas de cada postulante
-      for (const app of applications) {
+      for (const app of applicationsWithAnswers) {
         const row: string[] = []
         
         // Timestamp
-        row.push(app.createdAt || app.submitted_at || '')
+        row.push(app.submitted_at || app.createdAt || '')
 
         // Respuestas
         const answers = app.answers || {}
@@ -375,7 +408,9 @@ Fundación Carmen Goudie`
           if (answer === null || answer === undefined) {
             row.push('')
           } else if (typeof answer === 'object') {
-            row.push(JSON.stringify(answer))
+            // Si es objeto con propiedad value, extraerla
+            const val = answer.value !== undefined ? answer.value : answer
+            row.push(typeof val === 'object' ? JSON.stringify(val) : String(val))
           } else {
             row.push(String(answer))
           }
