@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCall } from '../../contexts/CallContext'
 import { useCallContext } from '../../contexts/CallContext'
-import { Mail, Copy, X, CheckCircle2, Send, Eye, Users, Edit, Download } from 'lucide-react'
+import { Mail, Copy, X, CheckCircle2, Send, Eye, Users, Edit, Download, FileSpreadsheet, FileText } from 'lucide-react'
 import ApplicantDetailModal from '../../components/admin/ApplicantDetailModal'
 import BulkInviteModal from '../../components/admin/BulkInviteModal'
 import EditApplicantModal from '../../components/admin/EditApplicantModal'
 import InstitutionSearchSelector from '../../components/admin/InstitutionSearchSelector'
+import * as XLSX from 'xlsx'
 
 interface ApplicantRow {
   id: string
@@ -84,6 +85,10 @@ export default function ApplicantsListPage() {
   // Modal de selección de hito para CSV
   const [milestoneModalOpen, setMilestoneModalOpen] = useState(false)
   const [availableMilestones, setAvailableMilestones] = useState<any[]>([])
+  
+  // Modal de selección de formato (Excel/CSV)
+  const [formatModalOpen, setFormatModalOpen] = useState(false)
+  const [selectedMilestoneForDownload, setSelectedMilestoneForDownload] = useState<any>(null)
 
   // crear manualmente (modal simple inline)
   const [creating, setCreating] = useState(false)
@@ -357,13 +362,20 @@ Fundación Carmen Goudie`
     }
   }
 
-  // Función para descargar CSV con el hito seleccionado
+  // Función para mostrar modal de selección de formato
+  function showFormatModal(selectedMilestone: any) {
+    setMilestoneModalOpen(false)
+    setSelectedMilestoneForDownload(selectedMilestone)
+    setFormatModalOpen(true)
+  }
+
+  // Función para descargar en formato CSV con primera fila destacada
   async function downloadCSV(selectedMilestone: any) {
     if (!selectedCall) return
 
     try {
-      setMilestoneModalOpen(false)
-      console.log('Descargando formulario del hito:', selectedMilestone.name)
+      setFormatModalOpen(false)
+      console.log('Descargando CSV del hito:', selectedMilestone.name)
 
       // 3. Obtener el esquema del formulario
       const formRes = await fetch(
@@ -616,6 +628,182 @@ Fundación Carmen Goudie`
       alert(`CSV descargado exitosamente con ${csvRows.length - 1} respuestas del hito "${selectedMilestone.name}"`)
     } catch (err: any) {
       alert(`Error al descargar CSV: ${err.message}`)
+      console.error(err)
+    }
+  }
+
+  // Función para descargar en formato Excel con primera fila destacada
+  async function downloadExcel(selectedMilestone: any) {
+    if (!selectedCall) return
+
+    try {
+      setFormatModalOpen(false)
+      console.log('Descargando Excel del hito:', selectedMilestone.name)
+
+      // Reutilizar la misma lógica de obtención de datos que CSV
+      const formRes = await fetch(
+        `${API_BASE}/forms/${selectedMilestone.formId}`,
+        { headers }
+      )
+      if (!formRes.ok) throw new Error('No se pudo obtener el formulario')
+      const form = await formRes.json()
+
+      const appsRes = await fetch(
+        `${API_BASE}/applications?callId=${selectedCall.id}&limit=1000`,
+        { headers }
+      )
+      if (!appsRes.ok) throw new Error('No se pudieron obtener las postulaciones')
+      const applications = await appsRes.json()
+
+      const submissionsPromises = applications.map((app: any) =>
+        fetch(`${API_BASE}/form-submissions/application/${app.id}`, { headers })
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null)
+      )
+      const submissionsResults = await Promise.all(submissionsPromises)
+
+      const applicantPromises = applications.map((app: any) =>
+        fetch(`${API_BASE}/applicants/${app.id}`, { headers })
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null)
+      )
+      const applicants = await Promise.all(applicantPromises)
+
+      const formFields: Array<{ name: string; label: string; type: string }> = []
+      for (const section of form.sections || []) {
+        for (const field of section.fields || []) {
+          formFields.push({
+            name: field.name,
+            label: field.label,
+            type: field.type
+          })
+        }
+      }
+
+      const applicationsWithData = applications.map((app: any, idx: number) => {
+        const submissions = submissionsResults[idx]
+        const applicant = applicants[idx]
+        
+        if (submissions && applicant) {
+          let submission
+          if (Array.isArray(submissions)) {
+            submission = submissions.find((s: any) => 
+              (s.milestone_id || s.milestoneId) === selectedMilestone.id
+            )
+          } else {
+            submission = submissions
+          }
+
+          const answers = submission?.form_data || submission?.formData || submission?.answers || null
+          const submitted = submission?.submitted_at || submission?.submittedAt || null
+
+          if (answers && submitted) {
+            return { ...app, applicant, answers, formSubmitted: true }
+          }
+        }
+        
+        return { 
+          ...app, 
+          applicant,
+          answers: null,
+          formSubmitted: false
+        }
+      })
+
+      const excelRows: any[][] = []
+      
+      const userHeaders = [
+        'Nombre Completo', 'Email', 'RUT', 'Teléfono',
+        'Fecha de Nacimiento', 'Dirección', 'Comuna', 'Región',
+        'Institución', 'Comuna Institución', 'Fecha de Registro',
+        'Estado Formulario'
+      ]
+      
+      const formHeaders = formFields.map(f => f.label)
+      excelRows.push([...userHeaders, ...formHeaders])
+
+      for (const app of applicationsWithData) {
+        const row: any[] = []
+        const applicant = app.applicant || {}
+        
+        row.push(
+          applicant.fullName || `${applicant.firstName || ''} ${applicant.lastName || ''}`.trim() || 'Sin nombre',
+          applicant.email || 'Sin email',
+          applicant.rutNumber && applicant.rutDv ? `${applicant.rutNumber}-${applicant.rutDv}` : 'Sin RUT',
+          applicant.phone || 'Sin teléfono',
+          applicant.birthDate ? new Date(applicant.birthDate).toLocaleDateString('es-CL') : 'Sin fecha',
+          applicant.address || 'Sin dirección',
+          applicant.commune || 'Sin comuna',
+          applicant.region || 'Sin región',
+          applicant.institutionName || 'Sin institución',
+          applicant.institutionCommune || 'Sin comuna',
+          applicant.createdAt ? new Date(applicant.createdAt).toLocaleDateString('es-CL') : 'Sin fecha',
+          app.formSubmitted ? 'Entregado' : 'No entregado'
+        )
+
+        for (const field of formFields) {
+          const answer = app.answers?.[field.name]
+
+          if (answer === null || answer === undefined || answer === '') {
+            row.push('Sin respuesta')
+            continue
+          }
+
+          const isFile = typeof answer === 'string' && 
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(answer)
+          
+          if (isFile) {
+            row.push('Entregado')
+            continue
+          }
+
+          if (Array.isArray(answer)) {
+            row.push(answer.join(', '))
+            continue
+          }
+
+          if (typeof answer === 'object') {
+            if (answer.value !== undefined) {
+              if (Array.isArray(answer.value)) {
+                row.push(answer.value.join(', '))
+              } else {
+                row.push(String(answer.value))
+              }
+            } else {
+              row.push(JSON.stringify(answer))
+            }
+            continue
+          }
+
+          row.push(String(answer))
+        }
+
+        excelRows.push(row)
+      }
+
+      // Crear libro de Excel
+      const wb = XLSX.utils.book_new()
+      const ws = XLSX.utils.aoa_to_sheet(excelRows)
+
+      // Aplicar estilo a la primera fila (cabecera)
+      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1')
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col })
+        if (!ws[cellAddress]) continue
+        
+        ws[cellAddress].s = {
+          fill: { fgColor: { rgb: "D3D3D3" } },
+          font: { bold: true },
+          alignment: { vertical: "center", horizontal: "left" }
+        }
+      }
+
+      XLSX.utils.book_append_sheet(wb, ws, selectedMilestone.name.substring(0, 31))
+      XLSX.writeFile(wb, `respuestas-${selectedCall.name}-${selectedCall.year}-${selectedMilestone.name}.xlsx`)
+
+      alert(`Excel descargado exitosamente con ${excelRows.length - 1} respuestas del hito "${selectedMilestone.name}"`)
+    } catch (err: any) {
+      alert(`Error al descargar Excel: ${err.message}`)
       console.error(err)
     }
   }
@@ -1314,6 +1502,72 @@ Fundación Carmen Goudie`
         />
       )}
 
+      {/* Modal de selección de formato (Excel/CSV) */}
+      {formatModalOpen && selectedMilestoneForDownload && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md m-4">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b p-4">
+              <h2 className="text-lg font-semibold">Seleccionar Formato</h2>
+              <button
+                onClick={() => setFormatModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-4">
+              <p className="text-sm text-slate-600 mb-4">
+                ¿En qué formato deseas descargar las respuestas del hito <strong>{selectedMilestoneForDownload.name}</strong>?
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => downloadExcel(selectedMilestoneForDownload)}
+                  className="w-full text-left px-4 py-4 border-2 rounded-lg hover:bg-green-50 hover:border-green-500 transition-colors flex items-center gap-4 group"
+                >
+                  <FileSpreadsheet className="w-8 h-8 text-green-600" />
+                  <div className="flex-1">
+                    <div className="font-semibold text-slate-800 group-hover:text-green-700">
+                      Excel (.xlsx)
+                    </div>
+                    <div className="text-sm text-slate-500">
+                      Primera fila con fondo gris y negrita
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => downloadCSV(selectedMilestoneForDownload)}
+                  className="w-full text-left px-4 py-4 border-2 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-colors flex items-center gap-4 group"
+                >
+                  <FileText className="w-8 h-8 text-blue-600" />
+                  <div className="flex-1">
+                    <div className="font-semibold text-slate-800 group-hover:text-blue-700">
+                      CSV (.csv)
+                    </div>
+                    <div className="text-sm text-slate-500">
+                      Compatible con todas las hojas de cálculo
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t p-4 flex justify-end">
+              <button
+                onClick={() => setFormatModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de selección de hito para CSV */}
       {milestoneModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -1338,7 +1592,7 @@ Fundación Carmen Goudie`
                 {availableMilestones.map((milestone) => (
                   <button
                     key={milestone.id}
-                    onClick={() => downloadCSV(milestone)}
+                    onClick={() => showFormatModal(milestone)}
                     className="w-full text-left px-4 py-3 border rounded-lg hover:bg-slate-50 hover:border-sky-500 transition-colors flex items-center justify-between group"
                   >
                     <span className="font-medium text-slate-700 group-hover:text-sky-600">
