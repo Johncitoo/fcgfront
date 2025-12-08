@@ -760,16 +760,16 @@ Fundación Carmen Goudie`
               <p className="text-sm text-rose-700">{error}</p>
             ) : (
               <table className="w-full text-sm">
-                <thead className="text-left text-slate-600">
+                <thead className="text-left text-slate-600 bg-slate-100">
                   <tr className="border-b">
-                    <th className="py-2 pr-3">Nombre</th>
-                    <th className="py-2 pr-3">RUT</th>
-                    <th className="py-2 pr-3">Correo</th>
-                    <th className="py-2 pr-3">Teléfono</th>
-                    <th className="py-2 pr-3">Escuela/Colegio</th>
-                    <th className="py-2 pr-3">Creado</th>
-                    <th className="py-2 pr-3">Invitación</th>
-                    <th className="py-2">Acciones</th>
+                    <th className="py-3 pr-3 font-semibold">Nombre</th>
+                    <th className="py-3 pr-3 font-semibold">RUT</th>
+                    <th className="py-3 pr-3 font-semibold">Correo</th>
+                    <th className="py-3 pr-3 font-semibold">Teléfono</th>
+                    <th className="py-3 pr-3 font-semibold">Escuela/Colegio</th>
+                    <th className="py-3 pr-3 font-semibold">Creado</th>
+                    <th className="py-3 pr-3 font-semibold">Invitación</th>
+                    <th className="py-3 font-semibold">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
