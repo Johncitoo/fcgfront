@@ -2,12 +2,10 @@ import { useEffect, useState } from 'react'
 import { useCallContext } from '../../contexts/CallContext'
 import { 
   BarChart3, 
-  TrendingUp, 
   Users, 
   FileText, 
   CheckCircle2, 
-  Clock, 
-  XCircle,
+  Clock,
   AlertCircle
 } from 'lucide-react'
 
@@ -49,7 +47,12 @@ export default function AdminHome() {
 
   useEffect(() => {
     if (selectedCall) {
-      setActiveCall(selectedCall)
+      setActiveCall({
+        id: selectedCall.id,
+        name: selectedCall.name,
+        year: selectedCall.year,
+        totalSeats: (selectedCall as any).total_seats || (selectedCall as any).totalSeats || 0
+      })
       loadStats(selectedCall.id)
     } else {
       // Cargar convocatoria activa por defecto
@@ -69,7 +72,12 @@ export default function AdminHome() {
       const call = Array.isArray(data) ? data[0] : data.data?.[0]
       
       if (call) {
-        setActiveCall(call)
+        setActiveCall({
+          id: call.id,
+          name: call.name,
+          year: call.year,
+          totalSeats: call.total_seats || call.totalSeats || 0
+        })
         loadStats(call.id)
       } else {
         setLoading(false)
