@@ -373,7 +373,7 @@ Fundación Carmen Goudie`
       if (!formRes.ok) throw new Error('No se pudo obtener el formulario')
       const formData = await formRes.json()
 
-      // 4. Obtener todas las postulaciones
+      // 4. Obtener todas las postulaciones CON datos del postulante
       const appsRes = await fetch(
         `${API_BASE}/applications?callId=${selectedCall.id}&limit=1000`,
         { headers }
@@ -382,31 +382,59 @@ Fundación Carmen Goudie`
       const appsData = await appsRes.json()
       const applications = Array.isArray(appsData) ? appsData : appsData.data || []
 
-      // 5. Extraer todas las preguntas del formulario
-      const questions: string[] = []
-      const questionIds: string[] = []
+      // 5. Obtener datos completos de cada postulante
+      const applicantsMap = new Map()
+      for (const app of applications) {
+        if (app.applicantId && !applicantsMap.has(app.applicantId)) {
+          try {
+            const applicantRes = await fetch(
+              `${API_BASE}/applicants/${app.applicantId}`,
+              { headers }
+            )
+            if (applicantRes.ok) {
+              const applicant = await applicantRes.json()
+              applicantsMap.set(app.applicantId, applicant)
+            }
+          } catch (err) {
+            console.warn(`No se pudo obtener datos del postulante ${app.applicantId}`)
+          }
+        }
+      }
+
+      // 6. Extraer campos del formulario con sus tipos
+      const formFields: Array<{
+        name: string
+        label: string
+        type: string
+        options?: string[]
+      }> = []
 
       if (formData.schema?.sections && Array.isArray(formData.schema.sections)) {
         for (const section of formData.schema.sections) {
           if (section.fields && Array.isArray(section.fields)) {
             for (const field of section.fields) {
-              // Solo incluir campos visibles públicamente
               if (field.visibility !== 'INTERNAL') {
-                questions.push(field.label || field.name || 'Sin título')
-                questionIds.push(field.name || field.id) // Usar field.name como identificador
+                formFields.push({
+                  name: field.name || field.id,
+                  label: field.label || field.name || 'Sin título',
+                  type: field.type || 'text',
+                  options: field.options || []
+                })
               }
             }
           }
         }
       }
 
-      console.log('Campos del formulario:', questionIds)
+      console.log('Campos del formulario:', formFields.length)
 
-      // 6. Obtener respuestas de cada aplicación
+      // 7. Obtener respuestas de cada aplicación
       console.log(`Obteniendo respuestas de ${applications.length} aplicaciones...`)
       
-      const applicationsWithAnswers = await Promise.all(
+      const applicationsWithData = await Promise.all(
         applications.map(async (app: any) => {
+          const applicant = applicantsMap.get(app.applicantId) || {}
+          
           try {
             // Obtener form_submissions de esta aplicación
             const submissionRes = await fetch(
@@ -423,51 +451,128 @@ Fundación Carmen Goudie`
                 submission = submissions.find((s: any) => s.milestone_id === selectedMilestone.id)
               }
               
-              // Si no hay submission específica del hito, tomar la última
-              if (!submission && Array.isArray(submissions) && submissions.length > 0) {
-                submission = submissions[submissions.length - 1]
+              const answers = submission?.form_data || submission?.answers || null
+              const submitted = submission?.submitted_at || null
+              
+              return { 
+                ...app, 
+                applicant,
+                answers,
+                formSubmitted: !!submitted
               }
-              
-              const answers = submission?.form_data || submission?.answers || {}
-              console.log(`App ${app.id.substring(0, 8)} - Answers:`, Object.keys(answers))
-              
-              return { ...app, answers }
             }
             
-            return { ...app, answers: {} }
+            return { 
+              ...app, 
+              applicant,
+              answers: null,
+              formSubmitted: false
+            }
           } catch (error) {
             console.warn(`No se pudieron obtener respuestas para app ${app.id}`)
-            return { ...app, answers: {} }
+            return { 
+              ...app, 
+              applicant,
+              answers: null,
+              formSubmitted: false
+            }
           }
         })
       )
 
-      // 7. Construir las filas del CSV
+      // 8. Construir las filas del CSV
       const csvRows: string[][] = []
       
-      // Primera fila: encabezados (Marca temporal + preguntas)
-      csvRows.push(['Marca temporal', ...questions])
+      // ENCABEZADOS: Datos del usuario + Campos del formulario
+      const userHeaders = [
+        'Nombre Completo',
+        'Email',
+        'RUT',
+        'Teléfono',
+        'Fecha de Nacimiento',
+        'Dirección',
+        'Comuna',
+        'Región',
+        'Institución',
+        'Comuna Institución',
+        'Fecha de Registro',
+        'Estado Formulario'
+      ]
+      
+      const formHeaders = formFields.map(f => f.label)
+      csvRows.push([...userHeaders, ...formHeaders])
 
-      // Siguientes filas: respuestas de cada postulante
-      for (const app of applicationsWithAnswers) {
+      // FILAS: Datos de cada postulante
+      for (const app of applicationsWithData) {
         const row: string[] = []
+        const applicant = app.applicant || {}
         
-        // Timestamp
-        row.push(app.submitted_at || app.createdAt || '')
+        // DATOS DEL USUARIO (orden jerárquico)
+        row.push(applicant.fullName || `${applicant.firstName || ''} ${applicant.lastName || ''}`.trim() || 'Sin nombre')
+        row.push(applicant.email || 'Sin email')
+        row.push(applicant.rutNumber && applicant.rutDv ? `${applicant.rutNumber}-${applicant.rutDv}` : 'Sin RUT')
+        row.push(applicant.phone || 'Sin teléfono')
+        row.push(applicant.birthDate || 'Sin fecha')
+        row.push(applicant.address || 'Sin dirección')
+        row.push(applicant.commune || 'Sin comuna')
+        row.push(applicant.region || 'Sin región')
+        row.push(applicant.institutionName || 'Sin institución')
+        row.push(applicant.institutionCommune || 'Sin comuna')
+        row.push(applicant.createdAt ? new Date(applicant.createdAt).toLocaleDateString('es-CL') : 'Sin fecha')
+        
+        // Estado del formulario
+        if (!app.formSubmitted) {
+          row.push('No entregado')
+        } else if (!app.answers || Object.keys(app.answers).length === 0) {
+          row.push('Sin respuestas')
+        } else {
+          row.push('Entregado')
+        }
 
-        // Respuestas
+        // RESPUESTAS DEL FORMULARIO
         const answers = app.answers || {}
-        for (const fieldName of questionIds) {
-          const answer = answers[fieldName]
+        for (const field of formFields) {
+          const answer = answers[field.name]
+          
+          // Si no hay respuesta
           if (answer === null || answer === undefined || answer === '') {
-            row.push('')
-          } else if (typeof answer === 'object') {
-            // Si es objeto con propiedad value, extraerla
-            const val = answer.value !== undefined ? answer.value : answer
-            row.push(typeof val === 'object' ? JSON.stringify(val) : String(val))
-          } else {
-            row.push(String(answer))
+            row.push('Sin respuesta')
+            continue
           }
+
+          // Detectar si es un UUID (archivo)
+          const isFile = typeof answer === 'string' && 
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(answer)
+          
+          if (isFile) {
+            row.push('Entregado')
+            continue
+          }
+
+          // Si es array (selección múltiple)
+          if (Array.isArray(answer)) {
+            row.push(answer.join(', '))
+            continue
+          }
+
+          // Si es objeto
+          if (typeof answer === 'object') {
+            // Si tiene propiedad value
+            if (answer.value !== undefined) {
+              if (Array.isArray(answer.value)) {
+                row.push(answer.value.join(', '))
+              } else {
+                row.push(String(answer.value))
+              }
+            } else {
+              // Si es un objeto sin value, convertir a JSON
+              row.push(JSON.stringify(answer))
+            }
+            continue
+          }
+
+          // Valor simple
+          row.push(String(answer))
         }
 
         csvRows.push(row)
