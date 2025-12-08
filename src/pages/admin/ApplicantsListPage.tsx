@@ -81,6 +81,10 @@ export default function ApplicantsListPage() {
   // Modal de edición
   const [editingApplicant, setEditingApplicant] = useState<ApplicantRow | null>(null)
 
+  // Modal de selección de hito para CSV
+  const [milestoneModalOpen, setMilestoneModalOpen] = useState(false)
+  const [availableMilestones, setAvailableMilestones] = useState<any[]>([])
+
   // crear manualmente (modal simple inline)
   const [creating, setCreating] = useState(false)
   const [createForm, setCreateForm] = useState({
@@ -315,15 +319,15 @@ Fundación Carmen Goudie`
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit, offset, selectedCallId])
 
-  // Función para descargar respuestas en CSV
-  async function downloadCSV() {
+  // Función para abrir modal de selección de hito
+  async function openMilestoneSelection() {
     if (!selectedCall) {
       alert('Selecciona una convocatoria primero')
       return
     }
 
     try {
-      // 1. Obtener los hitos de la convocatoria
+      // Obtener los hitos de la convocatoria
       const milestonesRes = await fetch(
         `${API_BASE}/milestones/call/${selectedCall.id}`,
         { headers }
@@ -339,30 +343,26 @@ Fundación Carmen Goudie`
         return
       }
 
-      // 2. Preguntar al usuario qué hito descargar
-      let selectedMilestone: any
+      // Si solo hay un hito, descargar directamente
       if (milestonesWithForms.length === 1) {
-        selectedMilestone = milestonesWithForms[0]
-      } else {
-        const milestoneNames = milestonesWithForms.map((m: any, i: number) => 
-          `${i + 1}. ${m.name}`
-        ).join('\n')
-        
-        const choice = prompt(
-          `Selecciona el hito del cual descargar respuestas:\n\n${milestoneNames}\n\nIngresa el número:`
-        )
-        
-        if (!choice) return // Usuario canceló
-        
-        const index = parseInt(choice) - 1
-        if (index < 0 || index >= milestonesWithForms.length) {
-          alert('Selección inválida')
-          return
-        }
-        
-        selectedMilestone = milestonesWithForms[index]
+        await downloadCSV(milestonesWithForms[0])
+        return
       }
 
+      // Mostrar modal para seleccionar
+      setAvailableMilestones(milestonesWithForms)
+      setMilestoneModalOpen(true)
+    } catch (err: any) {
+      alert(`Error: ${err.message}`)
+    }
+  }
+
+  // Función para descargar CSV con el hito seleccionado
+  async function downloadCSV(selectedMilestone: any) {
+    if (!selectedCall) return
+
+    try {
+      setMilestoneModalOpen(false)
       console.log('Descargando formulario del hito:', selectedMilestone.name)
 
       // 3. Obtener el esquema del formulario
@@ -448,17 +448,28 @@ Fundación Carmen Goudie`
               // Buscar la submission del hito seleccionado
               let submission
               if (Array.isArray(submissions)) {
-                submission = submissions.find((s: any) => s.milestone_id === selectedMilestone.id)
+                submission = submissions.find((s: any) => 
+                  (s.milestone_id || s.milestoneId) === selectedMilestone.id
+                )
               }
               
-              const answers = submission?.form_data || submission?.answers || null
-              const submitted = submission?.submitted_at || null
+              // Normalizar campos (soportar snake_case y camelCase)
+              const answers = submission?.form_data || submission?.formData || submission?.answers || null
+              const submitted = submission?.submitted_at || submission?.submittedAt || null
+              
+              console.log(`App ${app.id.substring(0, 8)}:`, {
+                hasSubmission: !!submission,
+                hasAnswers: !!answers,
+                isSubmitted: !!submitted,
+                answerKeys: answers ? Object.keys(answers) : []
+              })
               
               return { 
                 ...app, 
                 applicant,
                 answers,
-                formSubmitted: !!submitted
+                formSubmitted: !!submitted,
+                submittedAt: submitted
               }
             }
             
@@ -715,7 +726,7 @@ Fundación Carmen Goudie`
             {selectedCall && (
               <>
                 <button
-                  onClick={downloadCSV}
+                  onClick={openMilestoneSelection}
                   className="rounded-md border border-green-600 px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 flex items-center gap-2"
                   title="Descargar respuestas de formularios en CSV"
                 >
@@ -1301,6 +1312,55 @@ Fundación Carmen Goudie`
             load()
           }}
         />
+      )}
+
+      {/* Modal de selección de hito para CSV */}
+      {milestoneModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md m-4">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b p-4">
+              <h2 className="text-lg font-semibold">Seleccionar Hito</h2>
+              <button
+                onClick={() => setMilestoneModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-4">
+              <p className="text-sm text-slate-600 mb-4">
+                Selecciona el hito del cual deseas descargar las respuestas:
+              </p>
+              <div className="space-y-2">
+                {availableMilestones.map((milestone) => (
+                  <button
+                    key={milestone.id}
+                    onClick={() => downloadCSV(milestone)}
+                    className="w-full text-left px-4 py-3 border rounded-lg hover:bg-slate-50 hover:border-sky-500 transition-colors flex items-center justify-between group"
+                  >
+                    <span className="font-medium text-slate-700 group-hover:text-sky-600">
+                      {milestone.name}
+                    </span>
+                    <Download className="w-4 h-4 text-slate-400 group-hover:text-sky-600" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t p-4 flex justify-end">
+              <button
+                onClick={() => setMilestoneModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
