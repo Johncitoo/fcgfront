@@ -6,7 +6,7 @@ import ApplicantDetailModal from '../../components/admin/ApplicantDetailModal'
 import BulkInviteModal from '../../components/admin/BulkInviteModal'
 import EditApplicantModal from '../../components/admin/EditApplicantModal'
 import InstitutionSearchSelector from '../../components/admin/InstitutionSearchSelector'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 interface ApplicantRow {
   id: string
@@ -506,23 +506,23 @@ Fundación Carmen Goudie`
       // 8. Construir las filas del CSV
       const csvRows: string[][] = []
       
-      // ENCABEZADOS: Datos del usuario + Campos del formulario
+      // ENCABEZADOS: Datos del usuario + Campos del formulario (en MAYÚSCULAS para destacar)
       const userHeaders = [
-        'Nombre Completo',
-        'Email',
-        'RUT',
-        'Teléfono',
-        'Fecha de Nacimiento',
-        'Dirección',
-        'Comuna',
-        'Región',
-        'Institución',
-        'Comuna Institución',
-        'Fecha de Registro',
-        'Estado Formulario'
+        '▶ NOMBRE COMPLETO',
+        '▶ EMAIL',
+        '▶ RUT',
+        '▶ TELÉFONO',
+        '▶ FECHA DE NACIMIENTO',
+        '▶ DIRECCIÓN',
+        '▶ COMUNA',
+        '▶ REGIÓN',
+        '▶ INSTITUCIÓN',
+        '▶ COMUNA INSTITUCIÓN',
+        '▶ FECHA DE REGISTRO',
+        '▶ ESTADO FORMULARIO'
       ]
       
-      const formHeaders = formFields.map(f => f.label)
+      const formHeaders = formFields.map(f => `▶ ${f.label.toUpperCase()}`)
       csvRows.push([...userHeaders, ...formHeaders])
 
       // FILAS: Datos de cada postulante
@@ -781,25 +781,58 @@ Fundación Carmen Goudie`
         excelRows.push(row)
       }
 
-      // Crear libro de Excel
-      const wb = XLSX.utils.book_new()
-      const ws = XLSX.utils.aoa_to_sheet(excelRows)
+      // Crear libro de Excel con ExcelJS
+      const workbook = new ExcelJS.Workbook()
+      const worksheet = workbook.addWorksheet(selectedMilestone.name.substring(0, 31))
+
+      // Agregar filas
+      worksheet.addRows(excelRows)
 
       // Aplicar estilo a la primera fila (cabecera)
-      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1')
-      for (let col = range.s.c; col <= range.e.c; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col })
-        if (!ws[cellAddress]) continue
-        
-        ws[cellAddress].s = {
-          fill: { fgColor: { rgb: "D3D3D3" } },
-          font: { bold: true },
-          alignment: { vertical: "center", horizontal: "left" }
+      const headerRow = worksheet.getRow(1)
+      headerRow.eachCell((cell) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFD3D3D3' } // Gris claro
         }
-      }
+        cell.font = {
+          bold: true,
+          size: 12
+        }
+        cell.alignment = {
+          vertical: 'middle',
+          horizontal: 'left'
+        }
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        }
+      })
+      headerRow.height = 20
 
-      XLSX.utils.book_append_sheet(wb, ws, selectedMilestone.name.substring(0, 31))
-      XLSX.writeFile(wb, `respuestas-${selectedCall.name}-${selectedCall.year}-${selectedMilestone.name}.xlsx`)
+      // Ajustar ancho de columnas automáticamente
+      worksheet.columns.forEach((column, index) => {
+        let maxLength = 10
+        const headerCell = excelRows[0][index]
+        if (headerCell) {
+          maxLength = Math.max(maxLength, String(headerCell).length)
+        }
+        column.width = Math.min(maxLength + 2, 50)
+      })
+
+      // Descargar el archivo
+      const buffer = await workbook.xlsx.writeBuffer()
+      const blob = new Blob([buffer], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = `respuestas-${selectedCall.name}-${selectedCall.year}-${selectedMilestone.name}.xlsx`
+      link.click()
+      URL.revokeObjectURL(link.href)
 
       alert(`Excel descargado exitosamente con ${excelRows.length - 1} respuestas del hito "${selectedMilestone.name}"`)
     } catch (err: any) {
