@@ -323,15 +323,57 @@ Fundación Carmen Goudie`
     }
 
     try {
-      // 1. Obtener el formulario de la convocatoria (esquema JSONB)
+      // 1. Obtener los hitos de la convocatoria
+      const milestonesRes = await fetch(
+        `${API_BASE}/milestones/call/${selectedCall.id}`,
+        { headers }
+      )
+      if (!milestonesRes.ok) throw new Error('No se pudieron obtener los hitos')
+      const milestones = await milestonesRes.json()
+
+      // Filtrar solo hitos con formulario
+      const milestonesWithForms = milestones.filter((m: any) => m.formId)
+      
+      if (milestonesWithForms.length === 0) {
+        alert('No hay formularios disponibles para descargar')
+        return
+      }
+
+      // 2. Preguntar al usuario qué hito descargar
+      let selectedMilestone: any
+      if (milestonesWithForms.length === 1) {
+        selectedMilestone = milestonesWithForms[0]
+      } else {
+        const milestoneNames = milestonesWithForms.map((m: any, i: number) => 
+          `${i + 1}. ${m.name}`
+        ).join('\n')
+        
+        const choice = prompt(
+          `Selecciona el hito del cual descargar respuestas:\n\n${milestoneNames}\n\nIngresa el número:`
+        )
+        
+        if (!choice) return // Usuario canceló
+        
+        const index = parseInt(choice) - 1
+        if (index < 0 || index >= milestonesWithForms.length) {
+          alert('Selección inválida')
+          return
+        }
+        
+        selectedMilestone = milestonesWithForms[index]
+      }
+
+      console.log('Descargando formulario del hito:', selectedMilestone.name)
+
+      // 3. Obtener el esquema del formulario
       const formRes = await fetch(
-        `${API_BASE}/calls/${selectedCall.id}/form`,
+        `${API_BASE}/forms/${selectedMilestone.formId}`,
         { headers }
       )
       if (!formRes.ok) throw new Error('No se pudo obtener el formulario')
       const formData = await formRes.json()
 
-      // 2. Obtener todas las postulaciones
+      // 4. Obtener todas las postulaciones
       const appsRes = await fetch(
         `${API_BASE}/applications?callId=${selectedCall.id}&limit=1000`,
         { headers }
@@ -340,31 +382,33 @@ Fundación Carmen Goudie`
       const appsData = await appsRes.json()
       const applications = Array.isArray(appsData) ? appsData : appsData.data || []
 
-      // 3. Extraer todas las preguntas del formulario
+      // 5. Extraer todas las preguntas del formulario
       const questions: string[] = []
       const questionIds: string[] = []
 
-      if (formData.sections && Array.isArray(formData.sections)) {
-        for (const section of formData.sections) {
+      if (formData.schema?.sections && Array.isArray(formData.schema.sections)) {
+        for (const section of formData.schema.sections) {
           if (section.fields && Array.isArray(section.fields)) {
             for (const field of section.fields) {
               // Solo incluir campos visibles públicamente
               if (field.visibility !== 'INTERNAL') {
                 questions.push(field.label || field.name || 'Sin título')
-                questionIds.push(field.id)
+                questionIds.push(field.name || field.id) // Usar field.name como identificador
               }
             }
           }
         }
       }
 
-      // 4. Obtener respuestas de cada aplicación
+      console.log('Campos del formulario:', questionIds)
+
+      // 6. Obtener respuestas de cada aplicación
       console.log(`Obteniendo respuestas de ${applications.length} aplicaciones...`)
       
       const applicationsWithAnswers = await Promise.all(
         applications.map(async (app: any) => {
           try {
-            // Intentar obtener respuestas desde la última form_submission
+            // Obtener form_submissions de esta aplicación
             const submissionRes = await fetch(
               `${API_BASE}/form-submissions/application/${app.id}`,
               { headers }
@@ -372,12 +416,22 @@ Fundación Carmen Goudie`
             
             if (submissionRes.ok) {
               const submissions = await submissionRes.json()
-              // Tomar la última submission
-              const latest = Array.isArray(submissions) && submissions.length > 0 
-                ? submissions[submissions.length - 1] 
-                : submissions
               
-              return { ...app, answers: latest?.answers || latest?.form_data || {} }
+              // Buscar la submission del hito seleccionado
+              let submission
+              if (Array.isArray(submissions)) {
+                submission = submissions.find((s: any) => s.milestone_id === selectedMilestone.id)
+              }
+              
+              // Si no hay submission específica del hito, tomar la última
+              if (!submission && Array.isArray(submissions) && submissions.length > 0) {
+                submission = submissions[submissions.length - 1]
+              }
+              
+              const answers = submission?.form_data || submission?.answers || {}
+              console.log(`App ${app.id.substring(0, 8)} - Answers:`, Object.keys(answers))
+              
+              return { ...app, answers }
             }
             
             return { ...app, answers: {} }
@@ -388,7 +442,7 @@ Fundación Carmen Goudie`
         })
       )
 
-      // 5. Construir las filas del CSV
+      // 7. Construir las filas del CSV
       const csvRows: string[][] = []
       
       // Primera fila: encabezados (Marca temporal + preguntas)
@@ -403,9 +457,9 @@ Fundación Carmen Goudie`
 
         // Respuestas
         const answers = app.answers || {}
-        for (const qId of questionIds) {
-          const answer = answers[qId]
-          if (answer === null || answer === undefined) {
+        for (const fieldName of questionIds) {
+          const answer = answers[fieldName]
+          if (answer === null || answer === undefined || answer === '') {
             row.push('')
           } else if (typeof answer === 'object') {
             // Si es objeto con propiedad value, extraerla
@@ -419,7 +473,7 @@ Fundación Carmen Goudie`
         csvRows.push(row)
       }
 
-      // 5. Convertir a formato CSV
+      // 8. Convertir a formato CSV
       const csvContent = csvRows
         .map(row =>
           row
@@ -435,15 +489,15 @@ Fundación Carmen Goudie`
         )
         .join('\n')
 
-      // 6. Descargar el archivo
+      // 9. Descargar el archivo
       const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = `respuestas-${selectedCall.name}-${selectedCall.year}.csv`
+      link.download = `respuestas-${selectedCall.name}-${selectedCall.year}-${selectedMilestone.name}.csv`
       link.click()
       URL.revokeObjectURL(link.href)
 
-      alert('CSV descargado exitosamente')
+      alert(`CSV descargado exitosamente con ${csvRows.length - 1} respuestas del hito "${selectedMilestone.name}"`)
     } catch (err: any) {
       alert(`Error al descargar CSV: ${err.message}`)
       console.error(err)
