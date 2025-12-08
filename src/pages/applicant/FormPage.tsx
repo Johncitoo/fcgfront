@@ -4,7 +4,6 @@ import RutInput from '../../components/RutInput'
 import FileUpload from '../../components/FileUpload'
 import { Save, Send, ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { filesService } from '../../services/files.service'
-import { formSubmissionsService } from '../../services/formSubmissions.service'
 
 type FieldType =
   | 'text'
@@ -221,63 +220,123 @@ export default function FormPage() {
     })()
   }, [applicationId, headers, navigate])
 
-  // Crear FormSubmission automáticamente si no existe
+  // Crear o cargar FormSubmission existente
   useEffect(() => {
     if (!applicationId || !schema || submissionId) return
     ;(async () => {
       try {
-        const submission = await formSubmissionsService.create(
-          { applicationId, formData: {} },
-          token,
+        // Buscar submissions existentes
+        const res = await fetch(`${API_BASE}/form-submissions/application/${applicationId}`, { headers })
+        if (res.ok) {
+          const submissions = await res.json()
+          if (Array.isArray(submissions) && submissions.length > 0) {
+            // Usar la última submission
+            setSubmissionId(submissions[submissions.length - 1].id)
+            // Cargar respuestas guardadas
+            const savedAnswers = submissions[submissions.length - 1].answers || {}
+            setValues(prev => ({ ...prev, ...savedAnswers }))
+            console.log('✅ Submission existente cargada:', submissions[submissions.length - 1].id)
+            return
+          }
+        }
+
+        // No existe, crear una nueva
+        // Necesitamos el milestone y form del primer hito
+        const milestonesRes = await fetch(
+          `${API_BASE}/milestones/application/${applicationId}`,
+          { headers }
         )
-        setSubmissionId(submission.id)
+        
+        if (!milestonesRes.ok) {
+          console.error('No se pudieron cargar milestones')
+          return
+        }
+
+        const milestones = await milestonesRes.json()
+        const firstMilestone = Array.isArray(milestones) && milestones.length > 0
+          ? milestones[0]
+          : null
+
+        if (!firstMilestone || !firstMilestone.formId) {
+          console.error('No hay milestone con formulario')
+          return
+        }
+
+        // Crear submission
+        const createRes = await fetch(`${API_BASE}/form-submissions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            applicationId,
+            milestoneId: firstMilestone.id,
+            formId: firstMilestone.formId,
+            answers: {}
+          })
+        })
+
+        if (createRes.ok) {
+          const created = await createRes.json()
+          setSubmissionId(created.id)
+          console.log('✅ Nueva submission creada:', created.id)
+        }
       } catch (err) {
-        console.error('Error creating form submission:', err)
+        console.error('Error con form submission:', err)
       }
     })()
-  }, [applicationId, schema, submissionId, token])
+  }, [applicationId, schema, submissionId, token, headers])
 
   async function onSaveDraft() {
-    if (!applicationId) return
+    if (!applicationId || !submissionId) return
     setSaving(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/applications/${applicationId}/answers`, {
+      // Guardar usando form_submissions
+      const res = await fetch(`${API_BASE}/form-submissions/${submissionId}`, {
         method: 'PATCH',
         headers,
-        body: JSON.stringify(values),
+        body: JSON.stringify({ answers: values }),
       })
       if (!res.ok) throw new Error(await safeError(res))
+      console.log('✅ Borrador guardado correctamente')
     } catch (err: any) {
       setError(err.message ?? 'Error al guardar')
+      console.error('❌ Error guardando:', err)
     } finally {
       setSaving(false)
     }
   }
 
   async function onSubmit() {
-    if (!applicationId) return
+    if (!applicationId || !submissionId) return
     setSubmitting(true)
     setError(null)
     try {
-      // Guardar antes de enviar
-      const saveRes = await fetch(`${API_BASE}/applications/${applicationId}/answers`, {
+      // 1. Guardar respuestas
+      const saveRes = await fetch(`${API_BASE}/form-submissions/${submissionId}`, {
         method: 'PATCH',
         headers,
-        body: JSON.stringify(values),
+        body: JSON.stringify({ answers: values }),
       })
       if (!saveRes.ok) throw new Error(await safeError(saveRes))
 
-      // Enviar postulación
+      // 2. Marcar como enviado
       const submitRes = await fetch(
-        `${API_BASE}/applications/${applicationId}/submit`,
+        `${API_BASE}/form-submissions/${submissionId}/submit`,
         { method: 'POST', headers },
       )
       if (!submitRes.ok) throw new Error(await safeError(submitRes))
 
+      // 3. Enviar la aplicación
+      const appSubmitRes = await fetch(
+        `${API_BASE}/applications/${applicationId}/submit`,
+        { method: 'POST', headers },
+      )
+      if (!appSubmitRes.ok) throw new Error(await safeError(appSubmitRes))
+
       navigate('/applicant', { replace: true })
     } catch (err: any) {
       setError(err.message ?? 'No se pudo enviar la postulación')
+      console.error('❌ Error enviando:', err)
     } finally {
       setSubmitting(false)
     }
