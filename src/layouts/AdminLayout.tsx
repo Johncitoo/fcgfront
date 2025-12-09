@@ -41,7 +41,7 @@ export default function AdminLayout() {
                 ? 'bg-slate-100 text-slate-700'
                 : 'bg-amber-100 text-amber-700'
             }`}>
-              {selectedCall.status === 'OPEN' ? '🟢 Activa' : selectedCall.status === 'CLOSED' ? '🔴 Cerrada' : '🟡 Borrador'}
+              {selectedCall.status === 'OPEN' ? 'Activa' : selectedCall.status === 'CLOSED' ? 'Cerrada' : 'Borrador'}
             </span>
           )}
         </div>

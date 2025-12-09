@@ -387,12 +387,12 @@ export default function AdminHome() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-5">
-                  <StatusBar label="Borrador" count={appStats.draft} total={appStats.total} color="bg-slate-400" icon="📝" />
-                  <StatusBar label="Enviadas" count={appStats.submitted} total={appStats.total} color="bg-blue-500" icon="📤" />
-                  <StatusBar label="En Revisión" count={appStats.in_review} total={appStats.total} color="bg-purple-500" icon="🔍" />
-                  <StatusBar label="Requiere Correcciones" count={appStats.needs_fix} total={appStats.total} color="bg-amber-500" icon="⚠️" />
-                  <StatusBar label="Aprobadas" count={appStats.approved} total={appStats.total} color="bg-green-500" icon="✅" />
-                  <StatusBar label="Rechazadas" count={appStats.rejected} total={appStats.total} color="bg-rose-500" icon="❌" />
+                  <StatusBar label="Borrador" count={appStats.draft} total={appStats.total} color="bg-slate-400" />
+                  <StatusBar label="Enviadas" count={appStats.submitted} total={appStats.total} color="bg-blue-500" />
+                  <StatusBar label="En Revisión" count={appStats.in_review} total={appStats.total} color="bg-purple-500" />
+                  <StatusBar label="Requiere Correcciones" count={appStats.needs_fix} total={appStats.total} color="bg-amber-500" />
+                  <StatusBar label="Aprobadas" count={appStats.approved} total={appStats.total} color="bg-green-500" />
+                  <StatusBar label="Rechazadas" count={appStats.rejected} total={appStats.total} color="bg-rose-500" />
                 </div>
               </CardContent>
             </Card>
