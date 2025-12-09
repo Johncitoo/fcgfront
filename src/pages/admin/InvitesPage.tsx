@@ -255,7 +255,7 @@ export default function InvitesPage() {
             ) : (
               <>
                 {/* Desktop */}
-                <div className="hidden overflow-x-auto md:block">
+                <div className="hidden overflow-x-auto lg:block">
                   <table className="w-full text-sm">
                     <thead className="text-left text-slate-600">
                       <tr className="border-b">
@@ -293,7 +293,7 @@ export default function InvitesPage() {
                 </div>
 
                 {/* Mobile */}
-                <div className="space-y-3 md:hidden">
+                <div className="space-y-3 lg:hidden">
                   {rows.map((r) => (
                     <div key={r.id} className="rounded-lg border p-3">
                       <div className="mb-1 flex items-center justify-between">

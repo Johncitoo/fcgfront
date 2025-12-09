@@ -234,7 +234,7 @@ export default function CallsListPage() {
             ) : (
               <>
                 {/* Desktop table */}
-                <div className="hidden overflow-x-auto md:block">
+                <div className="hidden lg:block overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="text-left text-slate-600 dark:text-slate-300">
                       <tr className="border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700">
@@ -306,7 +306,7 @@ export default function CallsListPage() {
                 </div>
 
                 {/* Mobile cards */}
-                <div className="space-y-3 md:hidden">
+                <div className="space-y-3 lg:hidden">
                   {rows.map((c) => {
                     const status = getCallStatus(c)
                     const badge = getStatusBadge(status)
