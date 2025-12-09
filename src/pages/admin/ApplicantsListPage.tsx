@@ -924,49 +924,51 @@ Fundación Carmen Goudie`
         </header>
 
         {/* Barra de acciones */}
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <div className="relative">
+        <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+          <div className="flex gap-2 flex-1 min-w-[200px]">
             <input
               type="text"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Buscar por nombre o correo…"
-              className="rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+              className="flex-1 rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
             />
+            <button
+              onClick={() => {
+                setOffset(0)
+                load()
+              }}
+              className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-slate-50"
+            >
+              Buscar
+            </button>
           </div>
-          <button
-            onClick={() => {
-              setOffset(0)
-              load()
-            }}
-            className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-slate-50"
-          >
-            Buscar
-          </button>
 
-          <div className="ml-auto flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {selectedCall && (
               <>
                 <button
                   onClick={openMilestoneSelection}
-                  className="rounded-md border border-green-600 px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 flex items-center gap-2"
+                  className="rounded-md border border-green-600 px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center"
                   title="Descargar respuestas de formularios en CSV"
                 >
                   <Download className="w-4 h-4" />
-                  Descargar CSV
+                  <span className="hidden sm:inline">Descargar CSV</span>
+                  <span className="sm:hidden">CSV</span>
                 </button>
                 <button
                   onClick={() => setBulkInviteOpen(true)}
-                  className="rounded-md border border-sky-600 px-3 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 flex items-center gap-2"
+                  className="rounded-md border border-sky-600 px-3 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center"
                 >
                   <Users className="w-4 h-4" />
-                  Envío Masivo
+                  <span className="hidden sm:inline">Envío Masivo</span>
+                  <span className="sm:hidden">Masivo</span>
                 </button>
               </>
             )}
             <button
               onClick={() => setCreating(true)}
-              className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700"
+              className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700 w-full sm:w-auto"
             >
               Ingresar postulante
             </button>
@@ -981,7 +983,8 @@ Fundación Carmen Goudie`
             ) : error ? (
               <p className="text-sm text-rose-700">{error}</p>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full text-sm min-w-[800px]">
                 <thead className="text-left text-slate-600 bg-slate-100">
                   <tr className="border-b">
                     <th className="py-3 pr-3 font-semibold">Nombre</th>
@@ -1069,12 +1072,13 @@ Fundación Carmen Goudie`
                   )}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>
 
         {/* Paginación */}
-        <div className="mt-4 flex items-center justify-between text-sm">
+        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
           <div className="flex items-center gap-2">
             <span className="text-slate-600">Filas por página:</span>
             <select

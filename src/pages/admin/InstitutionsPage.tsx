@@ -153,34 +153,34 @@ export default function InstitutionsPage() {
           </p>
         </header>
 
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <input
-            type="text"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar por nombre o código..."
-            className="rounded-md border px-3 py-2 text-sm"
-          />
-          <button
-            onClick={() => { setOffset(0); load() }}
-            className="btn"
-          >
-            Buscar
-          </button>
-
-          <div className="ml-auto">
+        <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex gap-2 flex-1">
+            <input
+              type="text"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar por nombre o código..."
+              className="flex-1 rounded-md border px-3 py-2 text-sm"
+            />
             <button
-              onClick={() => {
-                setEditing(null)
-                setCreateForm({ name: '', code: '', commune: '', province: '', region: '', type: 'LICEO' as 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO', email: '', phone: '', address: '', directorName: '', website: '', notes: '' })
-                setCreating(true)
-              }}
-              className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 transition-colors"
+              onClick={() => { setOffset(0); load() }}
+              className="btn"
             >
-              <Plus className="w-4 h-4" />
-              Nueva institución
+              Buscar
             </button>
           </div>
+
+          <button
+            onClick={() => {
+              setEditing(null)
+              setCreateForm({ name: '', code: '', commune: '', province: '', region: '', type: 'LICEO' as 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO', email: '', phone: '', address: '', directorName: '', website: '', notes: '' })
+              setCreating(true)
+            }}
+            className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 transition-colors justify-center"
+          >
+            <Plus className="w-4 h-4" />
+            Nueva institución
+          </button>
         </div>
 
         <div className="card">
@@ -190,7 +190,8 @@ export default function InstitutionsPage() {
             ) : error ? (
               <p className="text-sm text-rose-700">{error}</p>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full text-sm min-w-[800px]">
                 <thead className="text-left text-slate-600 bg-slate-100">
                   <tr className="border-b">
                     <th className="py-3 pr-3 font-semibold">Nombre</th>
@@ -247,12 +248,13 @@ export default function InstitutionsPage() {
                   )}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>
 
         {/* Paginación */}
-        <div className="mt-4 flex items-center justify-between text-sm">
+        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
           <div className="flex items-center gap-2">
             <span className="text-slate-600">Filas por página:</span>
             <select
