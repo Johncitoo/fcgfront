@@ -1,250 +1,603 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallContext } from '../../contexts/CallContext'
+import { 
+  BarChart3, 
+  Users, 
+  FileText, 
+  CheckCircle2, 
+  Clock,
+  AlertCircle,
+  TrendingUp,
+  Target,
+  Activity,
+  Calendar,
+  ArrowUpRight,
+  ArrowDownRight
+} from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
-interface Stat {
-  label: string
-  value: number | string
-  hint?: string
+interface ApplicationStats {
+  draft: number
+  submitted: number
+  in_review: number
+  needs_fix: number
+  approved: number
+  rejected: number
+  total: number
 }
 
-type CountPayload = { count: number } | { total: number } | Record<string, any>
+interface CallInfo {
+  id: string
+  name: string
+  year: number
+  totalSeats: number
+}
 
 const API_BASE =
   (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
 export default function AdminHome() {
+  const { selectedCall } = useCallContext()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [stats, setStats] = useState<Stat[]>([
-    { label: 'Postulantes', value: '—' },
-    { label: 'Convocatorias activas', value: '—' },
-    { label: 'Enviadas (SUBMITTED)', value: '—' },
-    { label: 'En revisión (IN_REVIEW)', value: '—' },
-  ])
+  const [appStats, setAppStats] = useState<ApplicationStats>({
+    draft: 0,
+    submitted: 0,
+    in_review: 0,
+    needs_fix: 0,
+    approved: 0,
+    rejected: 0,
+    total: 0,
+  })
+  const [applicantCount, setApplicantCount] = useState(0)
+  const [activeCall, setActiveCall] = useState<CallInfo | null>(null)
 
   useEffect(() => {
-    ;(async () => {
-      try {
-        setLoading(true)
-        setError(null)
+    if (selectedCall) {
+      setActiveCall({
+        id: selectedCall.id,
+        name: selectedCall.name,
+        year: selectedCall.year,
+        totalSeats: (selectedCall as any).total_seats || (selectedCall as any).totalSeats || 0
+      })
+      loadStats(selectedCall.id)
+    } else {
+      // Cargar convocatoria activa por defecto
+      loadActiveCall()
+    }
+  }, [selectedCall])
 
-        const token = localStorage.getItem('fcg.access_token') ?? ''
-        const headers = { Authorization: `Bearer ${token}` }
-
-        // Primero obtener la convocatoria activa
-        const callsListRes = await fetch(`${API_BASE}/calls?status=OPEN`, { headers })
-        if (!callsListRes.ok) throw new Error(await safeError(callsListRes))
-        
-        const callsList = await callsListRes.json()
-        const activeCall = Array.isArray(callsList) ? callsList[0] : callsList.data?.[0]
-        
-        // Si hay convocatoria activa, filtra métricas solo para esa convocatoria
-        const callFilter = activeCall ? `&callId=${activeCall.id}` : ''
-        
-        const [applicantsRes, callsRes, submittedRes, reviewingRes] =
-          await Promise.all([
-            fetch(`${API_BASE}/applicants?limit=1&count=1${callFilter}`, { headers }),
-            fetch(`${API_BASE}/calls?onlyActive=true&count=1`, { headers }),
-            fetch(`${API_BASE}/applications?status=SUBMITTED&count=1${callFilter}`, {
-              headers,
-            }),
-            fetch(`${API_BASE}/applications?status=IN_REVIEW&count=1${callFilter}`, {
-              headers,
-            }),
-          ])
-
-        if (!applicantsRes.ok) throw new Error(await safeError(applicantsRes))
-        if (!callsRes.ok) throw new Error(await safeError(callsRes))
-        if (!submittedRes.ok) throw new Error(await safeError(submittedRes))
-        if (!reviewingRes.ok) throw new Error(await safeError(reviewingRes))
-
-        const applicantsJson = (await applicantsRes.json()) as CountPayload
-        const callsJson = (await callsRes.json()) as CountPayload
-        const submittedJson = (await submittedRes.json()) as CountPayload
-        const reviewingJson = (await reviewingRes.json()) as CountPayload
-
-        setStats([
-          { 
-            label: activeCall ? `Postulantes (${activeCall.name})` : 'Postulantes', 
-            value: formatCount(applicantsJson),
-            hint: activeCall ? 'Solo de la convocatoria activa' : undefined
-          },
-          { label: 'Convocatorias activas', value: formatCount(callsJson) },
-          { 
-            label: 'Enviadas (SUBMITTED)', 
-            value: formatCount(submittedJson),
-            hint: activeCall ? 'Solo de la convocatoria activa' : undefined
-          },
-          { 
-            label: 'En revisión (IN_REVIEW)', 
-            value: formatCount(reviewingJson),
-            hint: activeCall ? 'Solo de la convocatoria activa' : undefined
-          },
-        ])
-      } catch (err: any) {
-        setError(err.message ?? 'No se pudieron cargar las métricas')
-      } finally {
+  async function loadActiveCall() {
+    try {
+      const token = localStorage.getItem('fcg.access_token') ?? ''
+      const headers = { Authorization: `Bearer ${token}` }
+      
+      const res = await fetch(`${API_BASE}/calls?status=OPEN&limit=1`, { headers })
+      if (!res.ok) throw new Error('No se pudo cargar convocatoria activa')
+      
+      const data = await res.json()
+      const call = Array.isArray(data) ? data[0] : data.data?.[0]
+      
+      if (call) {
+        setActiveCall({
+          id: call.id,
+          name: call.name,
+          year: call.year,
+          totalSeats: call.total_seats || call.totalSeats || 0
+        })
+        loadStats(call.id)
+      } else {
         setLoading(false)
+        setError('No hay convocatoria activa')
       }
-    })()
-  }, [])
+    } catch (err: any) {
+      setError(err.message)
+      setLoading(false)
+    }
+  }
+
+  async function loadStats(callId: string) {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const token = localStorage.getItem('fcg.access_token') ?? ''
+      const headers = { Authorization: `Bearer ${token}` }
+
+      // Cargar estadísticas de postulaciones por estado
+      const [
+        draftRes,
+        submittedRes,
+        inReviewRes,
+        needsFixRes,
+        approvedRes,
+        rejectedRes,
+        applicantsRes,
+      ] = await Promise.all([
+        fetch(`${API_BASE}/applications?status=DRAFT&callId=${callId}&count=1`, { headers }),
+        fetch(`${API_BASE}/applications?status=SUBMITTED&callId=${callId}&count=1`, { headers }),
+        fetch(`${API_BASE}/applications?status=IN_REVIEW&callId=${callId}&count=1`, { headers }),
+        fetch(`${API_BASE}/applications?status=NEEDS_FIX&callId=${callId}&count=1`, { headers }),
+        fetch(`${API_BASE}/applications?status=APPROVED&callId=${callId}&count=1`, { headers }),
+        fetch(`${API_BASE}/applications?status=REJECTED&callId=${callId}&count=1`, { headers }),
+        fetch(`${API_BASE}/applicants?callId=${callId}&count=1`, { headers }),
+      ])
+
+      const draft = await extractCount(draftRes)
+      const submitted = await extractCount(submittedRes)
+      const in_review = await extractCount(inReviewRes)
+      const needs_fix = await extractCount(needsFixRes)
+      const approved = await extractCount(approvedRes)
+      const rejected = await extractCount(rejectedRes)
+      const applicants = await extractCount(applicantsRes)
+
+      setAppStats({
+        draft,
+        submitted,
+        in_review,
+        needs_fix,
+        approved,
+        rejected,
+        total: draft + submitted + in_review + needs_fix + approved + rejected,
+      })
+      setApplicantCount(applicants)
+    } catch (err: any) {
+      setError(err.message ?? 'Error al cargar estadísticas')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function extractCount(res: Response): Promise<number> {
+    if (!res.ok) return 0
+    const data = await res.json()
+    return data?.count ?? data?.total ?? 0
+  }
+
+  const completionRate = activeCall?.totalSeats 
+    ? Math.round((appStats.approved / activeCall.totalSeats) * 100)
+    : 0
+
+  const totalActive = appStats.draft + appStats.submitted + appStats.in_review + appStats.needs_fix
+  
+  const averageProgress = applicantCount > 0 
+    ? Math.round(((appStats.submitted + appStats.in_review + appStats.needs_fix + appStats.approved) / applicantCount) * 100)
+    : 0
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="mx-auto w-full max-w-6xl">
-        <header className="mb-8">
-          <h1 className="text-2xl font-semibold">Panel de administración</h1>
-          <p className="text-slate-600">
-            Accede a la gestión de postulantes, convocatorias, invitaciones, formularios, correos y auditorías.
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto w-full max-w-7xl space-y-6 sm:space-y-8">
+        {/* Header mejorado con gradiente y animación */}
+        <header className="animate-fade-in">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl bg-gradient-to-r from-slate-900 to-sky-700 bg-clip-text text-transparent">
+                Panel de Control
+              </h1>
+              {activeCall && (
+                <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-3">
+                  <span className="text-base sm:text-lg font-medium text-slate-600">
+                    {activeCall.name} {activeCall.year}
+                  </span>
+                  <Badge className="gap-1.5 bg-green-100 text-green-700 border-green-300">
+                    <Activity className="h-3 w-3 animate-pulse" />
+                    Convocatoria Activa
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {activeCall.totalSeats} cupos
+                  </Badge>
+                </div>
+              )}
+            </div>
+            {activeCall && (
+              <Card className="bg-gradient-to-br from-sky-500 to-blue-600 text-white border-0 shadow-lg">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-white/20 p-2">
+                      <Target className="h-5 w-5 sm:h-6 sm:w-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium opacity-90">Progreso General</p>
+                      <p className="text-2xl sm:text-3xl font-bold">{completionRate}%</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </header>
 
-        {/* Estado de carga / error */}
         {loading && (
-          <div className="card mb-6">
-            <div className="card-body">
-              <p className="text-slate-600">Cargando…</p>
-            </div>
-          </div>
+          <Card className="animate-pulse">
+            <CardContent className="p-8 sm:p-12 text-center">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mb-4">
+                <Activity className="h-6 w-6 text-sky-600 animate-spin" />
+              </div>
+              <p className="text-slate-600 font-medium">Cargando estadísticas...</p>
+              <p className="text-sm text-slate-500 mt-2">Esto solo tomará un momento</p>
+            </CardContent>
+          </Card>
         )}
 
         {error && (
-          <div className="card mb-6 border-rose-200">
-            <div className="card-body">
-              <p className="text-sm text-rose-700">{error}</p>
+          <Card className="border-rose-200 bg-rose-50/50 animate-shake">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-rose-100 p-2">
+                  <AlertCircle className="h-5 w-5 text-rose-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-rose-900">Error al cargar datos</h3>
+                  <p className="text-sm text-rose-700 mt-1">{error}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {!loading && !error && activeCall && (
+          <div className="space-y-6 sm:space-y-8">
+            {/* Métricas principales con animación escalonada */}
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              <Card className="overflow-hidden border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardDescription className="text-xs font-medium uppercase tracking-wide">
+                      Total Postulantes
+                    </CardDescription>
+                    <div className="rounded-full bg-blue-100 p-2">
+                      <Users className="h-5 w-5 text-blue-600" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-slate-900">{applicantCount.toLocaleString()}</div>
+                  <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
+                    <ArrowUpRight className="h-3 w-3 text-green-600" />
+                    <span className="text-green-600 font-medium">Registrados</span>
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="overflow-hidden border-l-4 border-l-purple-500 hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardDescription className="text-xs font-medium uppercase tracking-wide">
+                      Postulaciones
+                    </CardDescription>
+                    <div className="rounded-full bg-purple-100 p-2">
+                      <FileText className="h-5 w-5 text-purple-600" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-slate-900">{appStats.total.toLocaleString()}</div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    {averageProgress}% de participación
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="overflow-hidden border-l-4 border-l-amber-500 hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardDescription className="text-xs font-medium uppercase tracking-wide">
+                      En Proceso
+                    </CardDescription>
+                    <div className="rounded-full bg-amber-100 p-2">
+                      <Clock className="h-5 w-5 text-amber-600" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-slate-900">{totalActive.toLocaleString()}</div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Requieren atención
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="overflow-hidden border-l-4 border-l-green-500 hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: '0.4s' }}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardDescription className="text-xs font-medium uppercase tracking-wide">
+                      Aprobadas
+                    </CardDescription>
+                    <div className="rounded-full bg-green-100 p-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-slate-900">{appStats.approved.toLocaleString()}</div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    de {activeCall.totalSeats} cupos disponibles
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Progreso de cupos mejorado */}
+            <Card className="overflow-hidden animate-slide-up" style={{ animationDelay: '0.5s' }}>
+              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5 text-green-600" />
+                      Progreso de Cupos
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      Seguimiento de asignación de becas
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-bold text-green-600">{completionRate}</span>
+                    <span className="text-lg text-slate-600">%</span>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="relative">
+                    <div className="h-6 overflow-hidden rounded-full bg-gradient-to-r from-slate-100 to-slate-200 shadow-inner">
+                      <div
+                        className="h-full bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 transition-all duration-1000 ease-out shadow-lg"
+                        style={{ width: `${Math.min(completionRate, 100)}%` }}
+                      >
+                        <div className="h-full w-full bg-gradient-to-r from-white/20 to-transparent"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="text-center p-3 rounded-lg bg-slate-50">
+                      <p className="text-2xl font-bold text-slate-900">{appStats.approved}</p>
+                      <p className="text-xs text-slate-500 mt-1">Cupos asignados</p>
+                    </div>
+                    <div className="text-center p-3 rounded-lg bg-slate-50">
+                      <p className="text-2xl font-bold text-slate-900">{activeCall.totalSeats - appStats.approved}</p>
+                      <p className="text-xs text-slate-500 mt-1">Cupos disponibles</p>
+                    </div>
+                    <div className="text-center p-3 rounded-lg bg-slate-50">
+                      <p className="text-2xl font-bold text-slate-900">{activeCall.totalSeats}</p>
+                      <p className="text-xs text-slate-500 mt-1">Total de cupos</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gráfico de estados mejorado */}
+            <Card className="animate-slide-up" style={{ animationDelay: '0.6s' }}>
+              <CardHeader className="border-b bg-slate-50/50">
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-sky-600" />
+                  Distribución por Estado
+                </CardTitle>
+                <CardDescription>
+                  Visualización del flujo de postulaciones
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-5">
+                  <StatusBar
+                    label="Borrador"
+                    count={appStats.draft}
+                    total={appStats.total}
+                    color="bg-slate-400"
+                    icon="📝"
+                  />
+                  <StatusBar
+                    label="Enviadas"
+                    count={appStats.submitted}
+                    total={appStats.total}
+                    color="bg-blue-500"
+                    icon="📤"
+                  />
+                  <StatusBar
+                    label="En Revisión"
+                    count={appStats.in_review}
+                    total={appStats.total}
+                    color="bg-purple-500"
+                    icon="🔍"
+                  />
+                  <StatusBar
+                    label="Requiere Correcciones"
+                    count={appStats.needs_fix}
+                    total={appStats.total}
+                    color="bg-amber-500"
+                    icon="⚠️"
+                  />
+                  <StatusBar
+                    label="Aprobadas"
+                    count={appStats.approved}
+                    total={appStats.total}
+                    color="bg-green-500"
+                    icon="✅"
+                  />
+                  <StatusBar
+                    label="Rechazadas"
+                    count={appStats.rejected}
+                    total={appStats.total}
+                    color="bg-rose-500"
+                    icon="❌"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Resumen y Análisis */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Estados Activos mejorado */}
+              <Card className="animate-slide-up" style={{ animationDelay: '0.8s' }}>
+                <CardHeader className="border-b bg-gradient-to-r from-amber-50 to-orange-50">
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-amber-600" />
+                    Estados Activos
+                  </CardTitle>
+                  <CardDescription>
+                    Distribución principal de postulaciones
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="group p-4 rounded-lg border-2 border-amber-100 hover:border-amber-300 hover:bg-amber-50/50 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-full bg-amber-500 flex items-center justify-center shadow-md">
+                            <Clock className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-amber-700 uppercase">En proceso</p>
+                            <p className="text-xs text-slate-500">Activas pendientes</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-3xl font-bold text-amber-700">{totalActive}</p>
+                          <p className="text-xs text-slate-500">
+                            {appStats.total > 0 ? Math.round((totalActive / appStats.total) * 100) : 0}%
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="group p-4 rounded-lg border-2 border-green-100 hover:border-green-300 hover:bg-green-50/50 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+                            <TrendingUp className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-green-700 uppercase">Aprobadas</p>
+                            <p className="text-xs text-slate-500">Becas otorgadas</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-3xl font-bold text-green-700">{appStats.approved}</p>
+                          <p className="text-xs text-slate-500">
+                            {appStats.total > 0 ? Math.round((appStats.approved / appStats.total) * 100) : 0}%
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="group p-4 rounded-lg border-2 border-rose-100 hover:border-rose-300 hover:bg-rose-50/50 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-full bg-rose-500 flex items-center justify-center shadow-md">
+                            <ArrowDownRight className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-rose-700 uppercase">Rechazadas</p>
+                            <p className="text-xs text-slate-500">No aprobadas</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-3xl font-bold text-rose-700">{appStats.rejected}</p>
+                          <p className="text-xs text-slate-500">
+                            {appStats.total > 0 ? Math.round((appStats.rejected / appStats.total) * 100) : 0}%
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Indicadores clave mejorado */}
+              <Card className="animate-slide-up" style={{ animationDelay: '0.9s' }}>
+                <CardHeader className="border-b bg-gradient-to-r from-sky-50 to-blue-50">
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-sky-600" />
+                    Métricas de Conversión
+                  </CardTitle>
+                  <CardDescription>
+                    Indicadores de rendimiento del proceso
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-lg border-l-4 border-l-sky-500 bg-sky-50/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-semibold text-sky-900 uppercase tracking-wide">Tasa de Envío</p>
+                        <Badge variant="outline" className="bg-white">
+                          {applicantCount > 0 ? Math.round((appStats.total / applicantCount) * 100) : 0}%
+                        </Badge>
+                      </div>
+                      <p className="text-2xl font-bold text-sky-700">
+                        {appStats.total} / {applicantCount}
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">Postulantes que enviaron formulario</p>
+                    </div>
+
+                    <div className="p-4 rounded-lg border-l-4 border-l-green-500 bg-green-50/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-semibold text-green-900 uppercase tracking-wide">Tasa de Aprobación</p>
+                        <Badge className="bg-green-100 text-green-700 border-green-300">
+                          {appStats.total > 0 ? Math.round((appStats.approved / appStats.total) * 100) : 0}%
+                        </Badge>
+                      </div>
+                      <p className="text-2xl font-bold text-green-700">
+                        {appStats.approved} / {appStats.total}
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">Postulaciones aprobadas del total enviado</p>
+                    </div>
+
+                    <div className="p-4 rounded-lg border-l-4 border-l-purple-500 bg-purple-50/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-semibold text-purple-900 uppercase tracking-wide">En Revisión</p>
+                        <Badge variant="outline" className="bg-white border-purple-300 text-purple-700">
+                          Activas
+                        </Badge>
+                      </div>
+                      <p className="text-2xl font-bold text-purple-700">{appStats.in_review}</p>
+                      <p className="text-xs text-slate-600 mt-1">Requieren atención inmediata</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         )}
-
-        {/* Métricas rápidas */}
-        {!loading && !error && (
-          <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {stats.map((s) => (
-              <div key={s.label} className="card">
-                <div className="card-body">
-                  <div className="text-sm text-slate-500">{s.label}</div>
-                  <div className="mt-1 text-2xl font-semibold">{s.value}</div>
-                  {s.hint && (
-                    <div className="mt-1 text-xs text-slate-500">{s.hint}</div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
-
-        {/* Accesos rápidos */}
-        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <QuickCard
-            title="Convocatorias"
-            desc="Crea, edita y clona convocatorias anuales. Cada convocatoria mantiene sus propios datos."
-            to="/admin/calls"
-            cta="Abrir convocatorias"
-          />
-          <QuickCard
-            title="Postulantes"
-            desc="Ingreso manual y listado de estudiantes. Búsqueda por nombre o correo."
-            to="/admin/applicants"
-            cta="Gestionar postulantes"
-          />
-          <QuickCard
-            title="Invitar Postulante"
-            desc="Crea invitaciones y envíalas automáticamente por email o copia el código para enviar manual."
-            to="/admin/invite-applicant"
-            cta="Invitar postulante"
-          />
-          <QuickCard
-            title="Invitaciones"
-            desc="Genera códigos por convocatoria y envíalos por correo. Registra si fueron usados."
-            to="/admin/invites"
-            cta="Gestionar invitaciones"
-          />
-          <QuickCard
-            title="Diseñador de formularios"
-            desc="Define secciones y campos por convocatoria. Clona desde años anteriores."
-            to="/admin/forms"
-            cta="Abrir builder"
-          />
-          <QuickCard
-            title="Correo (próximo)"
-            desc="Plantillas de email, envíos masivos y registro de entregas."
-            to="/admin/email"
-            cta="Ver módulo"
-            disabled
-          />
-          <QuickCard
-            title="Auditoría (próximo)"
-            desc="Registro inmutable de acciones: quién hizo qué y cuándo."
-            to="/admin/audit"
-            cta="Ver auditoría"
-            disabled
-          />
-        </section>
       </div>
     </div>
   )
 }
 
-/* ============ utilidades ============ */
+/* ============ Componentes auxiliares ============ */
 
-function formatCount(v: unknown) {
-  const n =
-    typeof v === 'number'
-      ? v
-      : typeof (v as any)?.count === 'number'
-      ? (v as any).count
-      : typeof (v as any)?.total === 'number'
-      ? (v as any).total
-      : null
-  return n === null ? '—' : new Intl.NumberFormat().format(n)
+interface StatusBarProps {
+  label: string
+  count: number
+  total: number
+  color: string
+  icon?: string
 }
 
-async function safeError(res: Response) {
-  try {
-    const data = await res.json()
-    return data?.message || data?.error || res.statusText
-  } catch {
-    return res.statusText
-  }
-}
-
-/* ============ componente ============ */
-
-function QuickCard({
-  title,
-  desc,
-  to,
-  cta,
-  disabled,
-}: {
-  title: string
-  desc: string
-  to: string
-  cta: string
-  disabled?: boolean
-}) {
+function StatusBar({ label, count, total, color, icon }: StatusBarProps) {
+  const pct = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0'
   return (
-    <div className="card">
-      <div className="card-body">
-        <h2 className="mb-1 text-lg font-semibold">{title}</h2>
-        <p className="mb-4 text-sm text-slate-600">{desc}</p>
-
-        {disabled ? (
-          <button
-            disabled
-            className="rounded-md border px-3 py-2 text-sm font-medium opacity-50"
-            title="Disponible próximamente"
-          >
-            {cta}
-          </button>
-        ) : (
-          <Link
-            to={to}
-            className="inline-block rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700"
-          >
-            {cta}
-          </Link>
-        )}
+    <div className="group hover:bg-slate-50 p-3 rounded-lg transition-colors">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {icon && <span className="text-lg">{icon}</span>}
+          <span className="font-semibold text-slate-900 group-hover:text-sky-700 transition-colors">
+            {label}
+          </span>
+        </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-lg font-bold text-slate-900">{count}</span>
+          <span className="text-xs text-slate-500">({pct}%)</span>
+        </div>
+      </div>
+      <div className="relative h-3 overflow-hidden rounded-full bg-slate-200 shadow-inner">
+        <div
+          className={`h-full ${color} transition-all duration-700 ease-out shadow-sm`}
+          style={{ width: `${pct}%` }}
+        >
+          <div className="h-full w-full bg-gradient-to-r from-white/30 to-transparent"></div>
+        </div>
       </div>
     </div>
   )
