@@ -251,18 +251,18 @@ export default function CallsListPage() {
                         const badge = getStatusBadge(status)
                         return (
                           <tr key={c.id} className="border-b last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
-                            <td className="py-3 pr-3 font-mono font-medium">{c.year}</td>
+                            <td className="py-3 pr-3 font-mono font-medium !text-slate-900">{c.year}</td>
                             <td className="py-3 pr-3">
-                              <div className="font-medium dark:text-slate-100">{c.name}</div>
+                              <div className="font-medium !text-slate-900">{c.name}</div>
                               {c.description && (
-                                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+                                <div className="text-xs !text-slate-600 mt-0.5 line-clamp-1">
                                   {c.description}
                                 </div>
                               )}
                             </td>
-                            <td className="py-3 pr-3">
+                            <td className="py-3 pr-3 !text-slate-700">
                               {c.start_date && c.end_date ? (
-                                <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                                <div className="flex items-center gap-1.5 text-xs !text-slate-700">
                                   <Calendar className="w-3.5 h-3.5" />
                                   <span>
                                     {new Date(c.start_date).toLocaleDateString('es-CL', { 
@@ -281,7 +281,7 @@ export default function CallsListPage() {
                                   </span>
                                 </div>
                               ) : (
-                                <span className="text-xs text-slate-400">Sin fechas</span>
+                                <span className="text-xs !text-slate-500">Sin fechas</span>
                               )}
                             </td>
                             <td className="py-3 pr-3">
@@ -314,10 +314,10 @@ export default function CallsListPage() {
                       <div key={c.id} className="rounded-lg border p-3 bg-white hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-slate-700">
                         <div className="mb-2 flex items-start justify-between gap-2">
                           <div>
-                            <div className="font-mono text-sm text-slate-600 dark:text-slate-400">{c.year}</div>
-                            <div className="text-sm font-semibold mt-0.5 dark:text-slate-100">{c.name}</div>
+                            <div className="font-mono text-sm !text-slate-700">{c.year}</div>
+                            <div className="text-sm font-semibold mt-0.5 !text-slate-900">{c.name}</div>
                             {c.description && (
-                              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                              <div className="text-xs !text-slate-600 mt-1 line-clamp-2">
                                 {c.description}
                               </div>
                             )}

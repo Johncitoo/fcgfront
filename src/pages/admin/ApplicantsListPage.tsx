@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCall } from '../../contexts/CallContext'
 import { useCallContext } from '../../contexts/CallContext'
-import { Mail, Copy, X, CheckCircle2, Send, Eye, Users, Edit, Download, FileSpreadsheet, FileText } from 'lucide-react'
+import { Mail, Copy, X, CheckCircle2, Send, Eye, Edit, Download, FileSpreadsheet, FileText } from 'lucide-react'
 import ApplicantDetailModal from '../../components/admin/ApplicantDetailModal'
 import BulkInviteModal from '../../components/admin/BulkInviteModal'
 import EditApplicantModal from '../../components/admin/EditApplicantModal'
@@ -956,14 +956,7 @@ Fundación Carmen Goudie`
                   <span className="hidden sm:inline">Descargar CSV</span>
                   <span className="sm:hidden">CSV</span>
                 </button>
-                <button
-                  onClick={() => setBulkInviteOpen(true)}
-                  className="rounded-md border border-sky-600 px-3 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center dark:border-sky-500 dark:text-sky-400 dark:hover:bg-sky-900/20"
-                >
-                  <Users className="w-4 h-4" />
-                  <span className="hidden sm:inline">Envío Masivo</span>
-                  <span className="sm:hidden">Masivo</span>
-                </button>
+
               </>
             )}
             <button

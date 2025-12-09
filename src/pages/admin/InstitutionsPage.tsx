@@ -215,11 +215,11 @@ export default function InstitutionsPage() {
                 <tbody>
                   {rows.map((r) => (
                       <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
-                        <td className="py-2 pr-3 font-medium">{r.name}</td>
-                        <td className="py-2 pr-3">{r.code || '—'}</td>
-                        <td className="py-2 pr-3">{r.commune || '—'}</td>
-                        <td className="py-2 pr-3">{r.region || '—'}</td>
-                        <td className="py-2 pr-3">{r.type}</td>
+                        <td className="py-2 pr-3 font-medium !text-slate-900">{r.name}</td>
+                        <td className="py-2 pr-3 !text-slate-700">{r.code || '—'}</td>
+                        <td className="py-2 pr-3 !text-slate-700">{r.commune || '—'}</td>
+                        <td className="py-2 pr-3 !text-slate-700">{r.region || '—'}</td>
+                        <td className="py-2 pr-3 !text-slate-700">{r.type}</td>
                         <td className="py-2 pr-3">
                           <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${r.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
                             {r.active ? 'Activo' : 'Inactivo'}
@@ -258,9 +258,9 @@ export default function InstitutionsPage() {
                 <div key={r.id} className="card p-4 space-y-3 dark:bg-slate-800 dark:border-slate-700">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">{r.name}</h3>
+                      <h3 className="font-semibold !text-slate-900">{r.name}</h3>
                       {r.code && (
-                        <p className="text-xs font-mono text-slate-500 mt-1">RBD: {r.code}</p>
+                        <p className="text-xs font-mono !text-slate-600 mt-1">RBD: {r.code}</p>
                       )}
                     </div>
                     <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium flex-shrink-0 ${r.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
@@ -270,16 +270,16 @@ export default function InstitutionsPage() {
 
                   <div className="space-y-2 text-sm">
                     <div className="flex gap-2">
-                      <span className="text-slate-500 dark:text-slate-400 w-16 flex-shrink-0">Comuna:</span>
-                      <span className="text-slate-900 dark:text-slate-100">{r.commune || '—'}</span>
+                      <span className="!text-slate-600 w-16 flex-shrink-0">Comuna:</span>
+                      <span className="!text-slate-900">{r.commune || '—'}</span>
                     </div>
                     <div className="flex gap-2">
-                      <span className="text-slate-500 dark:text-slate-400 w-16 flex-shrink-0">Región:</span>
-                      <span className="text-slate-900 dark:text-slate-100">{r.region || '—'}</span>
+                      <span className="!text-slate-600 w-16 flex-shrink-0">Región:</span>
+                      <span className="!text-slate-900">{r.region || '—'}</span>
                     </div>
                     <div className="flex gap-2">
-                      <span className="text-slate-500 dark:text-slate-400 w-16 flex-shrink-0">Tipo:</span>
-                      <span className="text-slate-900 dark:text-slate-100">{r.type}</span>
+                      <span className="!text-slate-600 w-16 flex-shrink-0">Tipo:</span>
+                      <span className="!text-slate-900">{r.type}</span>
                     </div>
                   </div>
 

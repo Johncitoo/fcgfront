@@ -269,21 +269,21 @@ export default function InvitesPage() {
                     <tbody>
                       {rows.map((r) => (
                         <tr key={r.id} className="border-b last:border-0">
-                          <td className="py-2 pr-3">{r.email}</td>
-                          <td className="py-2 pr-3">
+                          <td className="py-2 pr-3 !text-slate-900">{r.email}</td>
+                          <td className="py-2 pr-3 !text-slate-700">
                             {calls.find((c) => c.id === r.call_id)?.name ?? '—'}
                           </td>
-                          <td className="py-2 pr-3">
+                          <td className="py-2 pr-3 !text-slate-700">
                             <span
                               className={'badge ' + (r.used ? 'badge-success' : 'badge-neutral')}
                             >
                               {r.used ? 'Usada' : 'No usada'}
                             </span>
                           </td>
-                          <td className="py-2 pr-3">
+                          <td className="py-2 pr-3 !text-slate-700">
                             {r.used_at ? new Date(r.used_at).toLocaleString() : '—'}
                           </td>
-                          <td className="py-2">
+                          <td className="py-2 !text-slate-700">
                             {new Date(r.created_at).toLocaleString()}
                           </td>
                         </tr>
@@ -297,24 +297,24 @@ export default function InvitesPage() {
                   {rows.map((r) => (
                     <div key={r.id} className="rounded-lg border p-3">
                       <div className="mb-1 flex items-center justify-between">
-                        <div className="text-sm font-semibold">{r.email}</div>
+                        <div className="text-sm font-semibold !text-slate-900">{r.email}</div>
                         <span className={'badge ' + (r.used ? 'badge-success' : 'badge-neutral')}>
                           {r.used ? 'Usada' : 'No usada'}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-600">
+                      <div className="text-xs !text-slate-700">
                         Convocatoria:{' '}
                         <span className="font-mono">
                           {calls.find((c) => c.id === r.call_id)?.name ?? '—'}
                         </span>
                       </div>
-                      <div className="mt-1 grid grid-cols-2 gap-2 text-xs text-slate-600">
+                      <div className="mt-1 grid grid-cols-2 gap-2 text-xs !text-slate-700">
                         <div>
-                          <div className="text-slate-500">Usada en</div>
+                          <div className="!text-slate-600">Usada en</div>
                           <div>{r.used_at ? new Date(r.used_at).toLocaleString() : '—'}</div>
                         </div>
                         <div>
-                          <div className="text-slate-500">Creada</div>
+                          <div className="!text-slate-600">Creada</div>
                           <div>{new Date(r.created_at).toLocaleString()}</div>
                         </div>
                       </div>

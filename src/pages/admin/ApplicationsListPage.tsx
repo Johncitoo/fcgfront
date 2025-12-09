@@ -244,16 +244,16 @@ export default function ApplicationsListPage() {
                     <tbody>
                       {rows.map((r) => (
                         <tr key={r.id} className="border-b last:border-0">
-                          <td className="py-2 pr-3">{r.applicantName || '—'}</td>
-                          <td className="py-2 pr-3">{r.applicantEmail || '—'}</td>
-                          <td className="py-2 pr-3">
+                          <td className="py-2 pr-3 !text-slate-900">{r.applicantName || '—'}</td>
+                          <td className="py-2 pr-3 !text-slate-700">{r.applicantEmail || '—'}</td>
+                          <td className="py-2 pr-3 !text-slate-700">
                             <span className="font-mono text-xs">{r.callName || shortId(r.callId)}</span>
                           </td>
                           <td className="py-2 pr-3">
                             {r.currentMilestoneName ? (
-                              <span className="text-xs font-medium">{r.currentMilestoneName}</span>
+                              <span className="text-xs font-medium !text-slate-700">{r.currentMilestoneName}</span>
                             ) : (
-                              <span className="text-xs text-slate-400">—</span>
+                              <span className="text-xs !text-slate-500">—</span>
                             )}
                           </td>
                           <td className="py-2 pr-3">
@@ -275,21 +275,21 @@ export default function ApplicationsListPage() {
                   {rows.map((r) => (
                     <div key={r.id} className="rounded-lg border p-3">
                       <div className="mb-1 flex items-center justify-between">
-                        <div className="text-sm font-semibold">{r.applicantName || '—'}</div>
+                        <div className="text-sm font-semibold !text-slate-900">{r.applicantName || '—'}</div>
                         <StatusBadge status={r.status} />
                       </div>
-                      <div className="text-xs text-slate-600">{r.applicantEmail || '—'}</div>
-                      <div className="mt-1 grid grid-cols-2 gap-2 text-xs text-slate-600">
+                      <div className="text-xs !text-slate-700">{r.applicantEmail || '—'}</div>
+                      <div className="mt-1 grid grid-cols-2 gap-2 text-xs !text-slate-700">
                         <div>
-                          <div className="text-slate-500">Convocatoria</div>
+                          <div className="!text-slate-600">Convocatoria</div>
                           <div className="font-mono">{r.callName || shortId(r.callId)}</div>
                         </div>
                         <div>
-                          <div className="text-slate-500">Puntaje</div>
+                          <div className="!text-slate-600">Puntaje</div>
                           <div>{r.score ?? '—'}</div>
                         </div>
                         <div>
-                          <div className="text-slate-500">Enviada</div>
+                          <div className="!text-slate-600">Enviada</div>
                           <div>
                             {r.submittedAt ? new Date(r.submittedAt).toLocaleString() : '—'}
                           </div>
