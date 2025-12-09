@@ -26,14 +26,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Actualizar clase en el HTML
     const root = document.documentElement
-    if (theme === 'dark') {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
-
+    
+    // Remover ambas clases primero para evitar conflictos
+    root.classList.remove('light', 'dark')
+    
+    // Agregar la clase correspondiente
+    root.classList.add(theme)
+    
     // Guardar preferencia
     localStorage.setItem('theme', theme)
+    
+    console.log('Theme aplicado:', theme, 'Classes:', root.classList.toString())
   }, [theme])
 
   // Escuchar cambios del sistema

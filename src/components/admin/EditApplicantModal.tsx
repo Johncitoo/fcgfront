@@ -80,10 +80,10 @@ export default function EditApplicantModal({ applicant, onClose, onSuccess }: Pr
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="text-lg font-semibold">Editar Postulante</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between border-b dark:border-slate-700 p-4">
+          <h2 className="text-lg font-semibold dark:text-slate-100">Editar Postulante</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -95,13 +95,13 @@ export default function EditApplicantModal({ applicant, onClose, onSuccess }: Pr
             </div>
           )}
 
-          <div className="rounded-md bg-slate-50 border p-3 text-sm text-slate-600">
+          <div className="rounded-md bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 p-3 text-sm text-slate-600 dark:text-slate-300">
             <strong>Email:</strong> {applicant.email}
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium">Nombres *</label>
+              <label className="text-sm font-medium dark:text-slate-200">Nombres *</label>
               <input
                 type="text"
                 required

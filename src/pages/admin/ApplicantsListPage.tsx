@@ -914,11 +914,11 @@ Fundación Carmen Goudie`
   }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 dark:bg-slate-900 dark:text-slate-100">
       <div className="mx-auto w-full max-w-6xl">
         <header className="mb-6">
-          <h1 className="text-2xl font-semibold">Postulantes</h1>
-          <p className="text-slate-600">
+          <h1 className="text-2xl font-semibold dark:text-slate-100">Postulantes</h1>
+          <p className="text-slate-600 dark:text-slate-300">
             Ingreso manual, búsqueda y visualización de postulantes.
           </p>
         </header>
@@ -931,14 +931,14 @@ Fundación Carmen Goudie`
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Buscar por nombre o correo…"
-              className="flex-1 rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+              className="flex-1 rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100"
             />
             <button
               onClick={() => {
                 setOffset(0)
                 load()
               }}
-              className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-slate-50"
+              className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 dark:text-slate-100"
             >
               Buscar
             </button>
@@ -949,7 +949,7 @@ Fundación Carmen Goudie`
               <>
                 <button
                   onClick={openMilestoneSelection}
-                  className="rounded-md border border-green-600 px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center"
+                  className="rounded-md border border-green-600 px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center dark:border-green-500 dark:text-green-400 dark:hover:bg-green-900/20"
                   title="Descargar respuestas de formularios en CSV"
                 >
                   <Download className="w-4 h-4" />
@@ -958,7 +958,7 @@ Fundación Carmen Goudie`
                 </button>
                 <button
                   onClick={() => setBulkInviteOpen(true)}
-                  className="rounded-md border border-sky-600 px-3 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center"
+                  className="rounded-md border border-sky-600 px-3 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center dark:border-sky-500 dark:text-sky-400 dark:hover:bg-sky-900/20"
                 >
                   <Users className="w-4 h-4" />
                   <span className="hidden sm:inline">Envío Masivo</span>
@@ -995,7 +995,7 @@ Fundación Carmen Goudie`
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                 <thead className="text-left text-slate-600 bg-slate-100">
-                  <tr className="border-b">
+                  <tr className="border-b dark:border-slate-700">
                     <th className="py-3 pr-3 font-semibold">Nombre</th>
                     <th className="py-3 pr-3 font-semibold">RUT</th>
                     <th className="py-3 pr-3 font-semibold">Correo</th>
@@ -1018,7 +1018,7 @@ Fundación Carmen Goudie`
                       const inviteStatus = inviteStatuses[r.id]
                       
                       return (
-                        <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50">
+                        <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
                           <td className="py-2 pr-3 font-medium">{name}</td>
                           <td className="py-2 pr-3 font-mono text-xs">{rut}</td>
                           <td className="py-2 pr-3 text-slate-600">{r.email}</td>
@@ -1210,8 +1210,8 @@ Fundación Carmen Goudie`
       {/* Modal crear */}
       {creating && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4">
-          <div className="w-full max-w-lg rounded-lg border bg-white shadow-lg">
-            <div className="border-b px-5 py-3">
+          <div className="w-full max-w-lg rounded-lg border bg-white shadow-lg dark:bg-slate-800 dark:border-slate-700">
+            <div className="border-b px-5 py-3 dark:border-slate-700">
               <div className="text-base font-semibold">Ingresar postulante</div>
             </div>
             <form onSubmit={createApplicant} className="px-5 py-4 space-y-4">
