@@ -3,6 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { CallProvider } from "./contexts/CallContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { router } from "./router";
 import "./index.css";
@@ -36,9 +37,11 @@ window.addEventListener('unhandledrejection', (event) => {
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <CallProvider>
-        <RouterProvider router={router} />
-      </CallProvider>
+      <ThemeProvider>
+        <CallProvider>
+          <RouterProvider router={router} />
+        </CallProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );

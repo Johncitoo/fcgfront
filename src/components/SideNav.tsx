@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 export default function SideNav() {
   return (
-    <aside className="hidden border-r bg-white md:block">
+    <aside className="hidden border-r dark:border-slate-700 bg-white dark:bg-slate-800 md:block">
       <div className="sticky top-14 h-[calc(100vh-3.5rem)] w-64 overflow-y-auto px-3 py-3">
         <Section title="Panel">
           <Item to="/admin" label="Inicio" />
@@ -12,7 +12,6 @@ export default function SideNav() {
           <Item to="/admin/applicants" label="Postulantes" />
           <Item to="/admin/institutions" label="Escuelas/Colegios" />
           <Item to="/admin/calls" label="Convocatorias" />
-          <Item to="/admin/activacion-convocatorias" label="Activación Convocatorias" />
           <Item to="/admin/invites" label="Invitaciones" />
           <Item to="/admin/applications" label="Postulaciones" />
         </Section>
@@ -38,7 +37,7 @@ export default function SideNav() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-4">
-      <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {title}
       </div>
       <ul className="space-y-1">{children}</ul>
@@ -75,8 +74,8 @@ function Item({
           [
             'block rounded-md px-3 py-2 text-sm',
             isActive
-              ? 'bg-slate-100 font-medium text-slate-900'
-              : 'text-slate-700 hover:bg-slate-50',
+              ? 'bg-slate-100 dark:bg-slate-700 font-medium text-slate-900 dark:text-slate-100'
+              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50',
           ].join(' ')
         }
       >
