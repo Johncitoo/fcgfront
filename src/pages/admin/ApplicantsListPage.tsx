@@ -1019,12 +1019,12 @@ Fundación Carmen Goudie`
                       
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
-                          <td className="py-2 pr-3 font-medium">{name}</td>
-                          <td className="py-2 pr-3 font-mono text-xs">{rut}</td>
-                          <td className="py-2 pr-3 text-slate-600">{r.email}</td>
-                          <td className="py-2 pr-3">{r.phone || '—'}</td>
-                          <td className="py-2 pr-3 text-slate-600">{school}</td>
-                          <td className="py-2 pr-3">
+                          <td className="py-2 pr-3 font-medium !text-slate-900">{name}</td>
+                          <td className="py-2 pr-3 font-mono text-xs !text-slate-700">{rut}</td>
+                          <td className="py-2 pr-3 !text-slate-700">{r.email}</td>
+                          <td className="py-2 pr-3 !text-slate-700">{r.phone || '—'}</td>
+                          <td className="py-2 pr-3 !text-slate-700">{school}</td>
+                          <td className="py-2 pr-3 !text-slate-700">
                             {r.createdAt
                               ? new Date(r.createdAt).toLocaleDateString('es-CL')
                               : '—'}
@@ -1092,8 +1092,8 @@ Fundación Carmen Goudie`
                   <div key={r.id} className="card p-4 space-y-3 dark:bg-slate-800 dark:border-slate-700">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{name}</h3>
-                        <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-1">{rut}</p>
+                        <h3 className="font-semibold !text-slate-900 truncate">{name}</h3>
+                        <p className="text-xs font-mono !text-slate-600 mt-1">{rut}</p>
                       </div>
                       {inviteStatus && (
                         <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
@@ -1102,22 +1102,22 @@ Fundación Carmen Goudie`
 
                     <div className="space-y-2 text-sm">
                       <div className="flex gap-2">
-                        <span className="text-slate-500 dark:text-slate-400 w-20 flex-shrink-0">Correo:</span>
-                        <span className="text-slate-900 dark:text-slate-100 break-all">{r.email}</span>
+                        <span className="!text-slate-600 w-20 flex-shrink-0">Correo:</span>
+                        <span className="!text-slate-900 break-all">{r.email}</span>
                       </div>
                       {r.phone && (
                         <div className="flex gap-2">
-                          <span className="text-slate-500 dark:text-slate-400 w-20 flex-shrink-0">Teléfono:</span>
-                          <span className="text-slate-900 dark:text-slate-100">{r.phone}</span>
+                          <span className="!text-slate-600 w-20 flex-shrink-0">Teléfono:</span>
+                          <span className="!text-slate-900">{r.phone}</span>
                         </div>
                       )}
                       <div className="flex gap-2">
-                        <span className="text-slate-500 dark:text-slate-400 w-20 flex-shrink-0">Escuela:</span>
-                        <span className="text-slate-900 dark:text-slate-100 flex-1">{school}</span>
+                        <span className="!text-slate-600 w-20 flex-shrink-0">Escuela:</span>
+                        <span className="!text-slate-900 flex-1">{school}</span>
                       </div>
                       <div className="flex gap-2">
-                        <span className="text-slate-500 dark:text-slate-400 w-20 flex-shrink-0">Creado:</span>
-                        <span className="text-slate-900 dark:text-slate-100">
+                        <span className="!text-slate-600 w-20 flex-shrink-0">Creado:</span>
+                        <span className="!text-slate-900">
                           {r.createdAt ? new Date(r.createdAt).toLocaleDateString('es-CL') : '—'}
                         </span>
                       </div>
