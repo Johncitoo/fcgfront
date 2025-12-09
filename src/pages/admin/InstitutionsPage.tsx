@@ -183,18 +183,24 @@ export default function InstitutionsPage() {
           </button>
         </div>
 
-        <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
-            {loading ? (
-              <div className="p-6">
-                <p className="text-slate-600">Cargando…</p>
-              </div>
-            ) : error ? (
-              <div className="p-6">
-                <p className="text-sm text-rose-700">{error}</p>
-              </div>
-            ) : (
-              <table className="w-full text-sm min-w-[900px]">
+        {loading ? (
+          <div className="card p-6">
+            <p className="text-slate-600">Cargando…</p>
+          </div>
+        ) : error ? (
+          <div className="card p-6">
+            <p className="text-sm text-rose-700">{error}</p>
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="card p-6">
+            <p className="text-center text-slate-500">No hay registros.</p>
+          </div>
+        ) : (
+          <>
+            {/* Vista Desktop - Tabla */}
+            <div className="hidden lg:block card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
                 <thead className="text-left text-slate-600 bg-slate-100">
                   <tr className="border-b">
                     <th className="py-3 pr-3 font-semibold">Nombre</th>
@@ -207,14 +213,7 @@ export default function InstitutionsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="py-6 text-center text-slate-500">
-                        No hay registros.
-                      </td>
-                    </tr>
-                  ) : (
-                    rows.map((r) => (
+                  {rows.map((r) => (
                       <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50">
                         <td className="py-2 pr-3 font-medium">{r.name}</td>
                         <td className="py-2 pr-3">{r.code || '—'}</td>
@@ -247,13 +246,64 @@ export default function InstitutionsPage() {
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
+                    ))}
                 </tbody>
               </table>
-            )}
-          </div>
-        </div>
+              </div>
+            </div>
+
+            {/* Vista Mobile - Cards */}
+            <div className="lg:hidden space-y-3">
+              {rows.map((r) => (
+                <div key={r.id} className="card p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-slate-900">{r.name}</h3>
+                      {r.code && (
+                        <p className="text-xs font-mono text-slate-500 mt-1">RBD: {r.code}</p>
+                      )}
+                    </div>
+                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium flex-shrink-0 ${r.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                      {r.active ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex gap-2">
+                      <span className="text-slate-500 w-16 flex-shrink-0">Comuna:</span>
+                      <span className="text-slate-900">{r.commune || '—'}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-slate-500 w-16 flex-shrink-0">Región:</span>
+                      <span className="text-slate-900">{r.region || '—'}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-slate-500 w-16 flex-shrink-0">Tipo:</span>
+                      <span className="text-slate-900">{r.type}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-2 border-t">
+                    <button 
+                      onClick={() => setViewingDetail(r)} 
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Ver detalles
+                    </button>
+                    <button 
+                      onClick={() => { setConfirmDelete(r); setDeleteConfirmText('') }} 
+                      className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-600 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Paginación */}
         <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
