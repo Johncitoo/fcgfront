@@ -182,7 +182,7 @@ html.dark .card,
 .dark .card {
   background-color: rgb(30 41 59) !important;
   border-color: rgb(51 65 85) !important;
-  color: rgb(226 232 240) !important;
+  /* NO forzar color de texto - dejar que Tailwind lo maneje */
 }
 
 .card:hover {
