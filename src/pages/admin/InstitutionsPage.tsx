@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { apiGet, apiPost, apiPatch, apiDelete } from '../../lib/api'
-import { Eye, Plus, Edit, X, Info } from 'lucide-react'
+import { Eye, Plus, Edit, X, Info, Trash2, AlertTriangle } from 'lucide-react'
 
 interface Institution {
   id: string
@@ -41,6 +41,8 @@ export default function InstitutionsPage() {
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState<Institution | null>(null)
   const [viewingDetail, setViewingDetail] = useState<Institution | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<Institution | null>(null)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [createForm, setCreateForm] = useState<{
     name: string
     code: string
@@ -119,16 +121,6 @@ export default function InstitutionsPage() {
       setCreateError(err.message ?? 'No se pudo guardar la institución')
     } finally {
       setCreateLoading(false)
-    }
-  }
-
-  async function handleDelete(id: string) {
-    if (!confirm('¿Desactivar esta institución?')) return
-    try {
-      await apiDelete(`/institutions/${id}`)
-      await load()
-    } catch (err: any) {
-      alert(err.message ?? 'Error al desactivar')
     }
   }
 
@@ -231,33 +223,14 @@ export default function InstitutionsPage() {
                           </span>
                         </td>
                         <td className="py-2">
-                          <div className="flex items-center gap-2">
-                            <button 
-                              onClick={() => setViewingDetail(r)} 
-                              className="inline-flex items-center gap-1 text-sky-600 hover:text-sky-700 text-xs"
-                              title="Ver detalles"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              Ver
-                            </button>
-                            <button 
-                              onClick={() => openEdit(r)} 
-                              className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-700 text-xs"
-                              title="Editar"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                              Editar
-                            </button>
-                            {r.active && (
-                              <button 
-                                onClick={() => handleDelete(r.id)} 
-                                className="text-rose-600 hover:text-rose-700 text-xs"
-                                title="Desactivar"
-                              >
-                                Desactivar
-                              </button>
-                            )}
-                          </div>
+                          <button 
+                            onClick={() => setViewingDetail(r)} 
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors"
+                            title="Ver detalles completos"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            Ver detalles
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -638,22 +611,118 @@ export default function InstitutionsPage() {
             </div>
 
             {/* Footer */}
-            <div className="border-t p-4 flex justify-end gap-2 sticky bottom-0 bg-white">
+            <div className="border-t p-4 flex justify-between sticky bottom-0 bg-white">
               <button
                 onClick={() => {
-                  setViewingDetail(null)
-                  openEdit(viewingDetail)
+                  setConfirmDelete(viewingDetail)
+                  setDeleteConfirmText('')
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium"
               >
-                <Edit className="w-4 h-4" />
-                Editar
+                <Trash2 className="w-4 h-4" />
+                Eliminar
               </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setViewingDetail(null)
+                    openEdit(viewingDetail)
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium"
+                >
+                  <Edit className="w-4 h-4" />
+                  Editar
+                </button>
+                <button
+                  onClick={() => setViewingDetail(null)}
+                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación de Eliminación */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md m-4">
+            {/* Header */}
+            <div className="flex items-center gap-3 border-b p-4 bg-rose-50">
+              <AlertTriangle className="w-8 h-8 text-rose-600" />
+              <div>
+                <h2 className="text-lg font-semibold text-rose-900">¿Eliminar institución?</h2>
+                <p className="text-sm text-rose-700">Esta acción no se puede deshacer</p>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-sm text-amber-800">
+                  <strong>⚠️ Advertencia:</strong> Estás a punto de eliminar permanentemente la institución:
+                </p>
+                <p className="text-sm font-bold text-amber-900 mt-2">
+                  "{confirmDelete.name}"
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm text-slate-700">
+                  Para confirmar, escribe <strong className="text-rose-600">ELIMINAR</strong> en el campo de abajo:
+                </p>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="Escribe ELIMINAR aquí"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
+                  autoFocus
+                />
+              </div>
+
+              <div className="bg-slate-50 rounded-lg p-3 text-xs text-slate-600">
+                <p><strong>Consecuencias de eliminar:</strong></p>
+                <ul className="list-disc list-inside mt-1 space-y-1">
+                  <li>Los postulantes asociados perderán la referencia a esta institución</li>
+                  <li>No se podrá recuperar la información</li>
+                  <li>Se eliminará permanentemente de la base de datos</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t p-4 flex justify-end gap-2">
               <button
-                onClick={() => setViewingDetail(null)}
+                onClick={() => {
+                  setConfirmDelete(null)
+                  setDeleteConfirmText('')
+                }}
                 className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg"
               >
-                Cerrar
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  if (deleteConfirmText === 'ELIMINAR') {
+                    try {
+                      await apiDelete(`/institutions/${confirmDelete.id}`)
+                      setConfirmDelete(null)
+                      setDeleteConfirmText('')
+                      setViewingDetail(null)
+                      await load()
+                    } catch (err: any) {
+                      alert(err.message ?? 'Error al eliminar')
+                    }
+                  }
+                }}
+                disabled={deleteConfirmText !== 'ELIMINAR'}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              >
+                <Trash2 className="w-4 h-4" />
+                Eliminar permanentemente
               </button>
             </div>
           </div>
