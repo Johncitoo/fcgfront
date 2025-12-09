@@ -177,6 +177,11 @@ body {
   transition: all 0.2s;
 }
 
+.dark .card {
+  background-color: rgb(30 41 59);
+  border-color: rgb(51 65 85);
+}
+
 .card:hover {
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
@@ -235,6 +240,16 @@ body {
   transition: all 0.2s;
   cursor: pointer;
   outline: none;
+}
+
+.dark .btn {
+  background-color: rgb(51 65 85);
+  border-color: rgb(71 85 105);
+  color: rgb(226 232 240);
+}
+
+.dark .btn:hover:not(:disabled) {
+  background-color: rgb(71 85 105);
 }
 
 .btn:disabled {
@@ -377,8 +392,18 @@ body {
   transition: all 0.2s;
 }
 
+.dark .input {
+  background-color: rgb(51 65 85);
+  border-color: rgb(71 85 105);
+  color: rgb(226 232 240);
+}
+
 .input::placeholder {
   color: rgb(156 163 175);
+}
+
+.dark .input::placeholder {
+  color: rgb(100 116 139);
 }
 
 .input:focus {
@@ -414,6 +439,12 @@ body {
   transition: all 0.2s;
 }
 
+.dark .textarea {
+  background-color: rgb(51 65 85);
+  border-color: rgb(71 85 105);
+  color: rgb(226 232 240);
+}
+
 .textarea:focus {
   border-color: rgb(2 132 199);
   box-shadow: 0 0 0 3px rgb(2 132 199 / 0.15);
@@ -430,6 +461,12 @@ body {
   cursor: pointer;
   outline: none;
   transition: all 0.2s;
+}
+
+.dark .select {
+  background-color: rgb(51 65 85);
+  border-color: rgb(71 85 105);
+  color: rgb(226 232 240);
 }
 
 .select:focus {
