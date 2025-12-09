@@ -183,14 +183,17 @@ export default function InstitutionsPage() {
           </button>
         </div>
 
-        <div className="card">
-          <div className="card-body">
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
             {loading ? (
-              <p className="text-slate-600">Cargando…</p>
+              <div className="p-6">
+                <p className="text-slate-600">Cargando…</p>
+              </div>
             ) : error ? (
-              <p className="text-sm text-rose-700">{error}</p>
+              <div className="p-6">
+                <p className="text-sm text-rose-700">{error}</p>
+              </div>
             ) : (
-              <div className="overflow-x-auto -mx-6">
               <table className="w-full text-sm min-w-[900px]">
                 <thead className="text-left text-slate-600 bg-slate-100">
                   <tr className="border-b">
@@ -248,7 +251,6 @@ export default function InstitutionsPage() {
                   )}
                 </tbody>
               </table>
-              </div>
             )}
           </div>
         </div>
