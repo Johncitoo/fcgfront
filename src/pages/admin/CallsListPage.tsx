@@ -1,18 +1,52 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { apiGet, apiPost } from '../../lib/api'
+import { Calendar, Clock } from 'lucide-react'
 
 interface CallRow {
   id: string
   name: string
   year: number
   status: string
+  description?: string
+  start_date?: string
+  end_date?: string
   total_seats?: number
   min_per_institution?: number
   dates?: any
   rules?: any
   created_at?: string
   updated_at?: string
+}
+
+// Función para determinar el estado de la convocatoria
+function getCallStatus(call: CallRow): 'draft' | 'upcoming' | 'active' | 'closed' {
+  if (call.status === 'CLOSED') return 'closed'
+  if (!call.start_date || !call.end_date) return 'draft'
+  
+  const now = new Date()
+  const start = new Date(call.start_date)
+  const end = new Date(call.end_date)
+  
+  if (now < start) return 'upcoming'
+  if (now >= start && now <= end) return 'active'
+  return 'closed'
+}
+
+function getStatusBadge(status: 'draft' | 'upcoming' | 'active' | 'closed') {
+  const styles = {
+    draft: 'bg-slate-100 text-slate-700',
+    upcoming: 'bg-blue-100 text-blue-700',
+    active: 'bg-green-100 text-green-700',
+    closed: 'bg-gray-100 text-gray-700'
+  }
+  const labels = {
+    draft: 'Borrador',
+    upcoming: 'Próxima',
+    active: 'Activa',
+    closed: 'Cerrada'
+  }
+  return { style: styles[status], label: labels[status] }
 }
 
 interface PageMeta {
@@ -45,6 +79,9 @@ export default function CallsListPage() {
   const [form, setForm] = useState({
     name: '',
     year: new Date().getFullYear(),
+    description: '',
+    start_date: '',
+    end_date: '',
   })
 
   const deps = useMemo(() => ({ q, onlyActive, limit, offset }), [q, onlyActive, limit, offset])
@@ -97,17 +134,31 @@ export default function CallsListPage() {
     setFormErr(null)
     setSaving(true)
     try {
-      if (!form.name.trim()) throw new Error('Name and year are required')
-      if (!form.year || form.year < 2000) throw new Error('Year must be valid')
+      if (!form.name.trim()) throw new Error('El título es requerido')
+      if (!form.year || form.year < 2000) throw new Error('El año debe ser válido')
+      if (!form.start_date) throw new Error('La fecha de inicio es requerida')
+      if (!form.end_date) throw new Error('La fecha de fin es requerida')
+      if (new Date(form.end_date) < new Date(form.start_date)) {
+        throw new Error('La fecha de fin debe ser posterior a la fecha de inicio')
+      }
 
       await apiPost('/calls', {
         name: form.name.trim(),
         year: form.year,
+        description: form.description.trim() || null,
+        start_date: form.start_date,
+        end_date: form.end_date,
         status: 'DRAFT',
       })
 
       setCreating(false)
-      setForm({ name: '', year: new Date().getFullYear() })
+      setForm({ 
+        name: '', 
+        year: new Date().getFullYear(),
+        description: '',
+        start_date: '',
+        end_date: '',
+      })
       setOffset(0)
       await load()
     } catch (e: any) {
@@ -186,38 +237,66 @@ export default function CallsListPage() {
                 <div className="hidden overflow-x-auto md:block">
                   <table className="w-full text-sm">
                     <thead className="text-left text-slate-600">
-                      <tr className="border-b">
-                        <th className="py-2 pr-3">Año</th>
-                        <th className="py-2 pr-3">Nombre</th>
-                        <th className="py-2 pr-3">Estado</th>
-                        <th className="py-2">Acciones</th>
+                      <tr className="border-b bg-slate-50">
+                        <th className="py-2 pr-3 font-semibold">Año</th>
+                        <th className="py-2 pr-3 font-semibold">Nombre</th>
+                        <th className="py-2 pr-3 font-semibold">Periodo</th>
+                        <th className="py-2 pr-3 font-semibold">Estado</th>
+                        <th className="py-2 font-semibold">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {rows.map((c) => {
+                        const status = getCallStatus(c)
+                        const badge = getStatusBadge(status)
                         return (
-                          <tr key={c.id} className="border-b last:border-0">
-                            <td className="py-2 pr-3 font-mono">{c.year}</td>
-                            <td className="py-2 pr-3">{c.name}</td>
-                            <td className="py-2 pr-3">
-                              <span
-                                className={
-                                  'badge ' +
-                                  (c.status === 'OPEN' ? 'badge-success' : 'badge-neutral')
-                                }
-                              >
-                                {c.status}
+                          <tr key={c.id} className="border-b last:border-0 hover:bg-slate-50">
+                            <td className="py-3 pr-3 font-mono font-medium">{c.year}</td>
+                            <td className="py-3 pr-3">
+                              <div className="font-medium">{c.name}</div>
+                              {c.description && (
+                                <div className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+                                  {c.description}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3 pr-3">
+                              {c.start_date && c.end_date ? (
+                                <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                                  <Calendar className="w-3.5 h-3.5" />
+                                  <span>
+                                    {new Date(c.start_date).toLocaleDateString('es-CL', { 
+                                      day: '2-digit', 
+                                      month: '2-digit',
+                                      year: 'numeric'
+                                    })}
+                                  </span>
+                                  <span>→</span>
+                                  <span>
+                                    {new Date(c.end_date).toLocaleDateString('es-CL', { 
+                                      day: '2-digit', 
+                                      month: '2-digit',
+                                      year: 'numeric'
+                                    })}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-slate-400">Sin fechas</span>
+                              )}
+                            </td>
+                            <td className="py-3 pr-3">
+                              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${badge.style}`}>
+                                {status === 'active' && <Clock className="w-3 h-3" />}
+                                {badge.label}
                               </span>
                             </td>
-                            <td className="py-2">
-                              <div className="flex flex-wrap gap-2">
-                                <Link
-                                  to={`/admin/calls/${c.id}`}
-                                  className="btn text-xs"
-                                >
-                                  Abrir
-                                </Link>
-                              </div>
+                            <td className="py-3">
+                              <Link
+                                to={`/admin/calls/${c.id}`}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors"
+                              >
+                                Abrir
+                              </Link>
                             </td>
                           </tr>
                         )
@@ -229,22 +308,41 @@ export default function CallsListPage() {
                 {/* Mobile cards */}
                 <div className="space-y-3 md:hidden">
                   {rows.map((c) => {
+                    const status = getCallStatus(c)
+                    const badge = getStatusBadge(status)
                     return (
-                      <div key={c.id} className="rounded-lg border p-3">
-                        <div className="mb-1 flex items-center justify-between">
-                          <div className="font-mono text-sm">{c.year}</div>
-                          <span
-                            className={'badge ' + (c.status === 'OPEN' ? 'badge-success' : 'badge-neutral')}
-                          >
-                            {c.status}
+                      <div key={c.id} className="rounded-lg border p-3 bg-white hover:shadow-md transition-shadow">
+                        <div className="mb-2 flex items-start justify-between gap-2">
+                          <div>
+                            <div className="font-mono text-sm text-slate-600">{c.year}</div>
+                            <div className="text-sm font-semibold mt-0.5">{c.name}</div>
+                            {c.description && (
+                              <div className="text-xs text-slate-500 mt-1 line-clamp-2">
+                                {c.description}
+                              </div>
+                            )}
+                          </div>
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${badge.style}`}>
+                            {status === 'active' && <Clock className="w-3 h-3" />}
+                            {badge.label}
                           </span>
                         </div>
-                        <div className="text-sm font-semibold">{c.name}</div>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          <Link to={`/admin/calls/${c.id}`} className="btn text-xs">
-                            Abrir
-                          </Link>
-                        </div>
+                        {c.start_date && c.end_date && (
+                          <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-2">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>
+                              {new Date(c.start_date).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit' })} 
+                              {' → '}
+                              {new Date(c.end_date).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                            </span>
+                          </div>
+                        )}
+                        <Link 
+                          to={`/admin/calls/${c.id}`} 
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors w-full justify-center"
+                        >
+                          Abrir
+                        </Link>
                       </div>
                     )
                   })}
@@ -325,7 +423,7 @@ export default function CallsListPage() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Código *</label>
+                  <label className="text-sm font-medium">Año/Código *</label>
                   <input
                     type="number"
                     value={form.year}
@@ -334,6 +432,7 @@ export default function CallsListPage() {
                     placeholder="2026"
                     min="2000"
                     max="2100"
+                    required
                   />
                 </div>
 
@@ -345,7 +444,45 @@ export default function CallsListPage() {
                     onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
                     className="input"
                     placeholder="Becas FCG 2026"
+                    required
                   />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Descripción</label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))}
+                  className="input min-h-[80px] resize-y"
+                  placeholder="Describe brevemente esta convocatoria..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Fecha de inicio *</label>
+                  <input
+                    type="date"
+                    value={form.start_date}
+                    onChange={(e) => setForm((s) => ({ ...s, start_date: e.target.value }))}
+                    className="input"
+                    required
+                  />
+                  <p className="text-xs text-slate-500">La convocatoria se activará automáticamente en esta fecha</p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Fecha de fin *</label>
+                  <input
+                    type="date"
+                    value={form.end_date}
+                    onChange={(e) => setForm((s) => ({ ...s, end_date: e.target.value }))}
+                    className="input"
+                    required
+                  />
+                  <p className="text-xs text-slate-500">La convocatoria se cerrará automáticamente en esta fecha</p>
                 </div>
               </div>
 
