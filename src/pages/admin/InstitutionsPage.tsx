@@ -223,14 +223,24 @@ export default function InstitutionsPage() {
                           </span>
                         </td>
                         <td className="py-2">
-                          <button 
-                            onClick={() => setViewingDetail(r)} 
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors"
-                            title="Ver detalles completos"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            Ver detalles
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => setViewingDetail(r)} 
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors"
+                              title="Ver detalles completos"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              Ver detalles
+                            </button>
+                            <button 
+                              onClick={() => { setConfirmDelete(r); setDeleteConfirmText('') }} 
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-600 rounded-lg transition-colors"
+                              title="Eliminar institución"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Eliminar
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -611,35 +621,23 @@ export default function InstitutionsPage() {
             </div>
 
             {/* Footer */}
-            <div className="border-t p-4 flex justify-between sticky bottom-0 bg-white">
+            <div className="border-t p-4 flex justify-end gap-2 sticky bottom-0 bg-white">
               <button
                 onClick={() => {
-                  setConfirmDelete(viewingDetail)
-                  setDeleteConfirmText('')
+                  setViewingDetail(null)
+                  openEdit(viewingDetail)
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors text-sm font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium"
               >
-                <Trash2 className="w-4 h-4" />
-                Eliminar
+                <Edit className="w-4 h-4" />
+                Editar
               </button>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setViewingDetail(null)
-                    openEdit(viewingDetail)
-                  }}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium"
-                >
-                  <Edit className="w-4 h-4" />
-                  Editar
-                </button>
-                <button
-                  onClick={() => setViewingDetail(null)}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg"
-                >
-                  Cerrar
-                </button>
-              </div>
+              <button
+                onClick={() => setViewingDetail(null)}
+                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>
