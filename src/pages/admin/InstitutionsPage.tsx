@@ -184,21 +184,21 @@ export default function InstitutionsPage() {
         </div>
 
         {loading ? (
-          <div className="card p-6">
-            <p className="text-slate-600">Cargando…</p>
+          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
+            <p className="text-slate-600 dark:text-slate-300">Cargando…</p>
           </div>
         ) : error ? (
-          <div className="card p-6">
-            <p className="text-sm text-rose-700">{error}</p>
+          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
+            <p className="text-sm text-rose-700 dark:text-rose-400">{error}</p>
           </div>
         ) : rows.length === 0 ? (
-          <div className="card p-6">
-            <p className="text-center text-slate-500">No hay registros.</p>
+          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
+            <p className="text-center text-slate-500 dark:text-slate-400">No hay registros.</p>
           </div>
         ) : (
           <>
             {/* Vista Desktop - Tabla */}
-            <div className="hidden lg:block card overflow-hidden">
+            <div className="hidden lg:block card overflow-hidden dark:bg-slate-800 dark:border-slate-700">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                 <thead className="text-left text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-300">
@@ -274,12 +274,12 @@ export default function InstitutionsPage() {
                       <span className="text-slate-900 dark:text-slate-100">{r.commune || '—'}</span>
                     </div>
                     <div className="flex gap-2">
-                      <span className="text-slate-500 w-16 flex-shrink-0">Región:</span>
-                      <span className="text-slate-900">{r.region || '—'}</span>
+                      <span className="text-slate-500 dark:text-slate-400 w-16 flex-shrink-0">Región:</span>
+                      <span className="text-slate-900 dark:text-slate-100">{r.region || '—'}</span>
                     </div>
                     <div className="flex gap-2">
-                      <span className="text-slate-500 w-16 flex-shrink-0">Tipo:</span>
-                      <span className="text-slate-900">{r.type}</span>
+                      <span className="text-slate-500 dark:text-slate-400 w-16 flex-shrink-0">Tipo:</span>
+                      <span className="text-slate-900 dark:text-slate-100">{r.type}</span>
                     </div>
                   </div>
 

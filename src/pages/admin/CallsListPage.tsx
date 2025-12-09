@@ -169,13 +169,13 @@ export default function CallsListPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6 dark:bg-slate-900 dark:text-slate-100">
       <div className="mx-auto w-full max-w-7xl">
         <header className="mb-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-2xl font-semibold">Convocatorias</h1>
-              <p className="text-slate-600">
+              <h1 className="text-2xl font-semibold dark:text-slate-100">Convocatorias</h1>
+              <p className="text-slate-600 dark:text-slate-300">
                 Gestiona las convocatorias anuales. Cada una es independiente del año anterior.
               </p>
             </div>
@@ -201,8 +201,8 @@ export default function CallsListPage() {
               className="input"
             />
           </div>
-          <label className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm sm:justify-center">
-            <span className="text-slate-700">Solo activas</span>
+          <label className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm sm:justify-center dark:bg-slate-800 dark:border-slate-600">
+            <span className="text-slate-700 dark:text-slate-300">Solo activas</span>
             <input
               type="checkbox"
               checked={onlyActive}
@@ -223,21 +223,21 @@ export default function CallsListPage() {
         </section>
 
         {/* Tabla/Card responsiva */}
-        <div className="card">
+        <div className="card dark:bg-slate-800 dark:border-slate-700">
           <div className="card-body">
             {loading ? (
-              <p className="text-slate-600">Cargando…</p>
+              <p className="text-slate-600 dark:text-slate-300">Cargando…</p>
             ) : error ? (
-              <p className="text-sm text-rose-700">{error}</p>
+              <p className="text-sm text-rose-700 dark:text-rose-400">{error}</p>
             ) : rows.length === 0 ? (
-              <p className="text-sm text-slate-600">No hay convocatorias.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">No hay convocatorias.</p>
             ) : (
               <>
                 {/* Desktop table */}
                 <div className="hidden overflow-x-auto md:block">
                   <table className="w-full text-sm">
-                    <thead className="text-left text-slate-600">
-                      <tr className="border-b bg-slate-50">
+                    <thead className="text-left text-slate-600 dark:text-slate-300">
+                      <tr className="border-b bg-slate-50 dark:bg-slate-900 dark:border-slate-700">
                         <th className="py-2 pr-3 font-semibold">Año</th>
                         <th className="py-2 pr-3 font-semibold">Nombre</th>
                         <th className="py-2 pr-3 font-semibold">Periodo</th>
@@ -250,12 +250,12 @@ export default function CallsListPage() {
                         const status = getCallStatus(c)
                         const badge = getStatusBadge(status)
                         return (
-                          <tr key={c.id} className="border-b last:border-0 hover:bg-slate-50">
+                          <tr key={c.id} className="border-b last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
                             <td className="py-3 pr-3 font-mono font-medium">{c.year}</td>
                             <td className="py-3 pr-3">
-                              <div className="font-medium">{c.name}</div>
+                              <div className="font-medium dark:text-slate-100">{c.name}</div>
                               {c.description && (
-                                <div className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+                                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
                                   {c.description}
                                 </div>
                               )}
@@ -311,13 +311,13 @@ export default function CallsListPage() {
                     const status = getCallStatus(c)
                     const badge = getStatusBadge(status)
                     return (
-                      <div key={c.id} className="rounded-lg border p-3 bg-white hover:shadow-md transition-shadow">
+                      <div key={c.id} className="rounded-lg border p-3 bg-white hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-slate-700">
                         <div className="mb-2 flex items-start justify-between gap-2">
                           <div>
-                            <div className="font-mono text-sm text-slate-600">{c.year}</div>
-                            <div className="text-sm font-semibold mt-0.5">{c.name}</div>
+                            <div className="font-mono text-sm text-slate-600 dark:text-slate-400">{c.year}</div>
+                            <div className="text-sm font-semibold mt-0.5 dark:text-slate-100">{c.name}</div>
                             {c.description && (
-                              <div className="text-xs text-slate-500 mt-1 line-clamp-2">
+                              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                                 {c.description}
                               </div>
                             )}

@@ -977,24 +977,24 @@ Fundación Carmen Goudie`
 
         {/* Vista de tabla / cards responsive */}
         {loading ? (
-          <div className="card p-6">
-            <p className="text-slate-600">Cargando…</p>
+          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
+            <p className="text-slate-600 dark:text-slate-300">Cargando…</p>
           </div>
         ) : error ? (
-          <div className="card p-6">
-            <p className="text-sm text-rose-700">{error}</p>
+          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
+            <p className="text-sm text-rose-700 dark:text-rose-400">{error}</p>
           </div>
         ) : rows.length === 0 ? (
-          <div className="card p-6">
-            <p className="text-center text-slate-500">No hay registros.</p>
+          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
+            <p className="text-center text-slate-500 dark:text-slate-400">No hay registros.</p>
           </div>
         ) : (
           <>
             {/* Vista Desktop - Tabla */}
-            <div className="hidden lg:block card overflow-hidden">
+            <div className="hidden lg:block card overflow-hidden dark:bg-slate-800 dark:border-slate-700">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                <thead className="text-left text-slate-600 bg-slate-100">
+                <thead className="text-left text-slate-600 bg-slate-100 dark:bg-slate-900 dark:text-slate-300">
                   <tr className="border-b dark:border-slate-700">
                     <th className="py-3 pr-3 font-semibold">Nombre</th>
                     <th className="py-3 pr-3 font-semibold">RUT</th>
@@ -1089,11 +1089,11 @@ Fundación Carmen Goudie`
                 const inviteStatus = inviteStatuses[r.id]
                 
                 return (
-                  <div key={r.id} className="card p-4 space-y-3">
+                  <div key={r.id} className="card p-4 space-y-3 dark:bg-slate-800 dark:border-slate-700">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-900 truncate">{name}</h3>
-                        <p className="text-xs font-mono text-slate-500 mt-1">{rut}</p>
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{name}</h3>
+                        <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-1">{rut}</p>
                       </div>
                       {inviteStatus && (
                         <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
@@ -1102,28 +1102,28 @@ Fundación Carmen Goudie`
 
                     <div className="space-y-2 text-sm">
                       <div className="flex gap-2">
-                        <span className="text-slate-500 w-20 flex-shrink-0">Correo:</span>
-                        <span className="text-slate-900 break-all">{r.email}</span>
+                        <span className="text-slate-500 dark:text-slate-400 w-20 flex-shrink-0">Correo:</span>
+                        <span className="text-slate-900 dark:text-slate-100 break-all">{r.email}</span>
                       </div>
                       {r.phone && (
                         <div className="flex gap-2">
-                          <span className="text-slate-500 w-20 flex-shrink-0">Teléfono:</span>
-                          <span className="text-slate-900">{r.phone}</span>
+                          <span className="text-slate-500 dark:text-slate-400 w-20 flex-shrink-0">Teléfono:</span>
+                          <span className="text-slate-900 dark:text-slate-100">{r.phone}</span>
                         </div>
                       )}
                       <div className="flex gap-2">
-                        <span className="text-slate-500 w-20 flex-shrink-0">Escuela:</span>
-                        <span className="text-slate-900 flex-1">{school}</span>
+                        <span className="text-slate-500 dark:text-slate-400 w-20 flex-shrink-0">Escuela:</span>
+                        <span className="text-slate-900 dark:text-slate-100 flex-1">{school}</span>
                       </div>
                       <div className="flex gap-2">
-                        <span className="text-slate-500 w-20 flex-shrink-0">Creado:</span>
-                        <span className="text-slate-900">
+                        <span className="text-slate-500 dark:text-slate-400 w-20 flex-shrink-0">Creado:</span>
+                        <span className="text-slate-900 dark:text-slate-100">
                           {r.createdAt ? new Date(r.createdAt).toLocaleDateString('es-CL') : '—'}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 pt-2 border-t">
+                    <div className="flex flex-wrap gap-2 pt-2 border-t dark:border-slate-700">
                       {!inviteStatus ? (
                         <button
                           onClick={() => openInviteModal(r)}
