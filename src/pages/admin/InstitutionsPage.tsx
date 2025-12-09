@@ -184,14 +184,14 @@ export default function InstitutionsPage() {
         </div>
 
         <div className="card">
-          <div className="card-body overflow-x-auto">
+          <div className="card-body">
             {loading ? (
               <p className="text-slate-600">Cargando…</p>
             ) : error ? (
               <p className="text-sm text-rose-700">{error}</p>
             ) : (
-              <div className="overflow-x-auto -mx-4 sm:mx-0">
-              <table className="w-full text-sm min-w-[800px]">
+              <div className="overflow-x-auto -mx-6">
+              <table className="w-full text-sm min-w-[900px]">
                 <thead className="text-left text-slate-600 bg-slate-100">
                   <tr className="border-b">
                     <th className="py-3 pr-3 font-semibold">Nombre</th>
