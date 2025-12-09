@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { apiGet, apiPost, apiPatch, apiDelete } from '../../lib/api'
+import { Eye, Plus, Edit, X, Info } from 'lucide-react'
 
 interface Institution {
   id: string
@@ -39,6 +40,7 @@ export default function InstitutionsPage() {
 
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState<Institution | null>(null)
+  const [viewingDetail, setViewingDetail] = useState<Institution | null>(null)
   const [createForm, setCreateForm] = useState<{
     name: string
     code: string
@@ -181,8 +183,9 @@ export default function InstitutionsPage() {
                 setCreateForm({ name: '', code: '', commune: '', province: '', region: '', type: 'LICEO' as 'LICEO' | 'COLEGIO' | 'INSTITUTO' | 'OTRO', email: '', phone: '', address: '', directorName: '', website: '', notes: '' })
                 setCreating(true)
               }}
-              className="btn-primary"
+              className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 transition-colors"
             >
+              <Plus className="w-4 h-4" />
               Nueva institución
             </button>
           </div>
@@ -196,15 +199,15 @@ export default function InstitutionsPage() {
               <p className="text-sm text-rose-700">{error}</p>
             ) : (
               <table className="w-full text-sm">
-                <thead className="text-left text-slate-600">
+                <thead className="text-left text-slate-600 bg-slate-100">
                   <tr className="border-b">
-                    <th className="py-2 pr-3">Nombre</th>
-                    <th className="py-2 pr-3">Código</th>
-                    <th className="py-2 pr-3">Comuna</th>
-                    <th className="py-2 pr-3">Región</th>
-                    <th className="py-2 pr-3">Tipo</th>
-                    <th className="py-2 pr-3">Estado</th>
-                    <th className="py-2">Acciones</th>
+                    <th className="py-3 pr-3 font-semibold">Nombre</th>
+                    <th className="py-3 pr-3 font-semibold">Código RBD</th>
+                    <th className="py-3 pr-3 font-semibold">Comuna</th>
+                    <th className="py-3 pr-3 font-semibold">Región</th>
+                    <th className="py-3 pr-3 font-semibold">Tipo</th>
+                    <th className="py-3 pr-3 font-semibold">Estado</th>
+                    <th className="py-3 font-semibold">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -227,15 +230,34 @@ export default function InstitutionsPage() {
                             {r.active ? 'Activo' : 'Inactivo'}
                           </span>
                         </td>
-                        <td className="py-2 flex gap-2">
-                          <button onClick={() => openEdit(r)} className="text-sky-600 hover:underline text-xs">
-                            Editar
-                          </button>
-                          {r.active && (
-                            <button onClick={() => handleDelete(r.id)} className="text-rose-600 hover:underline text-xs">
-                              Desactivar
+                        <td className="py-2">
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => setViewingDetail(r)} 
+                              className="inline-flex items-center gap-1 text-sky-600 hover:text-sky-700 text-xs"
+                              title="Ver detalles"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              Ver
                             </button>
-                          )}
+                            <button 
+                              onClick={() => openEdit(r)} 
+                              className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-700 text-xs"
+                              title="Editar"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                              Editar
+                            </button>
+                            {r.active && (
+                              <button 
+                                onClick={() => handleDelete(r.id)} 
+                                className="text-rose-600 hover:text-rose-700 text-xs"
+                                title="Desactivar"
+                              >
+                                Desactivar
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -312,13 +334,21 @@ export default function InstitutionsPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-sm font-medium">Código RBD</label>
+                <label className="text-sm font-medium flex items-center gap-1.5">
+                  Código RBD
+                  <div className="group relative">
+                    <Info className="w-4 h-4 text-slate-400 cursor-help" />
+                    <div className="absolute left-0 top-6 z-10 hidden group-hover:block w-64 p-2 bg-slate-800 text-white text-xs rounded shadow-lg">
+                      El RBD (Rol Base de Datos) es el código único asignado por el Ministerio de Educación a cada establecimiento educacional en Chile.
+                    </div>
+                  </div>
+                </label>
                 <input
                   type="text"
                   value={createForm.code}
                   onChange={(e) => setCreateForm((s) => ({ ...s, code: e.target.value }))}
                   className="input"
-                  placeholder="Ej: 1234-5"
+                  placeholder="Ej: 1234-5 (opcional)"
                 />
               </div>
 
@@ -459,6 +489,173 @@ export default function InstitutionsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Detalles */}
+      {viewingDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b p-4 sticky top-0 bg-white">
+              <h2 className="text-lg font-semibold">Detalles de la Institución</h2>
+              <button
+                onClick={() => setViewingDetail(null)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-6">
+              {/* Información Principal */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                  <div className="w-1 h-5 bg-sky-600 rounded"></div>
+                  Información Principal
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-500">Nombre</label>
+                    <p className="text-sm font-medium">{viewingDetail.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Código RBD</label>
+                    <p className="text-sm font-medium">{viewingDetail.code || '—'}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Tipo</label>
+                    <p className="text-sm font-medium">{viewingDetail.type}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Estado</label>
+                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${viewingDetail.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                      {viewingDetail.active ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ubicación */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                  <div className="w-1 h-5 bg-sky-600 rounded"></div>
+                  Ubicación
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-500">Comuna</label>
+                    <p className="text-sm font-medium">{viewingDetail.commune || '—'}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Provincia</label>
+                    <p className="text-sm font-medium">{viewingDetail.province || '—'}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-xs text-slate-500">Región</label>
+                    <p className="text-sm font-medium">{viewingDetail.region || '—'}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-xs text-slate-500">Dirección</label>
+                    <p className="text-sm font-medium">{viewingDetail.address || '—'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contacto */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                  <div className="w-1 h-5 bg-sky-600 rounded"></div>
+                  Información de Contacto
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-500">Email</label>
+                    <p className="text-sm font-medium">{viewingDetail.email || '—'}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Teléfono</label>
+                    <p className="text-sm font-medium">{viewingDetail.phone || '—'}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Nombre del Director</label>
+                    <p className="text-sm font-medium">{viewingDetail.directorName || '—'}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Sitio Web</label>
+                    {viewingDetail.website ? (
+                      <a 
+                        href={viewingDetail.website} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-sky-600 hover:underline"
+                      >
+                        {viewingDetail.website}
+                      </a>
+                    ) : (
+                      <p className="text-sm font-medium">—</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Notas */}
+              {viewingDetail.notes && (
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                    <div className="w-1 h-5 bg-sky-600 rounded"></div>
+                    Notas
+                  </h3>
+                  <p className="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg">
+                    {viewingDetail.notes}
+                  </p>
+                </div>
+              )}
+
+              {/* Fechas */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                  <div className="w-1 h-5 bg-sky-600 rounded"></div>
+                  Registro
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-500">Fecha de Creación</label>
+                    <p className="text-sm font-medium">
+                      {new Date(viewingDetail.createdAt).toLocaleString('es-CL')}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Última Actualización</label>
+                    <p className="text-sm font-medium">
+                      {new Date(viewingDetail.updatedAt).toLocaleString('es-CL')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t p-4 flex justify-end gap-2 sticky bottom-0 bg-white">
+              <button
+                onClick={() => {
+                  setViewingDetail(null)
+                  openEdit(viewingDetail)
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium"
+              >
+                <Edit className="w-4 h-4" />
+                Editar
+              </button>
+              <button
+                onClick={() => setViewingDetail(null)}
+                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}
