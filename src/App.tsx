@@ -11,7 +11,6 @@ import ApplicantLayout from "./layouts/ApplicantLayout";
 // Auth
 import LoginPage from "./pages/auth/LoginPage";
 import PortalLoginPage from "./pages/auth/PortalLoginPage";
-import EnterInviteCodePage from "./pages/auth/EnterInviteCodePage";
 import SetPasswordPage from "./pages/auth/SetPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
@@ -81,7 +80,6 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/portal" element={<PortalLoginPage />} />
       <Route path="/auth/login" element={<Navigate to="/login" replace />} />
-      <Route path="/auth/enter-invite" element={<EnterInviteCodePage />} />
       <Route path="/auth/set-password" element={<SetPasswordPage />} />
       <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
 

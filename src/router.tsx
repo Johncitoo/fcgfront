@@ -8,7 +8,6 @@ const RequireAuth = lazy(() => import('./components/RequireAuth'))
 
 // Auth
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
-const EnterInviteCodePage = lazy(() => import('./pages/auth/EnterInviteCodePage'))
 const SetPasswordPage = lazy(() => import('./pages/auth/SetPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'))
 
@@ -61,7 +60,6 @@ export const router = createBrowserRouter([
 
   // Auth
   { path: '/auth/login', element: <LoginPage /> },
-  { path: '/auth/enter-invite', element: <EnterInviteCodePage /> },
   { path: '/auth/set-password', element: <SetPasswordPage /> },
   { path: '/auth/reset-password', element: <ResetPasswordPage /> },
 
