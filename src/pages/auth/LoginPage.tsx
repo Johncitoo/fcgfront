@@ -19,6 +19,8 @@ export default function LoginPage() {
 
   // Estado pestaña "Postular" - solo código, luego redirige
   const [invitationCode, setInvitationCode] = useState('')
+  const [codeEmail, setCodeEmail] = useState('')
+  const [codeError, setCodeError] = useState('')
 
   // Estado pestaña "Acceso"
   const [email, setEmail] = useState(searchParams.get('email') || '')
@@ -30,13 +32,50 @@ export default function LoginPage() {
   const fromSetPassword = searchParams.get('fromSetPassword') === 'true'
 
   // =========================
-  // Login con código de invitación - redirige a página de invitación
+  // Login con código de invitación - validación directa
   // =========================
   const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Redirigir a la página de invitación con el código pre-llenado
-    navigate(`/auth/enter-invite?code=${encodeURIComponent(invitationCode.trim())}`)
+    if (!invitationCode.trim()) {
+      setCodeError('Por favor ingresa tu código de invitación')
+      return
+    }
+
+    if (!codeEmail.trim()) {
+      setCodeError('Por favor ingresa tu email')
+      return
+    }
+
+    setIsLoading(true)
+    setCodeError('')
+
+    try {
+      // Validar código directamente
+      const response = await api.post('/onboarding/validate-invite', {
+        code: invitationCode.trim().toUpperCase(),
+        email: codeEmail.trim()
+      })
+
+      const { passwordToken, email: validatedEmail, userName } = response.data
+
+      toast.success(`¡Bienvenido/a ${userName}! Ahora crea tu contraseña.`)
+
+      // Redirigir a crear contraseña
+      navigate(`/auth/set-password?token=${passwordToken}&email=${encodeURIComponent(validatedEmail)}`)
+    } catch (err: any) {
+      console.error('❌ Error validando código:', err)
+      
+      if (err.response?.status === 400) {
+        setCodeError('Código inválido o ya utilizado')
+      } else if (err.response?.status === 404) {
+        setCodeError('Código no encontrado. Verifica que esté correcto.')
+      } else {
+        setCodeError('Error al validar el código. Por favor intenta nuevamente.')
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // =========================
@@ -208,7 +247,37 @@ export default function LoginPage() {
                     </div>
                   </div>
 
+                  {codeError && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-red-900">Error</p>
+                        <p className="text-sm text-red-700">{codeError}</p>
+                      </div>
+                    </div>
+                  )}
+
                   <form onSubmit={handleCodeSubmit} className="space-y-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="code-email" className="flex items-center gap-2 font-semibold">
+                        <svg className="w-4 h-4 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                        </svg>
+                        Tu correo electrónico
+                      </Label>
+                      <Input
+                        id="code-email"
+                        type="email"
+                        required
+                        value={codeEmail}
+                        onChange={(e) => setCodeEmail(e.target.value)}
+                        placeholder="tu@email.com"
+                        disabled={isLoading}
+                        className="input"
+                      />
+                      <p className="text-xs text-slate-500">El mismo email al que te llegó la invitación</p>
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="invitation-code" className="flex items-center gap-2 font-semibold">
                         <svg className="w-4 h-4 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -221,17 +290,17 @@ export default function LoginPage() {
                         type="text"
                         required
                         value={invitationCode}
-                        onChange={(e) => setInvitationCode(e.target.value)}
+                        onChange={(e) => setInvitationCode(e.target.value.toUpperCase())}
                         placeholder="TEST-XXXXXXXX"
                         disabled={isLoading}
-                        className="input"
+                        className="input font-mono"
                       />
                     </div>
 
                     <Button
                       type="submit"
                       className={`btn btn-primary w-full h-12 text-base font-semibold ${isLoading ? '' : 'hover:scale-102'} transition-transform`}
-                      disabled={isLoading || !invitationCode.trim()}
+                      disabled={isLoading || !invitationCode.trim() || !codeEmail.trim()}
                     >
                       {isLoading ? 'Verificando...' : 'Iniciar postulación'}
                     </Button>
