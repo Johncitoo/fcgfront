@@ -4,6 +4,7 @@ import RutInput from '../../components/RutInput'
 import FileUpload from '../../components/FileUpload'
 import { Send, ArrowLeft, CheckCircle2, Eye } from 'lucide-react'
 import { filesService } from '../../services/files.service'
+import { authService } from '../../lib/auth'
 
 type FieldType =
   | 'text'
@@ -368,9 +369,15 @@ export default function MilestoneFormPage() {
       }
 
       // 2. Marcar como enviado - esto cambiará el milestone a COMPLETED
+      const currentUser = authService.getCurrentUser()
+      if (!currentUser?.id) {
+        throw new Error('No se pudo identificar al usuario')
+      }
+
       const res = await fetch(`${API_BASE}/form-submissions/${submissionId}/submit`, {
         method: 'POST',
         headers,
+        body: JSON.stringify({ userId: currentUser.id }),
       })
       if (!res.ok) {
         const errorText = await safeError(res)
