@@ -22,7 +22,7 @@ export default function SetPasswordPage() {
   const [sp] = useSearchParams()
 
   const initialEmail = sp.get('email') ?? ''
-  const token = sp.get('token') ?? '' // opcional, según implementación backend
+  const token = sp.get('token') ?? '' // Token requerido del flujo de validación
 
   const [email, setEmail] = useState(initialEmail)
   const [pwd, setPwd] = useState('')
@@ -32,6 +32,14 @@ export default function SetPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [showPwd, setShowPwd] = useState(false)
   const [showPwd2, setShowPwd2] = useState(false)
+
+  // Validar que hay token, si no redirigir a validar código
+  useEffect(() => {
+    if (!token) {
+      console.warn('⚠️ No hay token de contraseña, redirigiendo a validar código')
+      navigate('/auth/enter-code', { replace: true })
+    }
+  }, [token, navigate])
 
   const strength = useMemo(() => scorePassword(pwd), [pwd])
   const match = pwd.length > 0 && pwd === pwd2
@@ -62,12 +70,14 @@ export default function SetPasswordPage() {
 
     setLoading(true)
     try {
-      // 1) Intento de seteo/activación con el backend
-      // Si no hay token (desarrollo), usar endpoint dev
-      const endpoint = token ? '/onboarding/set-password' : '/onboarding/dev/set-password';
-      const payload = token 
-        ? { token, password: pwd }
-        : { email: email.trim(), password: pwd };
+      // Validar que tenemos token
+      if (!token) {
+        throw new Error('No hay token de validación. Debes validar tu código de invitación primero.')
+      }
+
+      // 1) Intento de seteo/activación con el backend usando el token
+      const endpoint = '/onboarding/set-password';
+      const payload = { token, password: pwd };
       
       const resp = await apiPost<AuthResponse | { message?: string }>(
         endpoint,

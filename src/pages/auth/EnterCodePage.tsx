@@ -31,39 +31,30 @@ export default function EnterCodePage() {
     setLoading(true)
 
     try {
-      const res = await fetch(`${API_BASE}/invites/consume`, {
+      // Usar el nuevo endpoint de validación de invitación
+      const res = await fetch(`${API_BASE}/onboarding/validate-invite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code }),
+        body: JSON.stringify({ email: email.trim(), code: code.trim() }),
       })
 
       if (!res.ok) {
-        const msg = await safeError(res)
-        throw new Error(msg || 'Código inválido o expirado')
+        const errorData = await res.json().catch(() => ({}))
+        const msg = errorData.message || 'Código inválido o expirado'
+        throw new Error(msg)
       }
 
-      // Algunos backends devuelven sesión inmediata; otros solo confirman y envían credenciales por email.
-      // Soportamos ambas cosas:
       const data = await res.json()
 
-      if (isSessionPayload(data)) {
-        localStorage.setItem('fcg.access_token', data.access_token)
-        localStorage.setItem('fcg.refresh_token', data.refresh_token)
-        localStorage.setItem('fcg.user', JSON.stringify(data.user))
-
-        // Redirige según rol (normalmente APPLICANT)
-        if (data.user.role === 'ADMIN') navigate('/admin', { replace: true })
-        else if (data.user.role === 'REVIEWER') navigate('/reviewer', { replace: true })
-        else navigate('/applicant', { replace: true })
+      // El backend devuelve: { success, email, passwordToken, message, applicationId, userId, userName }
+      if (data.success && data.passwordToken) {
+        // Redirigir a definir contraseña con el token
+        navigate(`/auth/set-password?token=${encodeURIComponent(data.passwordToken)}&email=${encodeURIComponent(data.email)}`, { replace: true })
         return
       }
 
-      // Si no hubo sesión, mostramos confirmación estándar.
-      setOkMsg(
-        'Código validado. Revisa tu correo: recibirás las instrucciones o credenciales para continuar con tu postulación.'
-      )
-      setEmail('')
-      setCode('')
+      // Si por alguna razón no hay token pero fue exitoso
+      setOkMsg(data.message || 'Código validado correctamente.')
     } catch (err: any) {
       setError(err.message ?? 'Error al validar el código')
     } finally {
