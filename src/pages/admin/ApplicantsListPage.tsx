@@ -91,6 +91,13 @@ export default function ApplicantsListPage() {
   const [formatModalOpen, setFormatModalOpen] = useState(false)
   const [selectedMilestoneForDownload, setSelectedMilestoneForDownload] = useState<any>(null)
 
+  // Modal de código generado rápido
+  const [quickCodeModalOpen, setQuickCodeModalOpen] = useState(false)
+  const [quickGeneratedCode, setQuickGeneratedCode] = useState<string | null>(null)
+  const [quickCodeApplicant, setQuickCodeApplicant] = useState<ApplicantRow | null>(null)
+  const [quickCodeLoading, setQuickCodeLoading] = useState(false)
+  const [quickCodeError, setQuickCodeError] = useState<string | null>(null)
+
   // crear manualmente (modal simple inline)
   const [creating, setCreating] = useState(false)
   const [createForm, setCreateForm] = useState({
@@ -252,6 +259,56 @@ Fundación Carmen Goudie`
       setInviteError(err.message || 'Error al generar código')
     } finally {
       setInviteLoading(false)
+    }
+  }
+
+  // Función para generar código rápido (sin modal de invitación)
+  async function generateQuickCode(applicant: ApplicantRow) {
+    if (!selectedCall) {
+      alert('Selecciona una convocatoria primero')
+      return
+    }
+
+    setQuickCodeApplicant(applicant)
+    setQuickCodeModalOpen(true)
+    setQuickCodeLoading(true)
+    setQuickCodeError(null)
+    setQuickGeneratedCode(null)
+
+    try {
+      const res = await authFetch(`${API_BASE}/invites`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          callId: selectedCall.id,
+          firstName: applicant.firstName,
+          lastName: applicant.lastName,
+          email: applicant.email,
+          sendEmail: false,
+        }),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.message || 'Error al generar código')
+      }
+
+      const data = await res.json()
+      const code = data.code || data.invitationCode
+
+      setQuickGeneratedCode(code)
+      setInviteStatuses({
+        ...inviteStatuses,
+        [applicant.id]: {
+          invited: true,
+          method: 'manual',
+          timestamp: new Date().toISOString(),
+        },
+      })
+    } catch (err: any) {
+      setQuickCodeError(err.message || 'Error al generar código')
+    } finally {
+      setQuickCodeLoading(false)
     }
   }
 
@@ -1076,10 +1133,7 @@ Fundación Carmen Goudie`
                           <td className="py-2">
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => {
-                                  openInviteModal(r)
-                                  setTimeout(() => generateManualInvite(), 100)
-                                }}
+                                onClick={() => generateQuickCode(r)}
                                 className="inline-flex items-center gap-1 rounded-md bg-purple-600 px-2 py-1 text-xs font-medium text-white hover:bg-purple-700"
                                 title="Generar código"
                               >
@@ -1175,10 +1229,7 @@ Fundación Carmen Goudie`
                         </div>
                       )}
                       <button
-                        onClick={() => {
-                          openInviteModal(r)
-                          setTimeout(() => generateManualInvite(), 100)
-                        }}
+                        onClick={() => generateQuickCode(r)}
                         className="inline-flex items-center justify-center gap-1 rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700"
                       >
                         <Key className="w-4 h-4" />
@@ -1650,6 +1701,110 @@ Fundación Carmen Goudie`
               <button
                 onClick={() => setInviteModalOpen(false)}
                 className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de código rápido */}
+      {quickCodeModalOpen && quickCodeApplicant && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md m-4">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b dark:border-slate-700 p-4">
+              <h2 className="text-lg font-semibold dark:text-white">
+                Código de Invitación
+              </h2>
+              <button
+                onClick={() => setQuickCodeModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              {quickCodeLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Generando código...</p>
+                </div>
+              ) : quickCodeError ? (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                  <p className="text-sm font-medium text-red-900 dark:text-red-300">Error</p>
+                  <p className="text-sm text-red-700 dark:text-red-400">{quickCodeError}</p>
+                </div>
+              ) : quickGeneratedCode ? (
+                <>
+                  <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-2">
+                    <p className="text-sm dark:text-slate-300">
+                      <strong>Postulante:</strong> {quickCodeApplicant.firstName && quickCodeApplicant.lastName 
+                        ? `${quickCodeApplicant.firstName} ${quickCodeApplicant.lastName}`
+                        : quickCodeApplicant.fullName || quickCodeApplicant.email}
+                    </p>
+                    <p className="text-sm dark:text-slate-300">
+                      <strong>Email:</strong> {quickCodeApplicant.email}
+                    </p>
+                    {selectedCall && (
+                      <p className="text-sm dark:text-slate-300">
+                        <strong>Convocatoria:</strong> {selectedCall.name}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                    <p className="text-xs font-medium text-purple-900 dark:text-purple-300 mb-2">
+                      CÓDIGO DE INVITACIÓN
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 text-2xl font-mono font-bold text-purple-600 dark:text-purple-400 bg-white dark:bg-slate-800 px-4 py-3 rounded border dark:border-slate-700 text-center tracking-wider">
+                        {quickGeneratedCode}
+                      </code>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(quickGeneratedCode)
+                          alert('Código copiado al portapapeles')
+                        }}
+                        className="p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                        title="Copiar código"
+                      >
+                        <Copy className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <p className="text-xs font-medium text-blue-900 dark:text-blue-300 mb-2">
+                      📋 INSTRUCCIONES PARA EL POSTULANTE
+                    </p>
+                    <ol className="text-sm text-blue-800 dark:text-blue-300 space-y-1 list-decimal list-inside">
+                      <li>Ingresar al portal de postulaciones</li>
+                      <li>Usar el código: <code className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded font-mono">{quickGeneratedCode}</code></li>
+                      <li>Introducir su email: <code className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded font-mono">{quickCodeApplicant.email}</code></li>
+                      <li>Crear una contraseña</li>
+                      <li>Completar el formulario</li>
+                    </ol>
+                  </div>
+
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 flex items-start gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-green-800 dark:text-green-300">
+                      Código generado exitosamente. Envíalo al postulante por tu medio preferido.
+                    </p>
+                  </div>
+                </>
+              ) : null}
+            </div>
+
+            {/* Footer */}
+            <div className="border-t dark:border-slate-700 p-4 flex justify-end">
+              <button
+                onClick={() => setQuickCodeModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
               >
                 Cerrar
               </button>
