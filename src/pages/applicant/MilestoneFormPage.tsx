@@ -89,6 +89,7 @@ export default function MilestoneFormPage() {
   
   // Estado para archivos pendientes de subir
   const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({})
+  const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({})
 
   const token = localStorage.getItem('fcg.access_token') ?? ''
   const headers = useMemo(
@@ -343,10 +344,19 @@ export default function MilestoneFormPage() {
       return
     }
 
+    // Validar que no haya archivos subiendo actualmente
+    const filesCurrentlyUploading = Object.keys(uploadingFiles).length > 0
+    if (filesCurrentlyUploading) {
+      const uploadingNames = Object.keys(uploadingFiles).join(', ')
+      setError(`Espera a que termine la subida de archivos: ${uploadingNames}`)
+      return
+    }
+
     // Validar que no haya archivos pendientes sin subir
     const hasPendingFiles = Object.keys(pendingFiles).length > 0
     if (hasPendingFiles) {
-      setError('Debes esperar a que se suban todos los archivos antes de enviar el formulario')
+      const pendingNames = Object.keys(pendingFiles).join(', ')
+      setError(`Hay archivos pendientes de subir: ${pendingNames}. Por favor, espera o vuelve a seleccionarlos.`)
       return
     }
 
@@ -356,7 +366,8 @@ export default function MilestoneFormPage() {
       return
     }
 
-    // Mostrar modal de confirmación
+    // Limpiar error y mostrar modal de confirmación
+    setError(null)
     setShowConfirmModal(true)
   }
 
@@ -419,6 +430,9 @@ export default function MilestoneFormPage() {
         const file = pendingFiles[name]
         console.log(`[MilestoneForm] Subiendo archivo para ${name}:`, file.name)
         
+        // Marcar como subiendo
+        setUploadingFiles((prev) => ({ ...prev, [name]: true }))
+        
         const uploadedFile = await filesService.upload(
           {
             file,
@@ -439,9 +453,19 @@ export default function MilestoneFormPage() {
           delete updated[name]
           return updated
         })
+        setUploadingFiles((prev) => {
+          const updated = { ...prev }
+          delete updated[name]
+          return updated
+        })
       } catch (err: any) {
         console.error(`[MilestoneForm] Error al subir ${name}:`, err)
-        // No actualizar el valor si falló la subida
+        // Marcar como no subiendo y mantener en pendientes
+        setUploadingFiles((prev) => {
+          const updated = { ...prev }
+          delete updated[name]
+          return updated
+        })
         setError(`Error al subir ${name}: ${err.message}`)
       }
     } else {
@@ -710,16 +734,23 @@ export default function MilestoneFormPage() {
 
                 <div className="flex items-center gap-3 flex-wrap">
                   {saving && (
-                    <span className="text-sm text-gray-500 flex items-center gap-2">
+                    <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                       <span className="spinner"></span>
                       Guardando automáticamente...
+                    </span>
+                  )}
+
+                  {Object.keys(uploadingFiles).length > 0 && (
+                    <span className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2 animate-pulse">
+                      <span className="spinner border-blue-600"></span>
+                      Subiendo archivos ({Object.keys(uploadingFiles).length})...
                     </span>
                   )}
 
                   {currentStep === schema.sections.length - 1 ? (
                     <button
                       onClick={onSubmit}
-                      disabled={submitting || saving || progress < 100}
+                      disabled={submitting || saving || progress < 100 || Object.keys(uploadingFiles).length > 0}
                       className="btn btn-success relative"
                     >
                       {submitting ? (
