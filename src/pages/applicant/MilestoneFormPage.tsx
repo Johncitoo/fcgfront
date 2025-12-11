@@ -385,6 +385,8 @@ export default function MilestoneFormPage() {
       }
 
       console.log('[MilestoneForm] Formulario enviado exitosamente')
+      console.log('[MilestoneForm] ApplicationId:', applicationId)
+      console.log('[MilestoneForm] SubmissionId:', submissionId)
 
       // 3. Actualizar el milestone a COMPLETED
       setMilestone(prev => prev ? { ...prev, status: 'COMPLETED' } : null)

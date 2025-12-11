@@ -113,12 +113,16 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
         
         for (const app of applicantData.applications) {
           try {
+            console.log(`[ApplicantModal] Buscando submissions para app:`, app.id)
             const submissionsRes = await fetch(
               `${API_BASE}/form-submissions/application/${app.id}`,
               { headers }
             )
+            console.log(`[ApplicantModal] Status:`, submissionsRes.status)
             if (submissionsRes.ok) {
               const submissions = await submissionsRes.json()
+              console.log(`[ApplicantModal] Submissions encontradas:`, submissions.length)
+              console.log(`[ApplicantModal] Submissions:`, submissions)
               allSubmissions.push(...submissions)
             }
           } catch (err) {
