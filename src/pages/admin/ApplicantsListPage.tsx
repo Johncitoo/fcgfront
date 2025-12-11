@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCall } from '../../contexts/CallContext'
 import { useCallContext } from '../../contexts/CallContext'
-import { Mail, Copy, X, CheckCircle2, Send, Eye, Edit, Download, FileSpreadsheet, FileText } from 'lucide-react'
+import { Mail, Copy, X, CheckCircle2, Send, Eye, Edit, Download, FileSpreadsheet, FileText, Key } from 'lucide-react'
 import ApplicantDetailModal from '../../components/admin/ApplicantDetailModal'
 import BulkInviteModal from '../../components/admin/BulkInviteModal'
 import EditApplicantModal from '../../components/admin/EditApplicantModal'
 import InstitutionSearchSelector from '../../components/admin/InstitutionSearchSelector'
+import { authFetch } from '../../lib/api'
 import ExcelJS from 'exceljs'
 
 interface ApplicantRow {
@@ -140,7 +141,7 @@ export default function ApplicantsListPage() {
     setInviteError(null)
 
     try {
-      const res = await fetch(`${API_BASE}/invites`, {
+      const res = await authFetch(`${API_BASE}/invites`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -186,7 +187,7 @@ export default function ApplicantsListPage() {
     setInviteError(null)
 
     try {
-      const res = await fetch(`${API_BASE}/invites`, {
+      const res = await authFetch(`${API_BASE}/invites`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -292,7 +293,7 @@ Fundación Carmen Goudie`
       if (q.trim()) params.set('q', q.trim())
       if (selectedCallId) params.set('callId', selectedCallId)
 
-      const res = await fetch(`${API_BASE}/applicants?${params.toString()}`, {
+      const res = await authFetch(`${API_BASE}/applicants?${params.toString()}`, {
         headers,
       })
       if (!res.ok) throw new Error(await safeError(res))
@@ -333,7 +334,7 @@ Fundación Carmen Goudie`
 
     try {
       // Obtener los hitos de la convocatoria
-      const milestonesRes = await fetch(
+      const milestonesRes = await authFetch(
         `${API_BASE}/milestones/call/${selectedCall.id}`,
         { headers }
       )
@@ -378,7 +379,7 @@ Fundación Carmen Goudie`
       console.log('Descargando CSV del hito:', selectedMilestone.name)
 
       // 3. Obtener el esquema del formulario
-      const formRes = await fetch(
+      const formRes = await authFetch(
         `${API_BASE}/forms/${selectedMilestone.formId}`,
         { headers }
       )
@@ -386,7 +387,7 @@ Fundación Carmen Goudie`
       const formData = await formRes.json()
 
       // 4. Obtener todas las postulaciones CON datos del postulante
-      const appsRes = await fetch(
+      const appsRes = await authFetch(
         `${API_BASE}/applications?callId=${selectedCall.id}&limit=1000`,
         { headers }
       )
@@ -399,7 +400,7 @@ Fundación Carmen Goudie`
       for (const app of applications) {
         if (app.applicantId && !applicantsMap.has(app.applicantId)) {
           try {
-            const applicantRes = await fetch(
+            const applicantRes = await authFetch(
               `${API_BASE}/applicants/${app.applicantId}`,
               { headers }
             )
@@ -449,7 +450,7 @@ Fundación Carmen Goudie`
           
           try {
             // Obtener form_submissions de esta aplicación
-            const submissionRes = await fetch(
+            const submissionRes = await authFetch(
               `${API_BASE}/form-submissions/application/${app.id}`,
               { headers }
             )
@@ -641,7 +642,7 @@ Fundación Carmen Goudie`
       console.log('Descargando Excel del hito:', selectedMilestone.name)
 
       // Reutilizar la misma lógica de obtención de datos que CSV
-      const formRes = await fetch(
+      const formRes = await authFetch(
         `${API_BASE}/forms/${selectedMilestone.formId}`,
         { headers }
       )
@@ -656,14 +657,14 @@ Fundación Carmen Goudie`
       const applications = await appsRes.json()
 
       const submissionsPromises = applications.map((app: any) =>
-        fetch(`${API_BASE}/form-submissions/application/${app.id}`, { headers })
+        authFetch(`${API_BASE}/form-submissions/application/${app.id}`, { headers })
           .then(r => r.ok ? r.json() : null)
           .catch(() => null)
       )
       const submissionsResults = await Promise.all(submissionsPromises)
 
       const applicantPromises = applications.map((app: any) =>
-        fetch(`${API_BASE}/applicants/${app.id}`, { headers })
+        authFetch(`${API_BASE}/applicants/${app.id}`, { headers })
           .then(r => r.ok ? r.json() : null)
           .catch(() => null)
       )
@@ -919,7 +920,7 @@ Fundación Carmen Goudie`
       if (createForm.institution_id?.trim()) payload.institution_id = createForm.institution_id.trim()
       if (selectedCallId) payload.call_id = selectedCallId
 
-      const res = await fetch(`${API_BASE}/applicants`, {
+      const res = await authFetch(`${API_BASE}/applicants`, {
         method: 'POST',
         headers,
         body: JSON.stringify(payload),
@@ -1075,6 +1076,16 @@ Fundación Carmen Goudie`
                           <td className="py-2">
                             <div className="flex items-center gap-2">
                               <button
+                                onClick={() => {
+                                  openInviteModal(r)
+                                  setTimeout(() => generateManualInvite(), 100)
+                                }}
+                                className="inline-flex items-center gap-1 rounded-md bg-purple-600 px-2 py-1 text-xs font-medium text-white hover:bg-purple-700"
+                                title="Generar código"
+                              >
+                                <Key className="w-3 h-3" />
+                              </button>
+                              <button
                                 onClick={() => setEditingApplicant(r)}
                                 className="inline-flex items-center gap-1 rounded-md bg-amber-600 px-2 py-1 text-xs font-medium text-white hover:bg-amber-700"
                                 title="Editar postulante"
@@ -1163,6 +1174,16 @@ Fundación Carmen Goudie`
                           <span>Invitado ({inviteStatus.method === 'auto' ? 'Email' : 'Manual'})</span>
                         </div>
                       )}
+                      <button
+                        onClick={() => {
+                          openInviteModal(r)
+                          setTimeout(() => generateManualInvite(), 100)
+                        }}
+                        className="inline-flex items-center justify-center gap-1 rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700"
+                      >
+                        <Key className="w-4 h-4" />
+                        Código
+                      </button>
                       <button
                         onClick={() => setEditingApplicant(r)}
                         className="inline-flex items-center justify-center gap-1 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700"

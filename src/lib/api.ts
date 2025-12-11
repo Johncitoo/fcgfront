@@ -77,4 +77,36 @@ export async function apiDelete<T = unknown>(url: string): Promise<T> {
   return response.data;
 }
 
+/**
+ * Helper para fetch con manejo automático de 401
+ * Redirige a login si el token es inválido
+ */
+export async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = localStorage.getItem('fcg.access_token');
+  
+  const headers = {
+    ...options.headers,
+    'Authorization': token ? `Bearer ${token}` : '',
+  };
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  // Si es 401, limpiar sesión y redirigir al login
+  if (response.status === 401) {
+    localStorage.removeItem('fcg.access_token');
+    localStorage.removeItem('fcg.refresh_token');
+    localStorage.removeItem('fcg.user_data');
+    localStorage.removeItem('fcg.role');
+    
+    if (!window.location.pathname.includes('/login')) {
+      window.location.href = '/login';
+    }
+  }
+
+  return response;
+}
+
 
