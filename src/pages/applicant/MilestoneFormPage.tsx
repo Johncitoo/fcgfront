@@ -392,14 +392,9 @@ export default function MilestoneFormPage() {
       // 4. Mostrar notificación de éxito
       setShowSuccessNotification(true)
 
-      // 5. Ocultar notificación después de 5 segundos
+      // 5. Redirigir al home del applicant después de 2 segundos
       setTimeout(() => {
-        setShowSuccessNotification(false)
-      }, 5000)
-
-      // 6. Redirigir al modo readonly después de mostrar el mensaje
-      setTimeout(() => {
-        navigate(`/applicant/milestones/${milestoneProgressId}?app=${applicationId}&readonly=true`, { replace: true })
+        navigate('/applicant', { replace: true })
       }, 2000)
     } catch (err: any) {
       console.error('[MilestoneForm] Error al enviar:', err)
