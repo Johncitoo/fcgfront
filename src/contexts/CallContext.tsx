@@ -46,7 +46,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       
       // Verificar que hay token antes de hacer la petición
-      const token = localStorage.getItem('accessToken')
+      const token = localStorage.getItem('fcg.access_token')
       if (!token) {
         console.log('[CallContext] No hay token, saltando carga de convocatorias')
         setCalls([])
@@ -127,7 +127,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Solo intentar cargar convocatorias si hay token
-    const token = localStorage.getItem('accessToken')
+    const token = localStorage.getItem('fcg.access_token')
     if (token) {
       refreshCalls()
     } else {
