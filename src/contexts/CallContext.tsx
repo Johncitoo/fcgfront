@@ -54,6 +54,22 @@ export function CallProvider({ children }: { children: ReactNode }) {
         return
       }
       
+      // Verificar el rol del usuario - APPLICANT no necesita cargar convocatorias
+      const userStr = localStorage.getItem('fcg.user')
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr)
+          if (user.role === 'APPLICANT') {
+            console.log('[CallContext] Usuario es APPLICANT, no se cargan convocatorias')
+            setCalls([])
+            setLoading(false)
+            return
+          }
+        } catch (e) {
+          console.warn('[CallContext] Error al parsear usuario:', e)
+        }
+      }
+      
       // Limpiar selección previa para forzar selección de la activa
       setSelectedCall(null)
       localStorage.removeItem('selectedCallId')
