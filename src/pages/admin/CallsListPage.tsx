@@ -144,10 +144,10 @@ export default function CallsListPage() {
 
       await apiPost('/calls', {
         name: form.name.trim(),
-        year: form.year,
-        description: form.description.trim() || null,
-        start_date: form.start_date,
-        end_date: form.end_date,
+        year: Number(form.year),
+        description: form.description.trim() || undefined,
+        startDate: form.start_date,
+        endDate: form.end_date,
         status: 'DRAFT',
       })
 
