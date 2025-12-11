@@ -3,13 +3,6 @@ import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api'
 import { GripVertical, Lock, Unlock, X } from 'lucide-react'
 import { useCallContext } from '../../contexts/CallContext'
 
-interface Call {
-  id: string
-  name: string
-  year: number
-  status: string
-}
-
 interface Milestone {
   id: string
   name: string

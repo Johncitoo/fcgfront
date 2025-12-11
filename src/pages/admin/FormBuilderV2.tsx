@@ -49,13 +49,6 @@ interface FormSchemaPayload {
   sections: FormSection[]
 }
 
-interface Call {
-  id: string
-  name: string
-  year: number
-  status?: string
-}
-
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
 const FIELD_TYPES = [

@@ -70,7 +70,6 @@ export default function ApplicationsListPage() {
   // dataset
   const [rows, setRows] = useState<Row[]>([])
   const [total, setTotal] = useState(0)
-  const [calls, setCalls] = useState<CallOption[]>([])
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
