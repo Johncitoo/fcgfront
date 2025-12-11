@@ -6,13 +6,6 @@ import { useCallContext } from '../../contexts/CallContext'
 type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
 type OverallStatus = 'IN_PROGRESS' | 'IN_REVIEW' | 'NEEDS_CHANGES' | 'APPROVED' | 'REJECTED'
 
-interface CallOption {
-  id: string
-  name: string
-  year: number
-  status: string
-}
-
 interface Milestone {
   id: string
   name: string
