@@ -44,15 +44,25 @@ export function CallProvider({ children }: { children: ReactNode }) {
   async function refreshCalls() {
     try {
       setLoading(true)
+      
+      // Verificar que hay token antes de hacer la petición
+      const token = localStorage.getItem('accessToken')
+      if (!token) {
+        console.log('[CallContext] No hay token, saltando carga de convocatorias')
+        setCalls([])
+        setLoading(false)
+        return
+      }
+      
       // Limpiar selección previa para forzar selección de la activa
       setSelectedCall(null)
       localStorage.removeItem('selectedCallId')
       console.log('[CallContext] refreshCalls - localStorage limpiado')
-      const token = localStorage.getItem('accessToken')
+      
       const res = await fetch(`${API_BASE}/calls?limit=100`, {
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Authorization: `Bearer ${token}`,
         },
       })
 
@@ -126,7 +136,14 @@ export function CallProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    refreshCalls()
+    // Solo intentar cargar convocatorias si hay token
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      refreshCalls()
+    } else {
+      setLoading(false)
+      console.log('[CallContext] Esperando autenticación para cargar convocatorias')
+    }
   }, [])
 
   // Guardar en localStorage cuando cambia

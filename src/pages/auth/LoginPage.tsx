@@ -12,9 +12,11 @@ import { AlertCircle } from 'lucide-react'
 import { PasswordInput } from './PasswordInput'
 import { authService } from '@/lib/auth'
 import { api } from '@/lib/api'
+import { useCallContext } from '@/contexts/CallContext'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { refreshCalls } = useCallContext()
   const [searchParams] = useState(() => new URLSearchParams(window.location.search))
 
   // Estado pestaña "Postular" - solo código, luego redirige
@@ -107,6 +109,12 @@ export default function LoginPage() {
       }
 
       toast.success(`Bienvenido/a, ${response.user.fullName}`)
+
+      // Si es ADMIN o REVIEWER, cargar convocatorias
+      if (response.user.role === 'ADMIN' || response.user.role === 'REVIEWER') {
+        console.log('🔄 Cargando convocatorias para usuario ADMIN/REVIEWER...')
+        await refreshCalls()
+      }
 
       // Redirigir según rol
       if (response.user.role === 'APPLICANT') {
