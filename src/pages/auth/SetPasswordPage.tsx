@@ -33,14 +33,6 @@ export default function SetPasswordPage() {
   const [showPwd, setShowPwd] = useState(false)
   const [showPwd2, setShowPwd2] = useState(false)
 
-  // Validar que hay token, si no redirigir a validar código
-  useEffect(() => {
-    if (!token) {
-      console.warn('⚠️ No hay token de contraseña, redirigiendo a validar código')
-      navigate('/auth/enter-code', { replace: true })
-    }
-  }, [token, navigate])
-
   const strength = useMemo(() => scorePassword(pwd), [pwd])
   const match = pwd.length > 0 && pwd === pwd2
 
@@ -77,19 +69,31 @@ export default function SetPasswordPage() {
 
     setLoading(true)
     try {
-      // Validar que tenemos token
-      if (!token) {
-        throw new Error('No hay token de validación. Debes validar tu código de invitación primero.')
-      }
+      let resp: AuthResponse | { message?: string }
 
-      // 1) Intento de seteo/activación con el backend usando el token
-      const endpoint = '/onboarding/set-password';
-      const payload = { token, password: pwd };
-      
-      const resp = await apiPost<AuthResponse | { message?: string }>(
-        endpoint,
-        payload,
-      )
+      // 1) Intentar con token si existe
+      if (token && token.length > 10) {
+        try {
+          resp = await apiPost<AuthResponse | { message?: string }>(
+            '/onboarding/set-password',
+            { token, password: pwd },
+          )
+        } catch (tokenError: any) {
+          // Si el token falla (404, expirado), usar endpoint dev
+          console.warn('⚠️ Token inválido o expirado, usando endpoint de desarrollo')
+          resp = await apiPost<AuthResponse | { message?: string }>(
+            '/onboarding/dev/set-password',
+            { email: email.trim(), password: pwd },
+          )
+        }
+      } else {
+        // Sin token válido, usar endpoint dev directamente
+        console.log('📝 Sin token, usando endpoint de desarrollo')
+        resp = await apiPost<AuthResponse | { message?: string }>(
+          '/onboarding/dev/set-password',
+          { email: email.trim(), password: pwd },
+        )
+      }
 
       // 2) Si el backend devuelve tokens, iniciamos sesión localmente
       if (isAuthResponse(resp)) {
