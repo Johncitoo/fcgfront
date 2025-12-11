@@ -84,6 +84,8 @@ export default function MilestoneFormPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submissionId, setSubmissionId] = useState<string | null>(null)
   const [currentStep, setCurrentStep] = useState(0)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false)
   
   // Estado para archivos pendientes de subir
   const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({})
@@ -334,7 +336,7 @@ export default function MilestoneFormPage() {
     }
   }
 
-  async function onSubmit() {
+  function onSubmit() {
     // Prevenir múltiples envíos
     if (submitting) {
       console.warn('[MilestoneForm] Envío ya en progreso, ignorando...')
@@ -354,6 +356,12 @@ export default function MilestoneFormPage() {
       return
     }
 
+    // Mostrar modal de confirmación
+    setShowConfirmModal(true)
+  }
+
+  async function confirmSubmit() {
+    setShowConfirmModal(false)
     setSubmitting(true)
     setError(null)
     
@@ -380,8 +388,21 @@ export default function MilestoneFormPage() {
 
       console.log('[MilestoneForm] Formulario enviado exitosamente')
 
-      // 3. Redirigir al dashboard
-      navigate('/applicant', { replace: true })
+      // 3. Actualizar el milestone a COMPLETED
+      setMilestone(prev => prev ? { ...prev, status: 'COMPLETED' } : null)
+
+      // 4. Mostrar notificación de éxito
+      setShowSuccessNotification(true)
+
+      // 5. Ocultar notificación después de 5 segundos
+      setTimeout(() => {
+        setShowSuccessNotification(false)
+      }, 5000)
+
+      // 6. Redirigir al modo readonly después de mostrar el mensaje
+      setTimeout(() => {
+        navigate(`/applicant/milestones/${milestoneProgressId}?app=${applicationId}&readonly=true`, { replace: true })
+      }, 2000)
     } catch (err: any) {
       console.error('[MilestoneForm] Error al enviar:', err)
       setError(err.message ?? 'No se pudo enviar el formulario. Por favor, intenta nuevamente.')
@@ -731,13 +752,154 @@ export default function MilestoneFormPage() {
         )}
 
         {isReadOnly && (
-          <div className="mt-8 card">
-            <div className="card-body">
-              <div className="flex items-center justify-center gap-4">
-                <Link to="/applicant" className="btn btn-primary">
-                  <ArrowLeft className="h-5 w-5" />
-                  Volver al inicio
-                </Link>
+          <>
+            {/* Banner de formulario enviado */}
+            {milestone?.status === 'COMPLETED' && (
+              <div className="mt-6 card border-2 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 animate-fade-in">
+                <div className="card-body">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/40">
+                      <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-bold text-lg text-green-900 dark:text-green-100">
+                        Formulario Enviado Exitosamente
+                      </div>
+                      <div className="text-sm text-green-700 dark:text-green-300 mt-1">
+                        Este formulario fue enviado y está siendo revisado. Puedes ver tus respuestas pero no modificarlas.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Navegación en modo readonly */}
+            {schema && schema.sections.length > 1 && (
+              <div className="mt-8 card">
+                <div className="card-body">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <button
+                      onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+                      disabled={currentStep === 0}
+                      className="btn btn-outline"
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                      Sección Anterior
+                    </button>
+
+                    {currentStep < schema.sections.length - 1 && (
+                      <button
+                        onClick={() => setCurrentStep(Math.min(schema.sections.length - 1, currentStep + 1))}
+                        className="btn btn-outline"
+                      >
+                        Siguiente Sección
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-8 card">
+              <div className="card-body">
+                <div className="flex items-center justify-center gap-4">
+                  <Link to="/applicant" className="btn btn-primary">
+                    <ArrowLeft className="h-5 w-5" />
+                    Volver al inicio
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Modal de Confirmación */}
+        {showConfirmModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4 animate-slide-up">
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/30">
+                    <svg className="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      Confirmar Envío
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Esta acción no se puede deshacer
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    ¿Estás seguro de que deseas enviar el formulario? Una vez enviado:
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      No podrás modificar tus respuestas
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      El formulario será revisado por el equipo
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Solo podrás ver tus respuestas (modo lectura)
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowConfirmModal(false)}
+                    className="flex-1 btn btn-ghost border border-gray-300 dark:border-gray-600"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmSubmit}
+                    className="flex-1 btn btn-success"
+                  >
+                    <Send className="h-5 w-5" />
+                    Confirmar Envío
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Notificación de Éxito */}
+        {showSuccessNotification && (
+          <div className="fixed top-4 right-4 z-50 animate-slide-down">
+            <div className="bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-4 max-w-md">
+              <div className="p-2 rounded-full bg-white/20">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <div className="font-bold text-lg">¡Formulario enviado exitosamente!</div>
+                <div className="text-sm text-green-100 mt-1">
+                  Serás redirigido al inicio en unos momentos...
+                </div>
               </div>
             </div>
           </div>
