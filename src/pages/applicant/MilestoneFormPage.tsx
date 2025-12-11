@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom'
 import RutInput from '../../components/RutInput'
 import FileUpload from '../../components/FileUpload'
@@ -786,6 +786,7 @@ export default function MilestoneFormPage() {
                       token={token}
                       readOnly={isReadOnly || f.readOnly}
                       setPendingFiles={setPendingFiles}
+                      pendingFiles={pendingFiles}
                     />
                   ))}
               </div>
@@ -875,6 +876,7 @@ function FieldControl({
   token,
   readOnly,
   setPendingFiles,
+  pendingFiles,
 }: {
   field: FormField
   value: any
@@ -883,11 +885,38 @@ function FieldControl({
   token?: string
   readOnly?: boolean
   setPendingFiles?: React.Dispatch<React.SetStateAction<Record<string, File>>>
+  pendingFiles?: Record<string, File>
 }) {
-  const [fileState, setFileState] = useState<{ file: File | null; uploading: boolean; error?: string; fileId?: string }>({ 
-    file: null, 
-    uploading: false 
+  // Inicializar fileState con el archivo de pendingFiles si existe
+  const [fileState, setFileState] = useState<{ file: File | null; uploading: boolean; error?: string; fileId?: string }>(() => {
+    const existingFile = pendingFiles && field.name in pendingFiles ? pendingFiles[field.name] : null
+    return {
+      file: existingFile,
+      uploading: false
+    }
   })
+  
+  // Sincronizar el estado del archivo con pendingFiles cuando cambie
+  React.useEffect(() => {
+    if (pendingFiles && field.name in pendingFiles) {
+      const pendingFile = pendingFiles[field.name]
+      setFileState(prev => {
+        // Solo actualizar si el archivo ha cambiado
+        if (prev.file !== pendingFile) {
+          return { ...prev, file: pendingFile }
+        }
+        return prev
+      })
+    } else if (!pendingFiles || !(field.name in pendingFiles)) {
+      // Si no hay archivo en pendingFiles, limpiar el estado
+      setFileState(prev => {
+        if (prev.file !== null) {
+          return { file: null, uploading: false }
+        }
+        return prev
+      })
+    }
+  }, [pendingFiles, field.name])
   
   const {
     name,
