@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api'
 import { GripVertical, Lock, Unlock, X } from 'lucide-react'
+import { useCallContext } from '../../contexts/CallContext'
 
 interface Call {
   id: string
@@ -24,8 +25,7 @@ interface Milestone {
 }
 
 export default function MilestonesManagementPage() {
-  const [calls, setCalls] = useState<Call[]>([])
-  const [selectedCallId, setSelectedCallId] = useState<string>('')
+  const { selectedCallId, selectedCall: callFromContext } = useCallContext()
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,31 +55,10 @@ export default function MilestonesManagementPage() {
   const [isReorderLocked, setIsReorderLocked] = useState(true)
 
   useEffect(() => {
-    loadCalls()
-  }, [])
-
-  useEffect(() => {
     if (selectedCallId) {
       loadMilestones()
     }
   }, [selectedCallId])
-
-  const loadCalls = async () => {
-    try {
-      const response = await apiGet<{ data: Call[], total?: number }>('/calls')
-      const data = response.data || []
-      setCalls(data)
-      
-      // Seleccionar automáticamente la convocatoria OPEN
-      if (data.length > 0 && !selectedCallId) {
-        const openCall = data.find(c => c.status === 'OPEN')
-        const callToSelect = openCall || data[0]
-        setSelectedCallId(callToSelect.id)
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al cargar convocatorias')
-    }
-  }
 
   const loadMilestones = async () => {
     try {
@@ -243,7 +222,7 @@ export default function MilestonesManagementPage() {
     }
   }
 
-  const selectedCall = Array.isArray(calls) ? calls.find(c => c.id === selectedCallId) : null
+  const selectedCall = callFromContext
 
   return (
     <div className="p-6">

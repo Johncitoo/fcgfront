@@ -5,6 +5,7 @@ import {
   Type, Hash, Calendar, ToggleLeft, 
   CheckSquare, Upload, Image as ImageIcon, AlignLeft
 } from 'lucide-react'
+import { useCallContext } from '../../contexts/CallContext'
 
 type FieldType =
   | 'text' | 'textarea' | 'number' | 'decimal' | 'date'
@@ -71,8 +72,7 @@ const FIELD_TYPES = [
 ] as const
 
 export default function FormBuilderV2() {
-  const [calls, setCalls] = useState<Call[]>([])
-  const [selectedCallId, setSelectedCallId] = useState('')
+  const { selectedCallId } = useCallContext()
   const [schema, setSchema] = useState<FormSchemaPayload | null>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -85,21 +85,6 @@ export default function FormBuilderV2() {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
   }
-
-  // Cargar convocatorias
-  useEffect(() => {
-    ;(async () => {
-      try {
-        const res = await fetch(`${API_BASE}/calls?limit=100&sort=year:desc`, { headers })
-        if (res.ok) {
-          const data = await res.json()
-          setCalls(data.data || [])
-        }
-      } catch (err) {
-        console.error('Error loading calls:', err)
-      }
-    })()
-  }, [])
 
   // Cargar formulario cuando cambia la convocatoria
   useEffect(() => {
@@ -337,19 +322,6 @@ export default function FormBuilderV2() {
             </div>
 
             <div className="flex items-center gap-3">
-              <select
-                value={selectedCallId}
-                onChange={(e) => setSelectedCallId(e.target.value)}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-              >
-                <option value="">Seleccionar convocatoria...</option>
-                {calls.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.year})
-                  </option>
-                ))}
-              </select>
-
               {schema && (
                 <>
                   <button

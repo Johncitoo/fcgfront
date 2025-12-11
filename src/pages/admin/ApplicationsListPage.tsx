@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { apiGet } from '../../lib/api'
+import { useCallContext } from '../../contexts/CallContext'
 
 type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
 type OverallStatus = 'IN_PROGRESS' | 'IN_REVIEW' | 'NEEDS_CHANGES' | 'APPROVED' | 'REJECTED'
@@ -55,11 +56,11 @@ const STATUS_OPTIONS: { value: '' | OverallStatus; label: string }[] = [
 
 export default function ApplicationsListPage() {
   const [sp, setSp] = useSearchParams()
+  const { selectedCallId } = useCallContext()
 
   // filtros
   const [q, setQ] = useState(sp.get('q') ?? '')
   const [status, setStatus] = useState<'' | OverallStatus>((sp.get('status') as any) ?? '')
-  const [callId, setCallId] = useState(sp.get('callId') ?? '')
   const [milestoneOrder, setMilestoneOrder] = useState(sp.get('milestoneOrder') ?? '')
 
   // paginación
@@ -74,7 +75,7 @@ export default function ApplicationsListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const deps = useMemo(() => ({ q, status, callId, milestoneOrder, limit, offset }), [q, status, callId, milestoneOrder, limit, offset])
+  const deps = useMemo(() => ({ q, status, callId: selectedCallId, milestoneOrder, limit, offset }), [q, status, selectedCallId, milestoneOrder, limit, offset])
 
   // carga de combos
   useEffect(() => {
@@ -85,10 +86,10 @@ export default function ApplicationsListPage() {
         setCalls(list)
         
         // Si hay una convocatoria seleccionada, cargar sus hitos
-        if (callId) {
-          console.log('📍 Cargando hitos para callId:', callId)
+        if (selectedCallId) {
+          console.log('📍 Cargando hitos para selectedCallId:', selectedCallId)
           try {
-            const milestonesRes = await apiGet<Milestone[]>(`/milestones/call/${callId}`)
+            const milestonesRes = await apiGet<Milestone[]>(`/milestones/call/${selectedCallId}`)
             const milestonesList = Array.isArray(milestonesRes) ? milestonesRes : []
             console.log('📍 Hitos cargados:', milestonesList.length, milestonesList)
             setMilestones(milestonesList.sort((a, b) => a.orderIndex - b.orderIndex))
@@ -97,7 +98,7 @@ export default function ApplicationsListPage() {
             setMilestones([])
           }
         } else {
-          console.log('📍 No hay callId seleccionado, limpiando hitos')
+          console.log('📍 No hay selectedCallId, limpiando hitos')
           setMilestones([])
           setMilestoneOrder('') // Limpiar selección de hito si no hay convocatoria
         }
@@ -107,7 +108,7 @@ export default function ApplicationsListPage() {
         setMilestones([])
       }
     })()
-  }, [callId])
+  }, [selectedCallId])
 
   // carga principal
   useEffect(() => {
@@ -124,7 +125,7 @@ export default function ApplicationsListPage() {
       params.set('offset', String(offset))
       if (q.trim()) params.set('q', q.trim())
       if (status) params.set('overallStatus', status)
-      if (callId) params.set('callId', callId)
+      if (selectedCallId) params.set('callId', selectedCallId)
       if (milestoneOrder) params.set('milestoneOrder', milestoneOrder)
 
       const res = await apiGet<Paginated<Row> | Row[]>(`/applications?${params.toString()}`)
@@ -147,7 +148,7 @@ export default function ApplicationsListPage() {
     const next = new URLSearchParams()
     if (q.trim()) next.set('q', q.trim())
     if (status) next.set('status', status)
-    if (callId) next.set('callId', callId)
+    if (selectedCallId) next.set('callId', selectedCallId)
     if (milestoneOrder) next.set('milestoneOrder', milestoneOrder)
     next.set('limit', String(limit))
     next.set('offset', '0')
@@ -186,25 +187,10 @@ export default function ApplicationsListPage() {
             ))}
           </select>
           <select
-            value={callId}
-            onChange={(e) => {
-              setCallId(e.target.value)
-              setMilestoneOrder('') // Reset milestone filter when call changes
-            }}
-            className="rounded-md border px-3 py-2 text-sm"
-          >
-            <option value="">Todas las convocatorias</option>
-            {calls.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} — {c.year}
-              </option>
-            ))}
-          </select>
-          <select
             value={milestoneOrder}
             onChange={(e) => setMilestoneOrder(e.target.value)}
             className="rounded-md border px-3 py-2 text-sm"
-            disabled={!callId}
+            disabled={!selectedCallId}
           >
             <option value="">Todos los hitos</option>
             {milestones.map((m) => (
