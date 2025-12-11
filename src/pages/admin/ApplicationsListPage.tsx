@@ -79,32 +79,22 @@ export default function ApplicationsListPage() {
   // carga de combos
   useEffect(() => {
     ;(async () => {
-      try {
-        const res = await apiGet<{ data: CallOption[] } | CallOption[]>('/calls?limit=200')
-        const list = Array.isArray(res) ? res : res.data ?? []
-        setCalls(list)
-        
-        // Si hay una convocatoria seleccionada, cargar sus hitos
-        if (selectedCallId) {
-          console.log('📍 Cargando hitos para selectedCallId:', selectedCallId)
-          try {
-            const milestonesRes = await apiGet<Milestone[]>(`/milestones/call/${selectedCallId}`)
-            const milestonesList = Array.isArray(milestonesRes) ? milestonesRes : []
-            console.log('📍 Hitos cargados:', milestonesList.length, milestonesList)
-            setMilestones(milestonesList.sort((a, b) => a.orderIndex - b.orderIndex))
-          } catch (err) {
-            console.error('❌ Error loading milestones:', err)
-            setMilestones([])
-          }
-        } else {
-          console.log('📍 No hay selectedCallId, limpiando hitos')
+      // Si hay una convocatoria seleccionada, cargar sus hitos
+      if (selectedCallId) {
+        console.log('📍 Cargando hitos para selectedCallId:', selectedCallId)
+        try {
+          const milestonesRes = await apiGet<Milestone[]>(`/milestones/call/${selectedCallId}`)
+          const milestonesList = Array.isArray(milestonesRes) ? milestonesRes : []
+          console.log('📍 Hitos cargados:', milestonesList.length, milestonesList)
+          setMilestones(milestonesList.sort((a, b) => a.orderIndex - b.orderIndex))
+        } catch (err) {
+          console.error('❌ Error loading milestones:', err)
           setMilestones([])
-          setMilestoneOrder('') // Limpiar selección de hito si no hay convocatoria
         }
-      } catch (err) {
-        console.error('❌ Error loading calls:', err)
-        setCalls([])
+      } else {
+        console.log('📍 No hay selectedCallId, limpiando hitos')
         setMilestones([])
+        setMilestoneOrder('') // Limpiar selección de hito si no hay convocatoria
       }
     })()
   }, [selectedCallId])
