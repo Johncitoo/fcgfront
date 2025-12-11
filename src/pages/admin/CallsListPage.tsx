@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { apiGet, apiPost } from '../../lib/api'
 import { Calendar, Clock } from 'lucide-react'
+import { useCallContext } from '../../contexts/CallContext'
 
 interface CallRow {
   id: string
@@ -60,6 +61,8 @@ interface ListResponse<T> {
 }
 
 export default function CallsListPage() {
+  const { refreshCalls } = useCallContext()
+  
   // listado
   const [rows, setRows] = useState<CallRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -161,6 +164,9 @@ export default function CallsListPage() {
       })
       setOffset(0)
       await load()
+      
+      // Actualizar el selector de convocatorias
+      await refreshCalls()
     } catch (e: any) {
       setFormErr(e.message ?? 'No se pudo crear la convocatoria')
     } finally {
