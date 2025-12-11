@@ -1163,8 +1163,41 @@ function FieldControl({
       {(type === 'file' || type === 'image') && token && applicationId && !readOnly && setPendingFiles && (
         <FileUpload
           onFileSelect={(file) => {
-            // Solo guardar el archivo en memoria, no subir todavía
-            setFileState({ file, uploading: false })
+            // Validar tipo de archivo según el campo
+            const allowedTypes: Record<string, string[]> = {
+              'file': ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+              'image': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+            }
+            
+            const allowed = allowedTypes[type] || []
+            
+            // Validar tipo MIME
+            if (allowed.length > 0 && !allowed.includes(file.type)) {
+              const friendlyTypes = type === 'image' 
+                ? 'JPG, PNG, GIF o WebP' 
+                : 'PDF o Word'
+              setFileState({ 
+                file: null, 
+                uploading: false, 
+                error: `Tipo de archivo no permitido. Solo se aceptan archivos ${friendlyTypes}.` 
+              })
+              return
+            }
+            
+            // Validar tamaño (10 MB para imágenes, 50 MB para documentos)
+            const maxSize = type === 'image' ? 10 * 1024 * 1024 : 50 * 1024 * 1024
+            if (file.size > maxSize) {
+              const maxMB = Math.floor(maxSize / 1024 / 1024)
+              setFileState({ 
+                file: null, 
+                uploading: false, 
+                error: `El archivo es demasiado grande. Tamaño máximo: ${maxMB} MB.` 
+              })
+              return
+            }
+            
+            // Validación exitosa - guardar el archivo
+            setFileState({ file, uploading: false, error: undefined })
             setPendingFiles((prev: Record<string, File>) => ({ ...prev, [name]: file }))
             // Marcar que hay un archivo seleccionado (pero aún no subido)
             onChange(name, '__PENDING__')
