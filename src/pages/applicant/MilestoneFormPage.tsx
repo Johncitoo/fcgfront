@@ -86,10 +86,6 @@ export default function MilestoneFormPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [showSuccessNotification, setShowSuccessNotification] = useState(false)
-  
-  // Estado para archivos pendientes de subir
-  const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({})
-  const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({})
 
   const token = localStorage.getItem('fcg.access_token') ?? ''
   const headers = useMemo(
@@ -344,22 +340,6 @@ export default function MilestoneFormPage() {
       return
     }
 
-    // Validar que no haya archivos subiendo actualmente
-    const filesCurrentlyUploading = Object.keys(uploadingFiles).length > 0
-    if (filesCurrentlyUploading) {
-      const uploadingNames = Object.keys(uploadingFiles).join(', ')
-      setError(`Espera a que termine la subida de archivos: ${uploadingNames}`)
-      return
-    }
-
-    // Validar que no haya archivos pendientes sin subir
-    const hasPendingFiles = Object.keys(pendingFiles).length > 0
-    if (hasPendingFiles) {
-      const pendingNames = Object.keys(pendingFiles).join(', ')
-      setError(`Hay archivos pendientes de subir: ${pendingNames}. Por favor, espera o vuelve a seleccionarlos.`)
-      return
-    }
-
     // Validar que todos los campos requeridos estén completos
     if (progress < 100) {
       setError('Debes completar todos los campos requeridos antes de enviar el formulario')
@@ -421,56 +401,9 @@ export default function MilestoneFormPage() {
     }
   }
 
-  async function onChange(name: string, next: any) {
+  function onChange(name: string, next: any) {
     if (isReadOnly) return // No permitir cambios en modo solo lectura
-    
-    // Si es un archivo pendiente, subirlo inmediatamente
-    if (next === '__PENDING__' && pendingFiles[name]) {
-      try {
-        const file = pendingFiles[name]
-        console.log(`[MilestoneForm] Subiendo archivo para ${name}:`, file.name)
-        
-        // Marcar como subiendo
-        setUploadingFiles((prev) => ({ ...prev, [name]: true }))
-        
-        const uploadedFile = await filesService.upload(
-          {
-            file,
-            category: 'FORM_FIELD',
-            entityType: 'APPLICATION',
-            entityId: applicationId!,
-            description: `${name} - Formulario de postulación`
-          },
-          token
-        )
-        
-        console.log(`[MilestoneForm] Archivo ${name} subido:`, uploadedFile.file.id)
-        
-        // Actualizar con el ID del archivo y limpiar de pendientes
-        setValues((s) => ({ ...s, [name]: uploadedFile.file.id }))
-        setPendingFiles((prev) => {
-          const updated = { ...prev }
-          delete updated[name]
-          return updated
-        })
-        setUploadingFiles((prev) => {
-          const updated = { ...prev }
-          delete updated[name]
-          return updated
-        })
-      } catch (err: any) {
-        console.error(`[MilestoneForm] Error al subir ${name}:`, err)
-        // Marcar como no subiendo y mantener en pendientes
-        setUploadingFiles((prev) => {
-          const updated = { ...prev }
-          delete updated[name]
-          return updated
-        })
-        setError(`Error al subir ${name}: ${err.message}`)
-      }
-    } else {
-      setValues((s) => ({ ...s, [name]: next }))
-    }
+    setValues((s) => ({ ...s, [name]: next }))
   }
 
   const progress = useMemo(() => {
@@ -709,8 +642,6 @@ export default function MilestoneFormPage() {
                       applicationId={applicationId || undefined}
                       token={token}
                       readOnly={isReadOnly || f.readOnly}
-                      setPendingFiles={setPendingFiles}
-                      pendingFiles={pendingFiles}
                     />
                   ))}
               </div>
@@ -740,17 +671,10 @@ export default function MilestoneFormPage() {
                     </span>
                   )}
 
-                  {Object.keys(uploadingFiles).length > 0 && (
-                    <span className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2 animate-pulse">
-                      <span className="spinner border-blue-600"></span>
-                      Subiendo archivos ({Object.keys(uploadingFiles).length})...
-                    </span>
-                  )}
-
                   {currentStep === schema.sections.length - 1 ? (
                     <button
                       onClick={onSubmit}
-                      disabled={submitting || saving || progress < 100 || Object.keys(uploadingFiles).length > 0}
+                      disabled={submitting || saving || progress < 100}
                       className="btn btn-success relative"
                     >
                       {submitting ? (
@@ -947,8 +871,6 @@ function FieldControl({
   applicationId,
   token,
   readOnly,
-  setPendingFiles,
-  pendingFiles,
 }: {
   field: FormField
   value: any
@@ -956,39 +878,12 @@ function FieldControl({
   applicationId?: string
   token?: string
   readOnly?: boolean
-  setPendingFiles?: React.Dispatch<React.SetStateAction<Record<string, File>>>
-  pendingFiles?: Record<string, File>
 }) {
-  // Inicializar fileState con el archivo de pendingFiles si existe
-  const [fileState, setFileState] = useState<{ file: File | null; uploading: boolean; error?: string; fileId?: string }>(() => {
-    const existingFile = pendingFiles && field.name in pendingFiles ? pendingFiles[field.name] : null
-    return {
-      file: existingFile,
-      uploading: false
-    }
+  // Estado para manejar la subida de archivos
+  const [fileState, setFileState] = useState<{ file: File | null; uploading: boolean; error?: string; fileId?: string }>({
+    file: null,
+    uploading: false
   })
-  
-  // Sincronizar el estado del archivo con pendingFiles cuando cambie
-  React.useEffect(() => {
-    if (pendingFiles && field.name in pendingFiles) {
-      const pendingFile = pendingFiles[field.name]
-      setFileState(prev => {
-        // Solo actualizar si el archivo ha cambiado
-        if (prev.file !== pendingFile) {
-          return { ...prev, file: pendingFile }
-        }
-        return prev
-      })
-    } else if (!pendingFiles || !(field.name in pendingFiles)) {
-      // Si no hay archivo en pendingFiles, limpiar el estado
-      setFileState(prev => {
-        if (prev.file !== null) {
-          return { file: null, uploading: false }
-        }
-        return prev
-      })
-    }
-  }, [pendingFiles, field.name])
   
   const {
     name,
@@ -1232,7 +1127,7 @@ function FieldControl({
         </div>
       )}
 
-      {(type === 'file' || type === 'image') && token && applicationId && !readOnly && setPendingFiles && (
+      {(type === 'file' || type === 'image') && token && applicationId && !readOnly && (
         <FileUpload
           onFileSelect={(file) => {
             // Validar tipo de archivo según el campo
@@ -1268,19 +1163,44 @@ function FieldControl({
               return
             }
             
-            // Validación exitosa - guardar el archivo
-            setFileState({ file, uploading: false, error: undefined })
-            setPendingFiles((prev: Record<string, File>) => ({ ...prev, [name]: file }))
-            // Marcar que hay un archivo seleccionado (pero aún no subido)
-            onChange(name, '__PENDING__')
+            // Validación exitosa - mostrar el archivo y subirlo inmediatamente
+            setFileState({ file, uploading: true, error: undefined })
+            
+            // Subir el archivo inmediatamente (sin esperar a onChange)
+            if (applicationId && token) {
+              (async () => {
+                try {
+                  console.log(`[FileUpload] Subiendo archivo ${name}:`, file.name)
+                  
+                  const uploadedFile = await filesService.upload(
+                    {
+                      file,
+                      category: 'FORM_FIELD',
+                      entityType: 'APPLICATION',
+                      entityId: applicationId,
+                      description: `${name} - Formulario de postulación`
+                    },
+                    token
+                  )
+                  
+                  console.log(`[FileUpload] Archivo ${name} subido exitosamente:`, uploadedFile.file.id)
+                  
+                  // Actualizar con el ID del archivo
+                  setFileState({ file, uploading: false, error: undefined, fileId: uploadedFile.file.id })
+                  onChange(name, uploadedFile.file.id)
+                } catch (err: any) {
+                  console.error(`[FileUpload] Error al subir ${name}:`, err)
+                  setFileState({ 
+                    file: null, 
+                    uploading: false, 
+                    error: `Error al subir: ${err.message || 'Error desconocido'}` 
+                  })
+                }
+              })()
+            }
           }}
           onFileRemove={() => {
             setFileState({ file: null, uploading: false })
-            setPendingFiles((prev: Record<string, File>) => {
-              const newFiles = { ...prev }
-              delete newFiles[name]
-              return newFiles
-            })
             onChange(name, null)
           }}
           file={fileState.file}
