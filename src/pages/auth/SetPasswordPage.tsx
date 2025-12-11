@@ -59,12 +59,19 @@ export default function SetPasswordPage() {
       setError('El correo es obligatorio')
       return
     }
-    if (pwd.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres')
+    if (pwd.length < 12) {
+      setError('La contraseña debe tener al menos 12 caracteres')
       return
     }
     if (!match) {
       setError('Las contraseñas no coinciden')
+      return
+    }
+    
+    // Validar requisitos de seguridad
+    const securityErrors = validatePasswordSecurity(pwd)
+    if (securityErrors.length > 0) {
+      setError(securityErrors.join('. '))
       return
     }
 
@@ -199,44 +206,48 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 p-4 md:grid-cols-2 md:gap-10 md:p-6">
         {/* Columna contextual */}
         <section className="order-2 md:order-1">
           <div className="mx-auto w-full max-w-md md:max-w-none">
-            <header className="mb-4">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600 text-white">
+            <header className="mb-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 text-white text-xl font-bold shadow-lg">
                   F
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold leading-tight">
+                  <h1 className="text-xl font-bold leading-tight text-slate-900 dark:text-slate-100">
                     Fundación Carmen Goudie — Becas
                   </h1>
-                  <p className="text-xs text-slate-600">Activar cuenta / Definir contraseña</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Activar cuenta / Definir contraseña</p>
                 </div>
               </div>
             </header>
 
-            <div className="card">
-              <div className="card-body space-y-3">
-                <h2 className="text-base font-semibold">¿Cuándo usar esta página?</h2>
-                <ul className="list-disc space-y-1 pl-5 text-sm text-slate-600">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+              <div className="p-6 space-y-4">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">¿Cuándo usar esta página?</h2>
+                <ul className="list-disc space-y-2 pl-5 text-sm text-slate-600 dark:text-slate-400">
                   <li>
-                    Si recibiste un correo de invitación y necesitas <strong>crear tu clave</strong>.
+                    Si recibiste un correo de invitación y necesitas <strong className="text-slate-900 dark:text-slate-100">crear tu clave</strong>.
                   </li>
                   <li>
-                    Si validaste tu <em>código de invitación</em> y quieres continuar con tu acceso.
+                    Si validaste tu <em className="text-sky-600 dark:text-sky-400">código de invitación</em> y quieres continuar con tu acceso.
                   </li>
                 </ul>
-                <p className="text-xs text-slate-600">
-                  Recomendación: usa una contraseña única, con mayúsculas, minúsculas, números y
-                  símbolos.
-                </p>
+                <div className="mt-4 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
+                  <p className="text-sm text-sky-900 dark:text-sky-200">
+                    <strong>Recomendación:</strong> usa una contraseña única, con mayúsculas, minúsculas, números y símbolos.
+                  </p>
+                </div>
 
-                <div className="pt-1">
-                  <Link to="/login" className="text-sm text-sky-700 hover:underline">
-                    ← Volver al login
+                <div className="pt-2">
+                  <Link to="/login" className="text-sm text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 hover:underline inline-flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Volver al login
                   </Link>
                 </div>
               </div>
@@ -247,131 +258,169 @@ export default function SetPasswordPage() {
         {/* Columna formulario */}
         <section className="order-1 md:order-2">
           <div className="mx-auto w-full max-w-md">
-            <div className="card">
-              <div className="card-body">
-                <h2 className="mb-1 text-base font-semibold">Definir contraseña</h2>
-                <p className="mb-4 text-sm text-slate-600">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
+              <div className="p-6">
+                <h2 className="mb-2 text-xl font-bold text-slate-900 dark:text-slate-100">Definir contraseña</h2>
+                <p className="mb-6 text-sm text-slate-600 dark:text-slate-400">
                   Completa tu correo y elige una nueva contraseña para activar tu acceso.
                 </p>
 
                 {error && (
-                  <div className="mb-3 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                  <div className="mb-4 rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">
                     {error}
                   </div>
                 )}
                 {success && (
-                  <div className="mb-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                  <div className="mb-4 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">
                     {success}
                   </div>
                 )}
 
-                <form onSubmit={onSubmit} className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium">Correo *</label>
+                <form onSubmit={onSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Correo *</label>
                     <input
                       type="email"
                       required
+                      disabled
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="input"
+                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-slate-100 disabled:opacity-60 disabled:cursor-not-allowed focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400 focus:border-transparent transition-all"
                       placeholder="tu@correo.cl"
                     />
+                    <p className="text-xs text-slate-500 dark:text-slate-400">El correo viene del código validado y no se puede modificar</p>
                   </div>
 
-                  {/* Token opcional si lo traes por query o lo pegan manualmente */}
-                  {token ? (
-                    <input type="hidden" value={token} readOnly />
-                  ) : (
-                    <div className="space-y-1">
-                      <label className="text-sm font-medium">Token (si aplica)</label>
-                      <input
-                        type="text"
-                        placeholder="Pega el token del correo (si tu enlace no funciona)"
-                        className="input"
-                        onChange={() => {/* solo informativo; usamos el de query si existe */}}
-                      />
-                      <p className="text-xs text-slate-500">
-                        Si entraste desde un enlace con token, no necesitas llenar este campo.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium">Nueva contraseña *</label>
-                    <div className="flex">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Nueva contraseña *</label>
+                    <div className="relative">
                       <input
                         type={showPwd ? 'text' : 'password'}
                         required
                         value={pwd}
                         onChange={(e) => setPwd(e.target.value)}
-                        className="input flex-1 rounded-r-none"
-                        placeholder="••••••••"
+                        className="w-full px-4 py-2.5 pr-12 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400 focus:border-transparent transition-all"
+                        placeholder="••••••••••••"
                         autoComplete="new-password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPwd((s) => !s)}
-                        className="rounded-r-md border border-l-0 px-3 text-sm hover:bg-slate-50"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                         aria-label={showPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                        title={showPwd ? 'Ocultar' : 'Mostrar'}
                       >
-                        {showPwd ? 'Ocultar' : 'Ver'}
+                        {showPwd ? (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
                       </button>
                     </div>
 
                     {/* Indicador de calidad */}
                     <PasswordMeter score={strength.score} label={strength.label} />
-                    <p className="text-xs text-slate-500">
-                      Mínimo 8 caracteres. Ideal: mezcla letras, números y símbolos.
-                    </p>
+                    <div className="mt-2 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
+                      <p className="text-xs font-semibold text-sky-900 dark:text-sky-100 mb-1.5">Requisitos de seguridad:</p>
+                      <ul className="text-xs text-sky-800 dark:text-sky-200 space-y-0.5">
+                        <li className="flex items-center gap-1.5">
+                          <span className={pwd.length >= 12 ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+                            {pwd.length >= 12 ? '✓' : '○'}
+                          </span>
+                          Mínimo 12 caracteres
+                        </li>
+                        <li className="flex items-center gap-1.5">
+                          <span className={/[A-Z]/.test(pwd) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+                            {/[A-Z]/.test(pwd) ? '✓' : '○'}
+                          </span>
+                          Al menos 1 mayúscula
+                        </li>
+                        <li className="flex items-center gap-1.5">
+                          <span className={/[a-z]/.test(pwd) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+                            {/[a-z]/.test(pwd) ? '✓' : '○'}
+                          </span>
+                          Al menos 1 minúscula
+                        </li>
+                        <li className="flex items-center gap-1.5">
+                          <span className={/\d/.test(pwd) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+                            {/\d/.test(pwd) ? '✓' : '○'}
+                          </span>
+                          Al menos 1 número
+                        </li>
+                        <li className="flex items-center gap-1.5">
+                          <span className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+                            {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd) ? '✓' : '○'}
+                          </span>
+                          Al menos 1 carácter especial (!@#$%...)
+                        </li>
+                      </ul>
+                    </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium">Repite la contraseña *</label>
-                    <div className="flex">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Repite la contraseña *</label>
+                    <div className="relative">
                       <input
                         type={showPwd2 ? 'text' : 'password'}
                         required
                         value={pwd2}
                         onChange={(e) => setPwd2(e.target.value)}
-                        className="input flex-1 rounded-r-none"
-                        placeholder="••••••••"
+                        className="w-full px-4 py-2.5 pr-12 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400 focus:border-transparent transition-all"
+                        placeholder="••••••••••••"
                         autoComplete="new-password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPwd2((s) => !s)}
-                        className="rounded-r-md border border-l-0 px-3 text-sm hover:bg-slate-50"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                         aria-label={showPwd2 ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                        title={showPwd2 ? 'Ocultar' : 'Mostrar'}
                       >
-                        {showPwd2 ? 'Ocultar' : 'Ver'}
+                        {showPwd2 ? (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
                       </button>
                     </div>
                     {!match && pwd2.length > 0 && (
-                      <p className="text-xs text-rose-700">Las contraseñas no coinciden.</p>
+                      <p className="text-xs text-rose-600 dark:text-rose-400">Las contraseñas no coinciden.</p>
                     )}
                   </div>
 
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="btn-primary w-full"
+                    disabled={loading || !match || pwd.length < 8}
+                    className="w-full px-6 py-3 rounded-lg bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {loading ? 'Guardando…' : 'Definir contraseña'}
                   </button>
                 </form>
 
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  <Link to="/invite" className="btn w-full">
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  <Link 
+                    to="/auth/enter-code" 
+                    className="px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 font-medium text-center transition-all"
+                  >
                     Validar código de invitación
                   </Link>
-                  <Link to="/login" className="btn w-full">
+                  <Link 
+                    to="/login" 
+                    className="px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 font-medium text-center transition-all"
+                  >
                     Ir al login
                   </Link>
                 </div>
 
-                <p className="mt-3 text-center text-xs text-slate-500">
+                <p className="mt-4 text-center text-xs text-slate-500 dark:text-slate-400">
                   Si no recibiste correo, revisa la carpeta de spam o consulta a tu encargado/a.
                 </p>
               </div>
@@ -405,34 +454,108 @@ function isAuthResponse(x: unknown): x is AuthResponse {
 function scorePassword(p: string): { score: 0 | 1 | 2 | 3 | 4; label: string } {
   let score = 0
   if (!p) return { score: 0, label: 'Muy débil' }
-  if (p.length >= 8) score++
+  if (p.length >= 12) score++
   if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++
   if (/\d/.test(p)) score++
-  if (/[^A-Za-z0-9]/.test(p)) score++
+  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p)) score++
   const labels = ['Muy débil', 'Débil', 'Aceptable', 'Buena', 'Fuerte']
   return { score: Math.min(score, 4) as 0 | 1 | 2 | 3 | 4, label: labels[Math.min(score, 4)] }
+}
+
+function validatePasswordSecurity(pwd: string): string[] {
+  const errors: string[] = []
+  
+  // Validar mayúscula
+  if (!/[A-Z]/.test(pwd)) {
+    errors.push('Debe contener al menos una mayúscula')
+  }
+  
+  // Validar minúscula
+  if (!/[a-z]/.test(pwd)) {
+    errors.push('Debe contener al menos una minúscula')
+  }
+  
+  // Validar número
+  if (!/\d/.test(pwd)) {
+    errors.push('Debe contener al menos un número')
+  }
+  
+  // Validar carácter especial
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) {
+    errors.push('Debe contener al menos un carácter especial (!@#$%^&*...)')
+  }
+  
+  // Validar contraseñas comunes
+  const commonPasswords = [
+    'password', '123456', '12345678', 'qwerty', 'abc123', 'monkey',
+    'letmein', 'trustno1', 'dragon', 'baseball', 'iloveyou', 'master',
+    'sunshine', 'ashley', 'bailey', 'passw0rd', 'shadow', '123123',
+    'superman', 'qazwsx', 'michael', 'football', 'admin', 'welcome',
+    'login', 'user', 'password1', 'password123', '12345', 'test', 'demo', 'changeme'
+  ]
+  
+  const lowerPwd = pwd.toLowerCase()
+  for (const common of commonPasswords) {
+    if (lowerPwd.includes(common)) {
+      errors.push('No puede contener contraseñas comunes')
+      break
+    }
+  }
+  
+  // Validar caracteres repetidos (3 o más iguales seguidos)
+  if (/(.)\1{2,}/.test(pwd)) {
+    errors.push('No puede tener más de 2 caracteres repetidos consecutivos')
+  }
+  
+  // Validar secuencias
+  if (isSequential(pwd)) {
+    errors.push('No puede contener secuencias simples (123, abc, qwerty)')
+  }
+  
+  return errors
+}
+
+function isSequential(str: string): boolean {
+  const sequences = [
+    '0123456789',
+    'abcdefghijklmnopqrstuvwxyz',
+    'qwertyuiopasdfghjklzxcvbnm',
+  ]
+
+  const lower = str.toLowerCase()
+  
+  for (const seq of sequences) {
+    for (let i = 0; i <= seq.length - 4; i++) {
+      const subseq = seq.substring(i, i + 4)
+      if (lower.includes(subseq)) {
+        return true
+      }
+    }
+  }
+
+  return false
 }
 
 function PasswordMeter({ score, label }: { score: 0 | 1 | 2 | 3 | 4; label: string }) {
   const steps = 4
   return (
-    <div>
-      <div className="mb-1 flex gap-1">
+    <div className="mt-2">
+      <div className="mb-1.5 flex gap-1.5">
         {Array.from({ length: steps }).map((_, i) => {
           const active = i < score
           const cls =
-            'h-1.5 flex-1 rounded ' +
+            'h-2 flex-1 rounded-full transition-all ' +
             (active
               ? i >= 3
-                ? 'bg-emerald-500'
+                ? 'bg-emerald-500 dark:bg-emerald-400'
                 : i >= 2
-                ? 'bg-amber-500'
-                : 'bg-sky-500'
-              : 'bg-slate-200')
+                ? 'bg-amber-500 dark:bg-amber-400'
+                : 'bg-sky-500 dark:bg-sky-400'
+              : 'bg-slate-200 dark:bg-slate-700')
           return <span key={i} className={cls} />
         })}
       </div>
-      <div className="text-xs text-slate-600">{label}</div>
+      <div className="text-xs font-medium text-slate-600 dark:text-slate-400">{label}</div>
     </div>
   )
 }
