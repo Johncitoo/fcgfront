@@ -1190,10 +1190,13 @@ function FieldControl({
                   onChange(name, uploadedFile.file.id)
                 } catch (err: any) {
                   console.error(`[FileUpload] Error al subir ${name}:`, err)
+                  console.error(`[FileUpload] Error response:`, err.response?.data)
+                  
+                  const errorMessage = err.response?.data?.message || err.message || 'Error desconocido'
                   setFileState({ 
                     file: null, 
                     uploading: false, 
-                    error: `Error al subir: ${err.message || 'Error desconocido'}` 
+                    error: `Error al subir: ${errorMessage}` 
                   })
                 }
               })()
