@@ -1,18 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-type UserRole = 'ADMIN' | 'REVIEWER' | 'APPLICANT'
-
-interface ConsumeInviteResponseWithSession {
-  access_token: string
-  refresh_token: string
-  user: {
-    id: string
-    email: string
-    role: UserRole
-  }
-}
-
 const API_BASE =
   (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
@@ -179,32 +167,10 @@ export default function EnterCodePage() {
           </div>
         </form>
 
-        <p className="mt-6 text-center text-xs text-slate-500">
+        <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-600">
           © {new Date().getFullYear()} Fundación Carmen Goudie
         </p>
       </div>
     </div>
   )
-}
-
-function isSessionPayload(data: unknown): data is ConsumeInviteResponseWithSession {
-  if (!data || typeof data !== 'object') return false
-  const d = data as any
-  return (
-    typeof d.access_token === 'string' &&
-    typeof d.refresh_token === 'string' &&
-    d.user &&
-    typeof d.user.id === 'string' &&
-    typeof d.user.email === 'string' &&
-    typeof d.user.role === 'string'
-  )
-}
-
-async function safeError(res: Response) {
-  try {
-    const data = await res.json()
-    return data?.message || data?.error || res.statusText
-  } catch {
-    return res.statusText
-  }
 }
