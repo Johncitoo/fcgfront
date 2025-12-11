@@ -851,6 +851,11 @@ Fundación Carmen Goudie`
     setCreateError(null)
     setCreateLoading(true)
     try {
+      // ⚠️ VALIDACIÓN CRÍTICA: Debe haber convocatoria seleccionada
+      if (!selectedCallId) {
+        throw new Error('⚠️ Debes seleccionar una convocatoria antes de crear un postulante')
+      }
+      
       // Validar RUT (obligatorio)
       if (!createForm.rut?.trim()) {
         throw new Error('El RUT es obligatorio')
@@ -1213,6 +1218,18 @@ Fundación Carmen Goudie`
                   {createError}
                 </div>
               )}
+              
+              {!selectedCallId && (
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                  <div className="flex items-center gap-2 font-semibold mb-1">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    Sin convocatoria seleccionada
+                  </div>
+                  <p>Debes seleccionar una convocatoria en el selector de arriba antes de crear un postulante.</p>
+                </div>
+              )}
 
               {/* Campos siempre visibles (básicos) */}
               <div className="grid gap-3 md:grid-cols-2">
@@ -1375,10 +1392,10 @@ Fundación Carmen Goudie`
                 </button>
                 <button
                   type="submit"
-                  disabled={createLoading}
-                  className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-60"
+                  disabled={createLoading || !selectedCallId}
+                  className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {createLoading ? 'Creando…' : 'Crear'}
+                  {createLoading ? 'Creando…' : !selectedCallId ? 'Selecciona convocatoria' : 'Crear'}
                 </button>
               </div>
             </form>

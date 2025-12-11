@@ -106,6 +106,13 @@ export default function FormBuilderV2() {
 
   async function saveForm() {
     if (!schema) return
+    
+    // ⚠️ VALIDACIÓN CRÍTICA: Debe haber convocatoria seleccionada
+    if (!selectedCallId) {
+      alert('⚠️ Debes seleccionar una convocatoria antes de guardar el formulario')
+      return
+    }
+    
     setSaving(true)
     setError(null)
     try {
@@ -331,11 +338,11 @@ export default function FormBuilderV2() {
 
                   <button
                     onClick={saveForm}
-                    disabled={saving}
-                    className="flex items-center gap-2 px-6 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-50 transition-colors"
+                    disabled={saving || !selectedCallId}
+                    className="flex items-center gap-2 px-6 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <Save className="w-4 h-4" />
-                    {saving ? 'Guardando...' : 'Guardar cambios'}
+                    {saving ? 'Guardando...' : !selectedCallId ? 'Selecciona convocatoria' : 'Guardar cambios'}
                   </button>
                 </>
               )}
@@ -352,11 +359,23 @@ export default function FormBuilderV2() {
 
       {/* Contenido principal */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {!schema ? (
+        {!selectedCallId ? (
+          <div className="text-center py-20">
+            <FileText className="w-16 h-16 text-amber-300 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">Sin convocatoria seleccionada</h2>
+            <p className="text-slate-600 mb-4">Debes seleccionar una convocatoria en el selector de arriba para diseñar el formulario</p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              Usa el selector en la parte superior de la página
+            </div>
+          </div>
+        ) : !schema ? (
           <div className="text-center py-20">
             <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-slate-900 mb-2">No hay formulario seleccionado</h2>
-            <p className="text-slate-600">Selecciona una convocatoria arriba para comenzar a diseñar</p>
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">Cargando formulario...</h2>
+            <p className="text-slate-600">Espera un momento mientras se carga el formulario</p>
           </div>
         ) : (
           <div className="grid lg:grid-cols-3 gap-6">
