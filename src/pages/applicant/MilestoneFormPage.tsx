@@ -335,6 +335,19 @@ export default function MilestoneFormPage() {
   }
 
   async function onSubmit() {
+    // Prevenir múltiples envíos
+    if (submitting) {
+      console.warn('[MilestoneForm] Envío ya en progreso, ignorando...')
+      return
+    }
+
+    // Validar que no haya archivos pendientes sin subir
+    const hasPendingFiles = Object.keys(pendingFiles).length > 0
+    if (hasPendingFiles) {
+      setError('Debes esperar a que se suban todos los archivos antes de enviar el formulario')
+      return
+    }
+
     // Validar que todos los campos requeridos estén completos
     if (progress < 100) {
       setError('Debes completar todos los campos requeridos antes de enviar el formulario')
@@ -345,68 +358,74 @@ export default function MilestoneFormPage() {
     setError(null)
     
     try {
-      // 1. Subir todos los archivos pendientes
-      if (Object.keys(pendingFiles).length > 0) {
-        const uploadedFileIds: Record<string, string> = {}
-        
-        for (const [fieldName, file] of Object.entries(pendingFiles)) {
-          try {
-            const uploadedFile = await filesService.upload(
-              {
-                file,
-                category: 'FORM_FIELD',
-                entityType: 'APPLICATION',
-                entityId: applicationId!,
-                description: `${fieldName} - Submission: ${submissionId || 'pending'}`
-              },
-              token
-            )
-            uploadedFileIds[fieldName] = uploadedFile.file.id
-          } catch (err: any) {
-            throw new Error(`Error al subir ${fieldName}: ${err.message}`)
-          }
-        }
-        
-        // Actualizar valores con los IDs de archivos subidos
-        setValues(prev => {
-          const updated = { ...prev }
-          for (const [fieldName, fileId] of Object.entries(uploadedFileIds)) {
-            updated[fieldName] = fileId
-          }
-          return updated
-        })
-        
-        // Limpiar archivos pendientes
-        setPendingFiles({})
-      }
+      console.log('[MilestoneForm] Iniciando envío del formulario...')
+      console.log('[MilestoneForm] Valores a guardar:', values)
 
-      // 2. Guardar antes de enviar (auto-save ya debería haberlo hecho, pero por seguridad)
+      // 1. Guardar el borrador con los valores finales (archivos ya están subidos)
       await onSaveDraft()
 
       if (!submissionId) {
-        setError('Error: No se pudo crear la presentación del formulario')
-        return
+        throw new Error('No se pudo crear la presentación del formulario')
       }
 
-      // 3. Marcar como enviado - esto cambiará el milestone a COMPLETED
+      // 2. Marcar como enviado - esto cambiará el milestone a COMPLETED
       const res = await fetch(`${API_BASE}/form-submissions/${submissionId}/submit`, {
         method: 'POST',
         headers,
       })
-      if (!res.ok) throw new Error(await safeError(res))
+      if (!res.ok) {
+        const errorText = await safeError(res)
+        throw new Error(`Error al enviar: ${errorText}`)
+      }
 
-      // 4. Redirigir al dashboard
+      console.log('[MilestoneForm] Formulario enviado exitosamente')
+
+      // 3. Redirigir al dashboard
       navigate('/applicant', { replace: true })
     } catch (err: any) {
-      setError(err.message ?? 'No se pudo enviar el formulario')
-    } finally {
+      console.error('[MilestoneForm] Error al enviar:', err)
+      setError(err.message ?? 'No se pudo enviar el formulario. Por favor, intenta nuevamente.')
       setSubmitting(false)
     }
   }
 
-  function onChange(name: string, next: any) {
+  async function onChange(name: string, next: any) {
     if (isReadOnly) return // No permitir cambios en modo solo lectura
-    setValues((s) => ({ ...s, [name]: next }))
+    
+    // Si es un archivo pendiente, subirlo inmediatamente
+    if (next === '__PENDING__' && pendingFiles[name]) {
+      try {
+        const file = pendingFiles[name]
+        console.log(`[MilestoneForm] Subiendo archivo para ${name}:`, file.name)
+        
+        const uploadedFile = await filesService.upload(
+          {
+            file,
+            category: 'FORM_FIELD',
+            entityType: 'APPLICATION',
+            entityId: applicationId!,
+            description: `${name} - Formulario de postulación`
+          },
+          token
+        )
+        
+        console.log(`[MilestoneForm] Archivo ${name} subido:`, uploadedFile.file.id)
+        
+        // Actualizar con el ID del archivo y limpiar de pendientes
+        setValues((s) => ({ ...s, [name]: uploadedFile.file.id }))
+        setPendingFiles((prev) => {
+          const updated = { ...prev }
+          delete updated[name]
+          return updated
+        })
+      } catch (err: any) {
+        console.error(`[MilestoneForm] Error al subir ${name}:`, err)
+        // No actualizar el valor si falló la subida
+        setError(`Error al subir ${name}: ${err.message}`)
+      }
+    } else {
+      setValues((s) => ({ ...s, [name]: next }))
+    }
   }
 
   const progress = useMemo(() => {

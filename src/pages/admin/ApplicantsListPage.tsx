@@ -842,8 +842,35 @@ Fundación Carmen Goudie`
     }
   }
 
+  function formatRut(value: string): string {
+    // Eliminar todo excepto números y K
+    const clean = value.replace(/[^0-9kK]/g, '').toUpperCase()
+    
+    // Si está vacío, devolver vacío
+    if (!clean) return ''
+    
+    // Separar cuerpo y dígito verificador
+    const body = clean.slice(0, -1)
+    const dv = clean.slice(-1)
+    
+    // Si solo hay un dígito, devolverlo sin formato
+    if (body.length === 0) return dv
+    
+    // Formatear el cuerpo con puntos
+    const formatted = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+    
+    // Devolver con guión
+    return `${formatted}-${dv}`
+  }
+
   function onChange<K extends keyof typeof createForm>(k: K, v: (typeof createForm)[K]) {
-    setCreateForm((s) => ({ ...s, [k]: v }))
+    // Si es el campo RUT, formatearlo automáticamente
+    if (k === 'rut' && typeof v === 'string') {
+      const formatted = formatRut(v)
+      setCreateForm((s) => ({ ...s, [k]: formatted as any }))
+    } else {
+      setCreateForm((s) => ({ ...s, [k]: v }))
+    }
   }
 
   async function createApplicant(e: React.FormEvent) {
@@ -1270,14 +1297,14 @@ Fundación Carmen Goudie`
                 </div>
 
                 <div className="space-y-1 md:col-span-2">
-                  <label className="text-sm font-medium">RUT *</label>
+                  <label className="text-sm font-medium">RUT * <span className="text-xs text-gray-500 font-normal">(solo números, se formatea automáticamente)</span></label>
                   <input
                     type="text"
                     required
                     value={createForm.rut}
                     onChange={(e) => onChange('rut', e.target.value)}
                     className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                    placeholder="12.345.678-9"
+                    placeholder="123456789 (se formatea automáticamente a 12.345.678-9)"
                   />
                 </div>
 

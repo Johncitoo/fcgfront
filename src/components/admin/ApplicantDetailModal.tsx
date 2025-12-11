@@ -212,23 +212,23 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
               <img 
                 src={`${API_BASE}/files/${fileId}/view`} 
                 alt={fileMetadata?.originalFilename || 'Imagen'}
-                className="w-20 h-20 object-cover rounded border"
+                className="w-20 h-20 object-cover rounded border border-gray-300 dark:border-gray-600"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none'
                 }}
               />
             )}
             <div className="flex-1">
-              <div className="font-medium text-sm">
+              <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
                 {fileMetadata?.originalFilename || `Archivo (${fileId.substring(0, 8)}...)`}
               </div>
               {fileMetadata && (
-                <div className="text-xs text-gray-500">{formatFileSize(fileMetadata.size)}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{formatFileSize(fileMetadata.size)}</div>
               )}
             </div>
             <button
               onClick={() => downloadFile(fileId, fileMetadata?.originalFilename || 'archivo')}
-              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-1"
+              className="px-2 py-1 text-xs bg-blue-500 dark:bg-blue-600 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-700 flex items-center gap-1"
             >
               <Download className="w-3 h-3" />
               Descargar
@@ -240,23 +240,23 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
       // Si hay valor pero no es UUID
       if (value) {
         return (
-          <div className="text-sm text-gray-500 italic">
+          <div className="text-sm text-gray-500 dark:text-gray-400 italic">
             Valor no válido: {typeof value === 'string' ? value : JSON.stringify(value)}
           </div>
         )
       }
       
-      return <div className="text-sm text-gray-400 italic">Sin archivo</div>
+      return <div className="text-sm text-gray-400 dark:text-gray-500 italic">Sin archivo</div>
     }
 
     // Para otros tipos de campo
-    if (!value) return <div className="text-sm text-gray-400 italic">Sin respuesta</div>
+    if (!value) return <div className="text-sm text-gray-400 dark:text-gray-500 italic">Sin respuesta</div>
     
     if (typeof value === 'object') {
-      return <pre className="text-sm bg-gray-50 p-2 rounded">{JSON.stringify(value, null, 2)}</pre>
+      return <pre className="text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2 rounded border border-gray-200 dark:border-gray-700">{JSON.stringify(value, null, 2)}</pre>
     }
     
-    return <div className="text-gray-600">{String(value)}</div>
+    return <div className="text-gray-600 dark:text-gray-300">{String(value)}</div>
   }
 
   function downloadFile(fileId: string, filename: string) {
@@ -293,27 +293,27 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-slideUp">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-slideUp">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
-          <h2 className="text-xl font-bold text-gray-800">Detalles del Postulante</h2>
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-800">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Detalles del Postulante</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 hover:bg-white/50 rounded-full p-1 transition-all duration-200"
+            className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-full p-1 transition-all duration-200"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="border-b bg-gray-50/50">
+        <div className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
           <div className="flex px-6">
             <button
               onClick={() => setActiveTab('info')}
               className={`px-4 py-3 font-medium text-sm border-b-2 transition-all duration-200 ${
                 activeTab === 'info'
-                  ? 'border-blue-500 text-blue-600 bg-white'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-white/60'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/60 dark:hover:bg-gray-800/60'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -325,8 +325,8 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
               onClick={() => setActiveTab('forms')}
               className={`px-4 py-3 font-medium text-sm border-b-2 transition-all duration-200 ${
                 activeTab === 'forms'
-                  ? 'border-blue-500 text-blue-600 bg-white'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-white/60'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/60 dark:hover:bg-gray-800/60'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -338,8 +338,8 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
               onClick={() => setActiveTab('files')}
               className={`px-4 py-3 font-medium text-sm border-b-2 transition-all duration-200 ${
                 activeTab === 'files'
-                  ? 'border-blue-500 text-blue-600 bg-white'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-white/60'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/60 dark:hover:bg-gray-800/60'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -367,26 +367,26 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-start gap-3">
-                      <User className="w-5 h-5 text-gray-400 mt-0.5" />
+                      <User className="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" />
                       <div>
-                        <div className="text-sm text-gray-500">Nombre Completo</div>
-                        <div className="font-medium">{applicant.fullName || 'No especificado'}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Nombre Completo</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{applicant.fullName || 'No especificado'}</div>
                       </div>
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
+                      <Mail className="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" />
                       <div>
-                        <div className="text-sm text-gray-500">Email</div>
-                        <div className="font-medium">{applicant.email}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Email</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{applicant.email}</div>
                       </div>
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <Calendar className="w-5 h-5 text-gray-400 mt-0.5" />
+                      <Calendar className="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" />
                       <div>
-                        <div className="text-sm text-gray-500">Fecha de Registro</div>
-                        <div className="font-medium">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Fecha de Registro</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
                           {new Date(applicant.createdAt).toLocaleDateString('es-CL')}
                         </div>
                       </div>
@@ -394,10 +394,10 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
 
                     {applicant.lastLoginAt && (
                       <div className="flex items-start gap-3">
-                        <Calendar className="w-5 h-5 text-gray-400 mt-0.5" />
+                        <Calendar className="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" />
                         <div>
-                          <div className="text-sm text-gray-500">Último Acceso</div>
-                          <div className="font-medium">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">Último Acceso</div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">
                             {new Date(applicant.lastLoginAt).toLocaleDateString('es-CL')}
                           </div>
                         </div>
@@ -408,17 +408,17 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                   {/* Aplicaciones */}
                   {applicant.applications && applicant.applications.length > 0 && (
                     <div className="mt-6">
-                      <h3 className="text-lg font-semibold mb-3">Postulaciones</h3>
+                      <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Postulaciones</h3>
                       <div className="space-y-3">
                         {applicant.applications.map((app) => (
                           <div
                             key={app.id}
-                            className="bg-gradient-to-r from-gray-50 to-blue-50/30 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200"
+                            className="bg-gradient-to-r from-gray-50 to-blue-50/30 dark:from-gray-700 dark:to-blue-900/20 border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-all duration-200"
                           >
                             <div className="flex items-center justify-between">
                               <div>
-                                <div className="font-medium">{app.callName}</div>
-                                <div className="text-sm text-gray-500">Año {app.callYear}</div>
+                                <div className="font-medium text-gray-900 dark:text-gray-100">{app.callName}</div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">Año {app.callYear}</div>
                               </div>
                               <div>
                                 <span
@@ -460,20 +460,20 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                     formSubmissions.map((submission) => (
                       <div
                         key={submission.id}
-                        className="border border-gray-200 rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md"
+                        className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md"
                       >
                         <button
                           onClick={() => toggleFormExpanded(submission.id)}
-                          className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-blue-50 transition-all duration-200"
+                          className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-gray-600 transition-all duration-200"
                         >
                           <div className="flex items-center gap-3">
-                            <FileText className="w-5 h-5 text-gray-400" />
+                            <FileText className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                             <div className="text-left">
-                              <div className="font-medium">
+                              <div className="font-medium text-gray-900 dark:text-gray-100">
                                 Formulario {submission.formId || 'Sin ID'}
                               </div>
                               {submission.submittedAt && (
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
                                   Enviado el{' '}
                                   {new Date(submission.submittedAt).toLocaleDateString('es-CL')}
                                 </div>
@@ -481,23 +481,23 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                             </div>
                           </div>
                           {expandedForm === submission.id ? (
-                            <ChevronUp className="w-5 h-5 text-gray-400" />
+                            <ChevronUp className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                           ) : (
-                            <ChevronDown className="w-5 h-5 text-gray-400" />
+                            <ChevronDown className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                           )}
                         </button>
 
                         {expandedForm === submission.id && (
-                          <div className="p-4 space-y-4 bg-white animate-slideDown">
+                          <div className="p-4 space-y-4 bg-white dark:bg-gray-800 animate-slideDown">
                             {submission.answers && Object.keys(submission.answers).length > 0 ? (
                               formSchemas[submission.formId || '']?.sections?.map((section) => (
                                 <div key={section.id} className="space-y-3">
-                                  <h4 className="font-semibold text-sm text-gray-700 border-b pb-1">{section.title}</h4>
+                                  <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1">{section.title}</h4>
                                   {section.fields
                                     .filter(field => submission.answers[field.name] !== undefined)
                                     .map((field) => (
-                                      <div key={field.id} className="border-l-2 border-blue-200 pl-3 hover:border-blue-400 transition-colors duration-200">
-                                        <div className="text-sm font-medium text-gray-700">{field.label}</div>
+                                      <div key={field.id} className="border-l-2 border-blue-200 dark:border-blue-700 pl-3 hover:border-blue-400 dark:hover:border-blue-500 transition-colors duration-200">
+                                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">{field.label}</div>
                                         <div className="mt-1">
                                           {renderFieldValue(submission.answers[field.name], field.type, field.name)}
                                         </div>
@@ -506,7 +506,7 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                                 </div>
                               ))
                             ) : (
-                              <div className="text-gray-500 text-sm">No hay respuestas registradas</div>
+                              <div className="text-gray-500 dark:text-gray-400 text-sm">No hay respuestas registradas</div>
                             )}
                           </div>
                         )}
@@ -520,30 +520,30 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
               {activeTab === 'files' && (
                 <div className="space-y-3">
                   {files.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                       No hay archivos adjuntos
                     </div>
                   ) : (
                     files.map((file) => (
                       <div
                         key={file.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 hover:shadow-md"
+                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 hover:shadow-md"
                       >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                          <FileText className="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                           <div className="min-w-0 flex-1">
-                            <div className="font-medium truncate">{file.originalFilename}</div>
-                            <div className="text-sm text-gray-500">
+                            <div className="font-medium truncate text-gray-900 dark:text-gray-100">{file.originalFilename}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
                               {formatFileSize(file.size)} • {file.mimetype}
                             </div>
                             {file.description && (
-                              <div className="text-sm text-gray-600 mt-1">{file.description}</div>
+                              <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">{file.description}</div>
                             )}
                           </div>
                         </div>
                         <button
                           onClick={() => downloadFile(file.id, file.originalFilename)}
-                          className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 hover:shadow-lg transition-all duration-200 flex-shrink-0 ml-4 active:scale-95"
+                          className="flex items-center gap-2 px-3 py-2 bg-blue-500 dark:bg-blue-600 text-white rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 hover:shadow-lg transition-all duration-200 flex-shrink-0 ml-4 active:scale-95"
                         >
                           <Download className="w-4 h-4" />
                           Descargar
