@@ -87,13 +87,6 @@ export default function MilestoneFormPage() {
   
   // Estado para archivos pendientes de subir
   const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({})
-  
-  // Estados para cambio de contraseña
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordError, setPasswordError] = useState('')
-  const [passwordSuccess, setPasswordSuccess] = useState(false)
-  const [changingPassword, setChangingPassword] = useState(false)
 
   const token = localStorage.getItem('fcg.access_token') ?? ''
   const headers = useMemo(
@@ -338,46 +331,6 @@ export default function MilestoneFormPage() {
       setError(err.message ?? 'Error al guardar')
     } finally {
       setSaving(false)
-    }
-  }
-
-  async function handleChangePassword() {
-    setPasswordError('')
-    setPasswordSuccess(false)
-
-    if (!newPassword || newPassword.length < 6) {
-      setPasswordError('La contraseña debe tener al menos 6 caracteres')
-      return
-    }
-
-    if (newPassword !== confirmPassword) {
-      setPasswordError('Las contraseñas no coinciden')
-      return
-    }
-
-    setChangingPassword(true)
-
-    try {
-      const res = await fetch(`${API_BASE}/users/change-password`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ newPassword }),
-      })
-
-      if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.message || 'Error al cambiar contraseña')
-      }
-
-      setPasswordSuccess(true)
-      setNewPassword('')
-      setConfirmPassword('')
-      
-      setTimeout(() => setPasswordSuccess(false), 5000)
-    } catch (err: any) {
-      setPasswordError(err.message || 'Error al cambiar la contraseña')
-    } finally {
-      setChangingPassword(false)
     }
   }
 
@@ -656,100 +609,7 @@ export default function MilestoneFormPage() {
           </div>
         )}
 
-        {/* Sección de cambio de contraseña (solo en primer hito y no readonly) */}
-        {milestone && milestone.orderIndex === 1 && !isReadOnly && (
-          <section className="card mb-6 border-2 border-amber-200 bg-amber-50/50">
-            <div className="card-header bg-gradient-to-r from-amber-100 to-amber-50 border-b border-amber-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-200">
-                  <svg className="w-5 h-5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">
-                    Cambiar Contraseña (Opcional)
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Puedes cambiar tu contraseña temporal por una personalizada
-                  </p>
-                </div>
-              </div>
-            </div>
 
-            <div className="card-body">
-              {passwordSuccess && (
-                <div className="alert alert-success mb-4 animate-fade-in">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span>Contraseña actualizada exitosamente</span>
-                </div>
-              )}
-
-              {passwordError && (
-                <div className="alert alert-error mb-4 animate-shake">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                  <span>{passwordError}</span>
-                </div>
-              )}
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="label">
-                    <span className="label-text font-medium">Nueva Contraseña</span>
-                  </label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="input input-bordered w-full"
-                    placeholder="Mínimo 6 caracteres"
-                    minLength={6}
-                  />
-                </div>
-
-                <div>
-                  <label className="label">
-                    <span className="label-text font-medium">Confirmar Contraseña</span>
-                  </label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="input input-bordered w-full"
-                    placeholder="Repite tu contraseña"
-                    minLength={6}
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <button
-                  onClick={handleChangePassword}
-                  disabled={changingPassword || !newPassword || !confirmPassword}
-                  className="btn btn-warning"
-                >
-                  {changingPassword ? (
-                    <>
-                      <span className="spinner"></span>
-                      Cambiando...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Cambiar Contraseña
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* Sección actual */}
         {schema.sections[currentStep] && (
