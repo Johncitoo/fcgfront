@@ -327,7 +327,7 @@ Fundación Carmen Goudie`
 
     try {
       const res = await authFetch(`${API_BASE}/applicants/delete-by-email/${encodeURIComponent(applicant.email)}`, {
-        method: 'GET',
+        method: 'DELETE',
         headers,
       })
 
