@@ -359,22 +359,83 @@ export default function MilestoneFormPage() {
     
     try {
       console.log('[MilestoneForm] Iniciando envío del formulario...')
-      console.log('[MilestoneForm] Valores a guardar:', values)
+      console.log('[MilestoneForm] Valores originales:', values)
 
-      // 1. Guardar el borrador con los valores finales (archivos ya están subidos)
-      await onSaveDraft()
+      // 1. Subir todos los archivos pendientes (File objects)
+      console.log('[MilestoneForm] Subiendo archivos...')
+      const finalValues = { ...values }
+      
+      for (const [key, value] of Object.entries(values)) {
+        // Si el valor es un File object, subirlo ahora
+        if (value instanceof File) {
+          console.log(`[MilestoneForm] Subiendo archivo ${key}:`, value.name)
+          
+          try {
+            const uploadedFile = await filesService.upload(
+              {
+                file: value,
+                category: 'FORM_FIELD',
+                entityType: 'APPLICATION',
+                entityId: applicationId!,
+                description: `${key} - Formulario de postulación`
+              },
+              token
+            )
+            
+            console.log(`[MilestoneForm] Archivo ${key} subido exitosamente:`, uploadedFile.file.id)
+            finalValues[key] = uploadedFile.file.id
+          } catch (err: any) {
+            console.error(`[MilestoneForm] Error subiendo ${key}:`, err)
+            throw new Error(`Error al subir ${key}: ${err.message}`)
+          }
+        }
+      }
+      
+      console.log('[MilestoneForm] Valores finales con archivos:', finalValues)
 
+      // 2. Guardar el borrador con los IDs de archivos
       if (!submissionId) {
-        throw new Error('No se pudo crear la presentación del formulario')
+        // Crear submission si no existe
+        const createRes = await fetch(`${API_BASE}/form-submissions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            applicationId,
+            milestoneId: milestone?.milestoneId,
+            formId: milestone?.formId,
+            answers: finalValues,
+          }),
+        })
+        if (!createRes.ok) throw new Error('No se pudo crear la presentación')
+        const data = await createRes.json()
+        setSubmissionId(data.id)
+      } else {
+        // Actualizar submission existente
+        await fetch(`${API_BASE}/form-submissions/${submissionId}`, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({ answers: finalValues }),
+        })
       }
 
-      // 2. Marcar como enviado - esto cambiará el milestone a COMPLETED
+      const finalSubmissionId = submissionId || (await fetch(`${API_BASE}/form-submissions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          applicationId,
+          milestoneId: milestone?.milestoneId,
+          formId: milestone?.formId,
+          answers: finalValues,
+        }),
+      }).then(r => r.json()).then(d => d.id))
+
+      // 3. Marcar como enviado
       const currentUser = authService.getCurrentUser()
       if (!currentUser?.id) {
         throw new Error('No se pudo identificar al usuario')
       }
 
-      const res = await fetch(`${API_BASE}/form-submissions/${submissionId}/submit`, {
+      const res = await fetch(`${API_BASE}/form-submissions/${finalSubmissionId}/submit`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ userId: currentUser.id }),
@@ -417,8 +478,10 @@ export default function MilestoneFormPage() {
     const filled = allFields.filter(f => {
       const val = values[f.name]
       if (Array.isArray(val)) return val.length > 0
-      // Considerar archivos pendientes como completados
-      if (val === '__PENDING__') return true
+      // Considerar File objects como completados
+      if (val instanceof File) return true
+      // Considerar IDs de archivos como completados
+      if (typeof val === 'string' && val.length > 0 && f.type === 'file' || f.type === 'image') return true
       return val !== '' && val !== null && val !== undefined
     })
     return Math.round((filled.length / allFields.length) * 100)
@@ -430,8 +493,10 @@ export default function MilestoneFormPage() {
     return requiredFields.every(f => {
       const val = values[f.name]
       if (Array.isArray(val)) return val.length > 0
-      // Considerar archivos pendientes como completados
-      if (val === '__PENDING__') return true
+      // Considerar File objects como completados
+      if (val instanceof File) return true
+      // Considerar IDs de archivos como completados
+      if (typeof val === 'string' && val.length > 0 && (f.type === 'file' || f.type === 'image')) return true
       return val !== '' && val !== null && val !== undefined
     })
   }
@@ -889,6 +954,13 @@ function FieldControl({
     uploading: false
   })
   
+  // Sincronizar fileState con value cuando value es un File object
+  useEffect(() => {
+    if (value instanceof File && fileState.file !== value) {
+      setFileState({ file: value, uploading: false, error: undefined })
+    }
+  }, [value])
+  
   const {
     name,
     label,
@@ -1167,44 +1239,12 @@ function FieldControl({
               return
             }
             
-            // Validación exitosa - mostrar el archivo y subirlo inmediatamente
-            setFileState({ file, uploading: true, error: undefined })
+            // Validación exitosa - guardar el archivo localmente sin subirlo
+            setFileState({ file, uploading: false, error: undefined })
             
-            // Subir el archivo inmediatamente (sin esperar a onChange)
-            if (applicationId && token) {
-              (async () => {
-                try {
-                  console.log(`[FileUpload] Subiendo archivo ${name}:`, file.name)
-                  
-                  const uploadedFile = await filesService.upload(
-                    {
-                      file,
-                      category: 'FORM_FIELD',
-                      entityType: 'APPLICATION',
-                      entityId: applicationId,
-                      description: `${name} - Formulario de postulación`
-                    },
-                    token
-                  )
-                  
-                  console.log(`[FileUpload] Archivo ${name} subido exitosamente:`, uploadedFile.file.id)
-                  
-                  // Actualizar con el ID del archivo
-                  setFileState({ file, uploading: false, error: undefined, fileId: uploadedFile.file.id })
-                  onChange(name, uploadedFile.file.id)
-                } catch (err: any) {
-                  console.error(`[FileUpload] Error al subir ${name}:`, err)
-                  console.error(`[FileUpload] Error response:`, err.response?.data)
-                  
-                  const errorMessage = err.response?.data?.message || err.message || 'Error desconocido'
-                  setFileState({ 
-                    file: null, 
-                    uploading: false, 
-                    error: `Error al subir: ${errorMessage}` 
-                  })
-                }
-              })()
-            }
+            // Guardar el File object en values (se subirá al enviar el formulario)
+            console.log(`[FileUpload] Archivo ${name} seleccionado:`, file.name, '(se subirá al enviar el formulario)')
+            onChange(name, file)
           }}
           onFileRemove={() => {
             setFileState({ file: null, uploading: false })
