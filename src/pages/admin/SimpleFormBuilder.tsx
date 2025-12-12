@@ -211,16 +211,11 @@ export default function SimpleFormBuilder() {
       })
       if (res.ok) {
         const data = await res.json()
-        console.log('[SimpleFormBuilder] Form cargado:', {
-          id: data.id,
-          title: data.title,
-          hasSchema: !!data.schema,
-          sectionsInSchema: data.schema?.sections?.length || 0,
-          sectionsInRoot: data.sections?.length || 0
-        })
+        console.log('[SimpleFormBuilder] RESPUESTA COMPLETA del GET:', JSON.stringify(data, null, 2))
         
         // Extraer sections del schema si existe
         const sections = data.schema?.sections || data.sections || []
+        console.log('[SimpleFormBuilder] Sections extraídas:', sections.length, 'secciones')
         
         setFormData({
           id: data.id,
@@ -259,12 +254,8 @@ export default function SimpleFormBuilder() {
       if (milestone?.formId) {
         // Actualizar - eliminar id del payload
         console.log('[SimpleFormBuilder] PATCH a /forms/' + milestone.formId)
-        console.log('[SimpleFormBuilder] Payload:', {
-          title: formData.title,
-          description: formData.description,
-          sectionsCount: formData.sections.length
-        })
         const { id, ...formDataWithoutId } = formData
+        console.log('[SimpleFormBuilder] Payload COMPLETO que se enviará:', JSON.stringify(formDataWithoutId, null, 2))
         const res = await fetch(`${API_BASE}/forms/${milestone.formId}`, {
           method: 'PATCH',
           headers: {
@@ -283,10 +274,7 @@ export default function SimpleFormBuilder() {
         }
         
         const updated = await res.json()
-        console.log('[SimpleFormBuilder] Form actualizado:', {
-          id: updated.id,
-          sectionsInSchema: updated.schema?.sections?.length || 0
-        })
+        console.log('[SimpleFormBuilder] RESPUESTA BACKEND después de PATCH:', JSON.stringify(updated, null, 2))
       } else {
         // Crear - NO incluir milestoneId en el payload (el DTO no lo acepta)
         console.log('[SimpleFormBuilder] POST a /forms')
