@@ -200,10 +200,24 @@ export default function SimpleFormBuilder() {
         })
         return
       }
-      const res = await fetch(`${API_BASE}/forms/${milestone.formId}`, { headers })
+      // Cache-busting: agregar timestamp para evitar cache del navegador
+      const timestamp = Date.now()
+      const res = await fetch(`${API_BASE}/forms/${milestone.formId}?_t=${timestamp}`, { 
+        headers: {
+          ...headers,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      })
       if (res.ok) {
         const data = await res.json()
-        console.log('[SimpleFormBuilder] Form cargado:', data)
+        console.log('[SimpleFormBuilder] Form cargado:', {
+          id: data.id,
+          title: data.title,
+          hasSchema: !!data.schema,
+          sectionsInSchema: data.schema?.sections?.length || 0,
+          sectionsInRoot: data.sections?.length || 0
+        })
         
         // Extraer sections del schema si existe
         const sections = data.schema?.sections || data.sections || []
@@ -245,10 +259,19 @@ export default function SimpleFormBuilder() {
       if (milestone?.formId) {
         // Actualizar - eliminar id del payload
         console.log('[SimpleFormBuilder] PATCH a /forms/' + milestone.formId)
+        console.log('[SimpleFormBuilder] Payload:', {
+          title: formData.title,
+          description: formData.description,
+          sectionsCount: formData.sections.length
+        })
         const { id, ...formDataWithoutId } = formData
         const res = await fetch(`${API_BASE}/forms/${milestone.formId}`, {
           method: 'PATCH',
-          headers,
+          headers: {
+            ...headers,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          },
           body: JSON.stringify(formDataWithoutId)
         })
         console.log('[SimpleFormBuilder] PATCH response:', res.status, res.ok)
@@ -258,6 +281,12 @@ export default function SimpleFormBuilder() {
           console.error('[SimpleFormBuilder] Error PATCH:', error)
           throw new Error('Error al actualizar: ' + error)
         }
+        
+        const updated = await res.json()
+        console.log('[SimpleFormBuilder] Form actualizado:', {
+          id: updated.id,
+          sectionsInSchema: updated.schema?.sections?.length || 0
+        })
       } else {
         // Crear
         console.log('[SimpleFormBuilder] POST a /forms')
@@ -284,8 +313,16 @@ export default function SimpleFormBuilder() {
           throw new Error('Error al crear: ' + error)
         }
       }
+      
+      console.log('[SimpleFormBuilder] Guardado exitoso, recargando...')
+      
+      // Recargar el formulario ANTES de mostrar el alert para asegurar que se vea
+      await loadForm()
+      
+      // Pequeña pausa para asegurar que el estado se actualice
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       alert('✅ Formulario guardado correctamente')
-      await loadForm() // Recargar el formulario para ver los cambios
     } catch (err: any) {
       console.error('[SimpleFormBuilder] Error al guardar:', err)
       alert('❌ Error al guardar: ' + err.message)

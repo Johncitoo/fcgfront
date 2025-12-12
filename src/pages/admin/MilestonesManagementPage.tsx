@@ -57,9 +57,14 @@ export default function MilestonesManagementPage() {
     try {
       setLoading(true)
       setError(null)
+      console.log('[MilestonesManagement] Cargando hitos para call:', selectedCallId)
       const data = await apiGet<Milestone[]>(`/milestones/call/${selectedCallId}`)
-      setMilestones(data.sort((a: Milestone, b: Milestone) => a.orderIndex - b.orderIndex))
+      console.log('[MilestonesManagement] Hitos recibidos:', data.length)
+      const sorted = data.sort((a: Milestone, b: Milestone) => a.orderIndex - b.orderIndex)
+      setMilestones(sorted)
+      console.log('[MilestonesManagement] Hitos ordenados y guardados en estado')
     } catch (err: any) {
+      console.error('[MilestonesManagement] Error al cargar hitos:', err)
       setError(err.response?.data?.message || 'Error al cargar hitos')
     } finally {
       setLoading(false)
@@ -123,14 +128,20 @@ export default function MilestonesManagementPage() {
       }
 
       if (editingMilestone) {
+        console.log('[MilestonesManagement] Actualizando hito:', editingMilestone.id)
         await apiPatch(`/milestones/${editingMilestone.id}`, payload)
         setSuccess('Hito actualizado correctamente')
       } else {
-        await apiPost('/milestones', payload)
+        console.log('[MilestonesManagement] Creando hito nuevo:', payload)
+        const newMilestone = await apiPost('/milestones', payload)
+        console.log('[MilestonesManagement] Hito creado:', newMilestone)
         setSuccess('Hito creado correctamente')
       }
 
+      console.log('[MilestonesManagement] Recargando lista de hitos...')
       await loadMilestones()
+      console.log('[MilestonesManagement] Lista recargada, total hitos:', milestones.length)
+      
       handleCloseModal()
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al guardar hito')
