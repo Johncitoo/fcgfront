@@ -51,7 +51,7 @@ export default function EnterCodePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 grid place-items-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 grid place-items-center p-6">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="mb-8 text-center">
@@ -60,17 +60,17 @@ export default function EnterCodePage() {
               F
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Ingresar con código</h1>
-          <p className="text-slate-600 dark:text-slate-400">
-            Ingresa el <span className="font-semibold text-slate-900 dark:text-slate-100">correo</span> con el que fuiste invitado y tu{' '}
-            <span className="font-semibold text-slate-900 dark:text-slate-100">código único</span>.
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Ingresar con código</h1>
+          <p className="text-slate-600">
+            Ingresa el <span className="font-semibold text-slate-900">correo</span> con el que fuiste invitado y tu{' '}
+            <span className="font-semibold text-slate-900">código único</span>.
           </p>
         </div>
 
         {/* Form Card */}
         <form
           onSubmit={onSubmit}
-          className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg p-6"
+          className="rounded-xl border border-slate-200 bg-white shadow-lg p-6"
           aria-describedby={error ? 'code-error' : undefined}
         >
           <div className="space-y-5">
@@ -78,7 +78,7 @@ export default function EnterCodePage() {
               <div
                 id="code-error"
                 role="alert"
-                className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-300"
+                className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
               >
                 <div className="flex items-start gap-3">
                   <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -92,7 +92,7 @@ export default function EnterCodePage() {
             {okMsg && (
               <div
                 role="status"
-                className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300"
+                className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
               >
                 <div className="flex items-start gap-3">
                   <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -104,7 +104,7 @@ export default function EnterCodePage() {
             )}
 
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700">
                 Correo invitado
               </label>
               <input
@@ -114,13 +114,13 @@ export default function EnterCodePage() {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400 focus:border-transparent transition-all"
+                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                 placeholder="alumno@colegio.cl"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="code" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label htmlFor="code" className="block text-sm font-medium text-slate-700">
                 Código de invitación
               </label>
               <input
@@ -129,10 +129,10 @@ export default function EnterCodePage() {
                 required
                 value={code}
                 onChange={(e) => setCode(e.target.value.trim())}
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 uppercase tracking-wide font-mono focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400 focus:border-transparent transition-all"
+                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 uppercase tracking-wide font-mono focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                 placeholder="FCG-ABC123"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <p className="text-xs text-slate-500 flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -143,7 +143,7 @@ export default function EnterCodePage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 rounded-lg bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full px-6 py-3 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -158,16 +158,16 @@ export default function EnterCodePage() {
               )}
             </button>
 
-            <div className="text-center text-sm text-slate-600 dark:text-slate-400">
+            <div className="text-center text-sm text-slate-600">
               <span>¿Ya tienes usuario y contraseña? </span>
-              <Link to="/login" className="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 hover:underline font-medium">
+              <Link to="/login" className="text-sky-600 hover:text-sky-700 hover:underline font-medium">
                 Inicia sesión
               </Link>
             </div>
           </div>
         </form>
 
-        <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-600">
+        <p className="mt-6 text-center text-xs text-slate-500">
           © {new Date().getFullYear()} Fundación Carmen Goudie
         </p>
       </div>

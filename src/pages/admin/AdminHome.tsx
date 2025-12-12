@@ -221,7 +221,7 @@ export default function AdminHome() {
   if (!activeCall) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
-        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 p-6">
+        <Card className="border-amber-200 bg-amber-50 p-6">
           <div className="flex items-center gap-4">
             <div className="rounded-full bg-amber-100 p-3">
               <AlertCircle className="h-6 w-6 text-amber-600" />
@@ -239,7 +239,7 @@ export default function AdminHome() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
-        <Card className="p-12 dark:bg-slate-800 dark:border-slate-700">
+        <Card className="p-12">
           <div className="flex flex-col items-center gap-4">
             <Activity className="h-12 w-12 animate-spin text-sky-600" />
             <p className="mt-4 text-lg font-semibold text-slate-700">Cargando estadísticas...</p>
@@ -252,7 +252,7 @@ export default function AdminHome() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
-        <Card className="border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-700 p-6">
+        <Card className="border-rose-200 bg-rose-50 p-6">
           <div className="flex items-center gap-4">
             <div className="rounded-full bg-rose-100 p-3">
               <AlertCircle className="h-6 w-6 text-rose-600" />
@@ -268,15 +268,15 @@ export default function AdminHome() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-900 to-sky-700 dark:from-slate-100 dark:to-sky-400 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-900 to-sky-700 bg-clip-text text-transparent">
                 Panel de Control
               </h1>
-              <p className="mt-1 text-slate-600 dark:text-slate-300">Dashboard administrativo - {activeCall.name}</p>
+              <p className="mt-1 text-slate-600">Dashboard administrativo - {activeCall.name}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="gap-1.5 bg-green-100 text-green-700 border-green-300">
@@ -294,7 +294,7 @@ export default function AdminHome() {
         <div className="space-y-6">
           {/* 4 Tarjetas de Métricas Principales */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
-            <Card className="border-l-4 border-l-blue-500 hover:shadow-lg transition-shadow animate-slide-up dark:bg-slate-800 dark:border-slate-700 dark:border-l-blue-400" style={{ animationDelay: '0.1s' }}>
+            <Card className="border-l-4 border-l-blue-500 hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: '0.1s' }}>
               <CardHeader className="pb-3">
                 <CardDescription className="uppercase text-xs font-semibold tracking-wide">Total Postulantes</CardDescription>
               </CardHeader>
@@ -314,7 +314,7 @@ export default function AdminHome() {
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-purple-500 hover:shadow-lg transition-shadow animate-slide-up dark:bg-slate-800 dark:border-slate-700 dark:border-l-purple-400" style={{ animationDelay: '0.2s' }}>
+            <Card className="border-l-4 border-l-purple-500 hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: '0.2s' }}>
               <CardHeader className="pb-3">
                 <CardDescription className="uppercase text-xs font-semibold tracking-wide">Postulaciones</CardDescription>
               </CardHeader>
@@ -334,7 +334,7 @@ export default function AdminHome() {
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-amber-500 hover:shadow-lg transition-shadow animate-slide-up dark:bg-slate-800 dark:border-slate-700 dark:border-l-amber-400" style={{ animationDelay: '0.3s' }}>
+            <Card className="border-l-4 border-l-amber-500 hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: '0.3s' }}>
               <CardHeader className="pb-3">
                 <CardDescription className="uppercase text-xs font-semibold tracking-wide">Pendientes de Revisión</CardDescription>
               </CardHeader>
@@ -354,7 +354,7 @@ export default function AdminHome() {
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-green-500 hover:shadow-lg transition-shadow animate-slide-up dark:bg-slate-800 dark:border-slate-700 dark:border-l-green-400" style={{ animationDelay: '0.4s' }}>
+            <Card className="border-l-4 border-l-green-500 hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: '0.4s' }}>
               <CardHeader className="pb-3">
                 <CardDescription className="uppercase text-xs font-semibold tracking-wide">Becas Aprobadas</CardDescription>
               </CardHeader>
@@ -377,7 +377,7 @@ export default function AdminHome() {
 
           {/* Distribución por Estado y Top Instituciones */}
           <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="animate-slide-up dark:bg-slate-800 dark:border-slate-700" style={{ animationDelay: '0.5s' }}>
+            <Card className="animate-slide-up" style={{ animationDelay: '0.5s' }}>
               <CardHeader className="border-b bg-slate-50/50">
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-sky-600" />
@@ -397,7 +397,7 @@ export default function AdminHome() {
               </CardContent>
             </Card>
 
-            <Card className="animate-slide-up dark:bg-slate-800 dark:border-slate-700" style={{ animationDelay: '0.6s' }}>
+            <Card className="animate-slide-up" style={{ animationDelay: '0.6s' }}>
               <CardHeader className="border-b bg-slate-50/50">
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-sky-600" />
@@ -427,7 +427,7 @@ export default function AdminHome() {
 
           {/* Distribución por Género y Top Comunas */}
           <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="animate-slide-up dark:bg-slate-800 dark:border-slate-700" style={{ animationDelay: '0.7s' }}>
+            <Card className="animate-slide-up" style={{ animationDelay: '0.7s' }}>
               <CardHeader className="border-b bg-gradient-to-r from-pink-50 to-purple-50">
                 <CardTitle className="flex items-center gap-2">
                   <PieChartIcon className="h-5 w-5 text-purple-600" />
@@ -465,7 +465,7 @@ export default function AdminHome() {
               </CardContent>
             </Card>
 
-            <Card className="animate-slide-up dark:bg-slate-800 dark:border-slate-700" style={{ animationDelay: '0.8s' }}>
+            <Card className="animate-slide-up" style={{ animationDelay: '0.8s' }}>
               <CardHeader className="border-b bg-gradient-to-r from-green-50 to-emerald-50">
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-green-600" />
@@ -506,7 +506,7 @@ export default function AdminHome() {
 
           {/* Distribución por Puntaje y Timeline */}
           <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="animate-slide-up dark:bg-slate-800 dark:border-slate-700" style={{ animationDelay: '0.9s' }}>
+            <Card className="animate-slide-up" style={{ animationDelay: '0.9s' }}>
               <CardHeader className="border-b bg-gradient-to-r from-amber-50 to-orange-50">
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-amber-600" />
@@ -533,7 +533,7 @@ export default function AdminHome() {
               </CardContent>
             </Card>
 
-            <Card className="animate-slide-up dark:bg-slate-800 dark:border-slate-700" style={{ animationDelay: '1s' }}>
+            <Card className="animate-slide-up" style={{ animationDelay: '1s' }}>
               <CardHeader className="border-b bg-gradient-to-r from-sky-50 to-blue-50">
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-sky-600" />
@@ -562,7 +562,7 @@ export default function AdminHome() {
           </div>
 
           {/* Métricas de Conversión */}
-          <Card className="animate-slide-up dark:bg-slate-800 dark:border-slate-700" style={{ animationDelay: '1.1s' }}>
+          <Card className="animate-slide-up" style={{ animationDelay: '1.1s' }}>
             <CardHeader className="border-b bg-gradient-to-r from-sky-50 to-blue-50">
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-sky-600" />

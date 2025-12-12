@@ -1040,11 +1040,11 @@ Fundación Carmen Goudie`
   }
 
   return (
-    <div className="min-h-screen p-6 dark:bg-slate-900 dark:text-slate-100">
+    <div className="min-h-screen p-6">
       <div className="mx-auto w-full max-w-6xl">
         <header className="mb-6">
-          <h1 className="text-2xl font-semibold dark:text-slate-100">Postulantes</h1>
-          <p className="text-slate-600 dark:text-slate-300">
+          <h1 className="text-2xl font-semibold">Postulantes</h1>
+          <p className="text-slate-600">
             Ingreso manual, búsqueda y visualización de postulantes.
           </p>
         </header>
@@ -1057,14 +1057,14 @@ Fundación Carmen Goudie`
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Buscar por nombre o correo…"
-              className="flex-1 rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100"
+              className="flex-1 rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
             />
             <button
               onClick={() => {
                 setOffset(0)
                 load()
               }}
-              className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 dark:text-slate-100"
+              className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-slate-50"
             >
               Buscar
             </button>
@@ -1075,7 +1075,7 @@ Fundación Carmen Goudie`
               <>
                 <button
                   onClick={openMilestoneSelection}
-                  className="rounded-md border border-green-600 px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center dark:border-green-500 dark:text-green-400 dark:hover:bg-green-900/20"
+                  className="rounded-md border border-green-600 px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center"
                   title="Descargar respuestas de formularios en CSV"
                 >
                   <Download className="w-4 h-4" />
@@ -1096,25 +1096,25 @@ Fundación Carmen Goudie`
 
         {/* Vista de tabla / cards responsive */}
         {loading ? (
-          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
-            <p className="text-slate-600 dark:text-slate-300">Cargando…</p>
+          <div className="card p-6">
+            <p className="text-slate-600">Cargando…</p>
           </div>
         ) : error ? (
-          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
-            <p className="text-sm text-rose-700 dark:text-rose-400">{error}</p>
+          <div className="card p-6">
+            <p className="text-sm text-rose-700">{error}</p>
           </div>
         ) : rows.length === 0 ? (
-          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
-            <p className="text-center text-slate-500 dark:text-slate-400">No hay registros.</p>
+          <div className="card p-6">
+            <p className="text-center text-slate-500">No hay registros.</p>
           </div>
         ) : (
           <>
             {/* Vista Desktop - Tabla */}
-            <div className="hidden lg:block card overflow-hidden dark:bg-slate-800 dark:border-slate-700">
+            <div className="hidden lg:block card overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                <thead className="text-left text-slate-600 bg-slate-100 dark:bg-slate-900 dark:text-slate-300">
-                  <tr className="border-b dark:border-slate-700">
+                <thead className="text-left text-slate-600 bg-slate-100">
+                  <tr className="border-b">
                     <th className="py-3 pr-3 font-semibold w-44 min-w-[11rem]">Nombre</th>
                     <th className="py-3 pr-3 font-semibold w-32 min-w-[8rem]">RUT</th>
                     <th className="py-3 pr-3 font-semibold w-52 min-w-[13rem]">Correo</th>
@@ -1137,7 +1137,7 @@ Fundación Carmen Goudie`
                       const inviteStatus = inviteStatuses[r.id]
                       
                       return (
-                        <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
+                        <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50">
                           <td className="py-2 pr-3 font-medium !text-slate-900 truncate max-w-[11rem]" title={name}>{name}</td>
                           <td className="py-2 pr-3 font-mono text-xs !text-slate-700">{rut}</td>
                           <td className="py-2 pr-3 !text-slate-700 truncate max-w-[13rem]" title={r.email}>{r.email}</td>
@@ -1227,7 +1227,7 @@ Fundación Carmen Goudie`
                 const inviteStatus = inviteStatuses[r.id]
                 
                 return (
-                  <div key={r.id} className="card p-4 space-y-3 dark:bg-slate-800 dark:border-slate-700">
+                  <div key={r.id} className="card p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold !text-slate-900 truncate">{name}</h3>
@@ -1261,7 +1261,7 @@ Fundación Carmen Goudie`
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 pt-2 border-t dark:border-slate-700">
+                    <div className="flex flex-wrap gap-2 pt-2 border-t">
                       {!inviteStatus ? (
                         <button
                           onClick={() => openInviteModal(r)}
@@ -1369,8 +1369,8 @@ Fundación Carmen Goudie`
       {/* Modal crear */}
       {creating && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4">
-          <div className="w-full max-w-lg rounded-lg border bg-white shadow-lg dark:bg-slate-800 dark:border-slate-700">
-            <div className="border-b px-5 py-3 dark:border-slate-700">
+          <div className="w-full max-w-lg rounded-lg border bg-white shadow-lg">
+            <div className="border-b px-5 py-3">
               <div className="text-base font-semibold">Ingresar postulante</div>
             </div>
             <form onSubmit={createApplicant} className="px-5 py-4 space-y-4">
@@ -1774,15 +1774,15 @@ Fundación Carmen Goudie`
       {/* Modal de código rápido */}
       {quickCodeModalOpen && quickCodeApplicant && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md m-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md m-4">
             {/* Header */}
-            <div className="flex items-center justify-between border-b dark:border-slate-700 p-4">
-              <h2 className="text-lg font-semibold dark:text-white">
+            <div className="flex items-center justify-between border-b p-4">
+              <h2 className="text-lg font-semibold">
                 Código de Invitación
               </h2>
               <button
                 onClick={() => setQuickCodeModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                className="text-slate-400 hover:text-slate-600"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1793,37 +1793,37 @@ Fundación Carmen Goudie`
               {quickCodeLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Generando código...</p>
+                  <p className="text-sm text-slate-600">Generando código...</p>
                 </div>
               ) : quickCodeError ? (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                  <p className="text-sm font-medium text-red-900 dark:text-red-300">Error</p>
-                  <p className="text-sm text-red-700 dark:text-red-400">{quickCodeError}</p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm font-medium text-red-900">Error</p>
+                  <p className="text-sm text-red-700">{quickCodeError}</p>
                 </div>
               ) : quickGeneratedCode ? (
                 <>
-                  <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-2">
-                    <p className="text-sm dark:text-slate-300">
+                  <div className="bg-slate-50 rounded-lg p-4 space-y-2">
+                    <p className="text-sm">
                       <strong>Postulante:</strong> {quickCodeApplicant.firstName && quickCodeApplicant.lastName 
                         ? `${quickCodeApplicant.firstName} ${quickCodeApplicant.lastName}`
                         : quickCodeApplicant.fullName || quickCodeApplicant.email}
                     </p>
-                    <p className="text-sm dark:text-slate-300">
+                    <p className="text-sm">
                       <strong>Email:</strong> {quickCodeApplicant.email}
                     </p>
                     {selectedCall && (
-                      <p className="text-sm dark:text-slate-300">
+                      <p className="text-sm">
                         <strong>Convocatoria:</strong> {selectedCall.name}
                       </p>
                     )}
                   </div>
 
-                  <div className="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
-                    <p className="text-xs font-medium text-purple-900 dark:text-purple-300 mb-2">
+                  <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
+                    <p className="text-xs font-medium text-purple-900 mb-2">
                       CÓDIGO DE INVITACIÓN
                     </p>
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 text-2xl font-mono font-bold text-purple-600 dark:text-purple-400 bg-white dark:bg-slate-800 px-4 py-3 rounded border dark:border-slate-700 text-center tracking-wider">
+                      <code className="flex-1 text-2xl font-mono font-bold text-purple-600 bg-white px-4 py-3 rounded border text-center tracking-wider">
                         {quickGeneratedCode}
                       </code>
                       <button
@@ -1839,22 +1839,22 @@ Fundación Carmen Goudie`
                     </div>
                   </div>
 
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                    <p className="text-xs font-medium text-blue-900 dark:text-blue-300 mb-2">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-xs font-medium text-blue-900 mb-2">
                       📋 INSTRUCCIONES PARA EL POSTULANTE
                     </p>
-                    <ol className="text-sm text-blue-800 dark:text-blue-300 space-y-1 list-decimal list-inside">
+                    <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
                       <li>Ingresar al portal de postulaciones</li>
-                      <li>Usar el código: <code className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded font-mono">{quickGeneratedCode}</code></li>
-                      <li>Introducir su email: <code className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded font-mono">{quickCodeApplicant.email}</code></li>
+                      <li>Usar el código: <code className="bg-white px-2 py-0.5 rounded font-mono">{quickGeneratedCode}</code></li>
+                      <li>Introducir su email: <code className="bg-white px-2 py-0.5 rounded font-mono">{quickCodeApplicant.email}</code></li>
                       <li>Crear una contraseña</li>
                       <li>Completar el formulario</li>
                     </ol>
                   </div>
 
-                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 flex items-start gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-green-800 dark:text-green-300">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-start gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-green-800">
                       Código generado exitosamente. Envíalo al postulante por tu medio preferido.
                     </p>
                   </div>
@@ -1863,7 +1863,7 @@ Fundación Carmen Goudie`
             </div>
 
             {/* Footer */}
-            <div className="border-t dark:border-slate-700 p-4 flex justify-end">
+            <div className="border-t p-4 flex justify-end">
               <button
                 onClick={() => setQuickCodeModalOpen(false)}
                 className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"

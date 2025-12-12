@@ -210,7 +210,7 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 p-4 md:grid-cols-2 md:gap-10 md:p-6">
         {/* Columna contextual */}
         <section className="order-2 md:order-1">
@@ -221,33 +221,33 @@ export default function SetPasswordPage() {
                   F
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold leading-tight text-slate-900 dark:text-slate-100">
+                  <h1 className="text-xl font-bold leading-tight text-slate-900">
                     Fundación Carmen Goudie — Becas
                   </h1>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Activar cuenta / Definir contraseña</p>
+                  <p className="text-sm text-slate-600">Activar cuenta / Definir contraseña</p>
                 </div>
               </div>
             </header>
 
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+            <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="p-6 space-y-4">
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">¿Cuándo usar esta página?</h2>
-                <ul className="list-disc space-y-2 pl-5 text-sm text-slate-600 dark:text-slate-400">
+                <h2 className="text-lg font-semibold text-slate-900">¿Cuándo usar esta página?</h2>
+                <ul className="list-disc space-y-2 pl-5 text-sm text-slate-600">
                   <li>
-                    Si recibiste un correo de invitación y necesitas <strong className="text-slate-900 dark:text-slate-100">crear tu clave</strong>.
+                    Si recibiste un correo de invitación y necesitas <strong className="text-slate-900">crear tu clave</strong>.
                   </li>
                   <li>
-                    Si validaste tu <em className="text-sky-600 dark:text-sky-400">código de invitación</em> y quieres continuar con tu acceso.
+                    Si validaste tu <em className="text-sky-600">código de invitación</em> y quieres continuar con tu acceso.
                   </li>
                 </ul>
-                <div className="mt-4 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
-                  <p className="text-sm text-sky-900 dark:text-sky-200">
+                <div className="mt-4 p-3 rounded-lg bg-sky-50 border border-sky-200">
+                  <p className="text-sm text-sky-900">
                     <strong>Recomendación:</strong> usa una contraseña única, con mayúsculas, minúsculas, números y símbolos.
                   </p>
                 </div>
 
                 <div className="pt-2">
-                  <Link to="/login" className="text-sm text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 hover:underline inline-flex items-center gap-1">
+                  <Link to="/login" className="text-sm text-sky-600 hover:text-sky-700 hover:underline inline-flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
@@ -262,55 +262,55 @@ export default function SetPasswordPage() {
         {/* Columna formulario */}
         <section className="order-1 md:order-2">
           <div className="mx-auto w-full max-w-md">
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
+            <div className="rounded-xl border border-slate-200 bg-white shadow-lg">
               <div className="p-6">
-                <h2 className="mb-2 text-xl font-bold text-slate-900 dark:text-slate-100">Definir contraseña</h2>
-                <p className="mb-6 text-sm text-slate-600 dark:text-slate-400">
+                <h2 className="mb-2 text-xl font-bold text-slate-900">Definir contraseña</h2>
+                <p className="mb-6 text-sm text-slate-600">
                   Completa tu correo y elige una nueva contraseña para activar tu acceso.
                 </p>
 
                 {error && (
-                  <div className="mb-4 rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">
+                  <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                     {error}
                   </div>
                 )}
                 {success && (
-                  <div className="mb-4 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">
+                  <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                     {success}
                   </div>
                 )}
 
                 <form onSubmit={onSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Correo *</label>
+                    <label className="block text-sm font-medium text-slate-700">Correo *</label>
                     <input
                       type="email"
                       required
                       disabled
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-slate-100 disabled:opacity-60 disabled:cursor-not-allowed focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 disabled:opacity-60 disabled:cursor-not-allowed focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                       placeholder="tu@correo.cl"
                     />
-                    <p className="text-xs text-slate-500 dark:text-slate-400">El correo viene del código validado y no se puede modificar</p>
+                    <p className="text-xs text-slate-500">El correo viene del código validado y no se puede modificar</p>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Nueva contraseña *</label>
+                    <label className="block text-sm font-medium text-slate-700">Nueva contraseña *</label>
                     <div className="relative">
                       <input
                         type={showPwd ? 'text' : 'password'}
                         required
                         value={pwd}
                         onChange={(e) => setPwd(e.target.value)}
-                        className="w-full px-4 py-2.5 pr-12 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400 focus:border-transparent transition-all"
+                        className="w-full px-4 py-2.5 pr-12 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                         placeholder="••••••••••••"
                         autoComplete="new-password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPwd((s) => !s)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
                         aria-label={showPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                       >
                         {showPwd ? (
@@ -328,35 +328,35 @@ export default function SetPasswordPage() {
 
                     {/* Indicador de calidad */}
                     <PasswordMeter score={strength.score} label={strength.label} />
-                    <div className="mt-2 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
-                      <p className="text-xs font-semibold text-sky-900 dark:text-sky-100 mb-1.5">Requisitos de seguridad:</p>
-                      <ul className="text-xs text-sky-800 dark:text-sky-200 space-y-0.5">
+                    <div className="mt-2 p-3 rounded-lg bg-sky-50 border border-sky-200">
+                      <p className="text-xs font-semibold text-sky-900 mb-1.5">Requisitos de seguridad:</p>
+                      <ul className="text-xs text-sky-800 space-y-0.5">
                         <li className="flex items-center gap-1.5">
-                          <span className={pwd.length >= 12 ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+                          <span className={pwd.length >= 12 ? 'text-emerald-600' : ''}>
                             {pwd.length >= 12 ? '✓' : '○'}
                           </span>
                           Mínimo 12 caracteres
                         </li>
                         <li className="flex items-center gap-1.5">
-                          <span className={/[A-Z]/.test(pwd) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+                          <span className={/[A-Z]/.test(pwd) ? 'text-emerald-600' : ''}>
                             {/[A-Z]/.test(pwd) ? '✓' : '○'}
                           </span>
                           Al menos 1 mayúscula
                         </li>
                         <li className="flex items-center gap-1.5">
-                          <span className={/[a-z]/.test(pwd) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+                          <span className={/[a-z]/.test(pwd) ? 'text-emerald-600' : ''}>
                             {/[a-z]/.test(pwd) ? '✓' : '○'}
                           </span>
                           Al menos 1 minúscula
                         </li>
                         <li className="flex items-center gap-1.5">
-                          <span className={/\d/.test(pwd) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+                          <span className={/\d/.test(pwd) ? 'text-emerald-600' : ''}>
                             {/\d/.test(pwd) ? '✓' : '○'}
                           </span>
                           Al menos 1 número
                         </li>
                         <li className="flex items-center gap-1.5">
-                          <span className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd) ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+                          <span className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd) ? 'text-emerald-600' : ''}>
                             {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd) ? '✓' : '○'}
                           </span>
                           Al menos 1 carácter especial (!@#$%...)
@@ -366,21 +366,21 @@ export default function SetPasswordPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Repite la contraseña *</label>
+                    <label className="block text-sm font-medium text-slate-700">Repite la contraseña *</label>
                     <div className="relative">
                       <input
                         type={showPwd2 ? 'text' : 'password'}
                         required
                         value={pwd2}
                         onChange={(e) => setPwd2(e.target.value)}
-                        className="w-full px-4 py-2.5 pr-12 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400 focus:border-transparent transition-all"
+                        className="w-full px-4 py-2.5 pr-12 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                         placeholder="••••••••••••"
                         autoComplete="new-password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPwd2((s) => !s)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
                         aria-label={showPwd2 ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                       >
                         {showPwd2 ? (
@@ -396,14 +396,14 @@ export default function SetPasswordPage() {
                       </button>
                     </div>
                     {!match && pwd2.length > 0 && (
-                      <p className="text-xs text-rose-600 dark:text-rose-400">Las contraseñas no coinciden.</p>
+                      <p className="text-xs text-rose-600">Las contraseñas no coinciden.</p>
                     )}
                   </div>
 
                   <button
                     type="submit"
                     disabled={loading || !match || pwd.length < 8}
-                    className="w-full px-6 py-3 rounded-lg bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="w-full px-6 py-3 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {loading ? 'Guardando…' : 'Definir contraseña'}
                   </button>
@@ -412,19 +412,19 @@ export default function SetPasswordPage() {
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   <Link 
                     to="/auth/enter-code" 
-                    className="px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 font-medium text-center transition-all"
+                    className="px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-medium text-center transition-all"
                   >
                     Validar código de invitación
                   </Link>
                   <Link 
                     to="/login" 
-                    className="px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 font-medium text-center transition-all"
+                    className="px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-medium text-center transition-all"
                   >
                     Ir al login
                   </Link>
                 </div>
 
-                <p className="mt-4 text-center text-xs text-slate-500 dark:text-slate-400">
+                <p className="mt-4 text-center text-xs text-slate-500">
                   Si no recibiste correo, revisa la carpeta de spam o consulta a tu encargado/a.
                 </p>
               </div>
@@ -551,15 +551,15 @@ function PasswordMeter({ score, label }: { score: 0 | 1 | 2 | 3 | 4; label: stri
             'h-2 flex-1 rounded-full transition-all ' +
             (active
               ? i >= 3
-                ? 'bg-emerald-500 dark:bg-emerald-400'
+                ? 'bg-emerald-500'
                 : i >= 2
-                ? 'bg-amber-500 dark:bg-amber-400'
-                : 'bg-sky-500 dark:bg-sky-400'
-              : 'bg-slate-200 dark:bg-slate-700')
+                ? 'bg-amber-500'
+                : 'bg-sky-500'
+              : 'bg-slate-200')
           return <span key={i} className={cls} />
         })}
       </div>
-      <div className="text-xs font-medium text-slate-600 dark:text-slate-400">{label}</div>
+      <div className="text-xs font-medium text-slate-600">{label}</div>
     </div>
   )
 }

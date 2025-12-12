@@ -144,11 +144,11 @@ export default function InstitutionsPage() {
   }
 
   return (
-    <div className="min-h-screen p-6 dark:bg-slate-900 dark:text-slate-100">
+    <div className="min-h-screen p-6">
       <div className="mx-auto w-full max-w-6xl">
         <header className="mb-6">
-          <h1 className="text-2xl font-semibold dark:text-slate-100">Escuelas/Colegios</h1>
-          <p className="text-slate-600 dark:text-slate-300">
+          <h1 className="text-2xl font-semibold">Escuelas/Colegios</h1>
+          <p className="text-slate-600">
             Gestiona las instituciones educacionales para asignar a los postulantes.
           </p>
         </header>
@@ -160,7 +160,7 @@ export default function InstitutionsPage() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Buscar por nombre o código..."
-              className="flex-1 rounded-md border px-3 py-2 text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100"
+              className="flex-1 rounded-md border px-3 py-2 text-sm"
             />
             <button
               onClick={() => { setOffset(0); load() }}
@@ -184,25 +184,25 @@ export default function InstitutionsPage() {
         </div>
 
         {loading ? (
-          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
-            <p className="text-slate-600 dark:text-slate-300">Cargando…</p>
+          <div className="card p-6">
+            <p className="text-slate-600">Cargando…</p>
           </div>
         ) : error ? (
-          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
-            <p className="text-sm text-rose-700 dark:text-rose-400">{error}</p>
+          <div className="card p-6">
+            <p className="text-sm text-rose-700">{error}</p>
           </div>
         ) : rows.length === 0 ? (
-          <div className="card p-6 dark:bg-slate-800 dark:border-slate-700">
-            <p className="text-center text-slate-500 dark:text-slate-400">No hay registros.</p>
+          <div className="card p-6">
+            <p className="text-center text-slate-500">No hay registros.</p>
           </div>
         ) : (
           <>
             {/* Vista Desktop - Tabla */}
-            <div className="hidden lg:block card overflow-hidden dark:bg-slate-800 dark:border-slate-700">
+            <div className="hidden lg:block card overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                <thead className="text-left text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-300">
-                  <tr className="border-b dark:border-slate-700">
+                <thead className="text-left text-slate-600 bg-slate-100">
+                  <tr className="border-b">
                     <th className="py-3 pr-3 font-semibold">Nombre</th>
                     <th className="py-3 pr-3 font-semibold">Código RBD</th>
                     <th className="py-3 pr-3 font-semibold">Comuna</th>
@@ -214,7 +214,7 @@ export default function InstitutionsPage() {
                 </thead>
                 <tbody>
                   {rows.map((r) => (
-                      <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
+                      <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50">
                         <td className="py-2 pr-3 font-medium !text-slate-900">{r.name}</td>
                         <td className="py-2 pr-3 !text-slate-700">{r.code || '—'}</td>
                         <td className="py-2 pr-3 !text-slate-700">{r.commune || '—'}</td>
@@ -255,7 +255,7 @@ export default function InstitutionsPage() {
             {/* Vista Mobile - Cards */}
             <div className="lg:hidden space-y-3">
               {rows.map((r) => (
-                <div key={r.id} className="card p-4 space-y-3 dark:bg-slate-800 dark:border-slate-700">
+                <div key={r.id} className="card p-4 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold !text-slate-900">{r.name}</h3>
@@ -283,7 +283,7 @@ export default function InstitutionsPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 pt-2 border-t dark:border-slate-700">
+                  <div className="flex flex-wrap gap-2 pt-2 border-t">
                     <button 
                       onClick={() => setViewingDetail(r)} 
                       className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors"

@@ -734,7 +734,7 @@ export default function MilestoneFormPage() {
 
                 <div className="flex items-center gap-3 flex-wrap">
                   {saving && (
-                    <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                    <span className="text-sm text-gray-500 flex items-center gap-2">
                       <span className="spinner"></span>
                       Guardando automáticamente...
                     </span>
@@ -779,19 +779,19 @@ export default function MilestoneFormPage() {
           <>
             {/* Banner de formulario enviado */}
             {milestone?.status === 'COMPLETED' && (
-              <div className="mt-6 card border-2 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 animate-fade-in">
+              <div className="mt-6 card border-2 border-green-200 bg-green-50 animate-fade-in">
                 <div className="card-body">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/40">
-                      <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="p-3 rounded-full bg-green-100">
+                      <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <div className="font-bold text-lg text-green-900 dark:text-green-100">
+                      <div className="font-bold text-lg text-green-900">
                         Formulario Enviado Exitosamente
                       </div>
-                      <div className="text-sm text-green-700 dark:text-green-300 mt-1">
+                      <div className="text-sm text-green-700 mt-1">
                         Este formulario fue enviado y está siendo revisado. Puedes ver tus respuestas pero no modificarlas.
                       </div>
                     </div>
@@ -846,43 +846,43 @@ export default function MilestoneFormPage() {
         {/* Modal de Confirmación */}
         {showConfirmModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4 animate-slide-up">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 animate-slide-up">
               <div className="p-6">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/30">
-                    <svg className="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="p-3 rounded-full bg-amber-100">
+                    <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    <h3 className="text-lg font-bold text-gray-900">
                       Confirmar Envío
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-gray-600">
                       Esta acción no se puede deshacer
                     </p>
                   </div>
                 </div>
 
-                <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-gray-700">
                     ¿Estás seguro de que deseas enviar el formulario? Una vez enviado:
                   </p>
-                  <ul className="mt-2 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                  <ul className="mt-2 space-y-1 text-sm text-gray-600">
                     <li className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                       No podrás modificar tus respuestas
                     </li>
                     <li className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                       El formulario será revisado por el equipo
                     </li>
                     <li className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                       Solo podrás ver tus respuestas (modo lectura)
@@ -893,7 +893,7 @@ export default function MilestoneFormPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowConfirmModal(false)}
-                    className="flex-1 btn btn-ghost border border-gray-300 dark:border-gray-600"
+                    className="flex-1 btn btn-ghost border border-gray-300"
                   >
                     Cancelar
                   </button>
