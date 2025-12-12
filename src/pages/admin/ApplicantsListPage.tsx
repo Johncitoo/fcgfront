@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCall } from '../../contexts/CallContext'
 import { useCallContext } from '../../contexts/CallContext'
-import { Mail, Copy, X, CheckCircle2, Send, Eye, Edit, Download, FileSpreadsheet, FileText, Key } from 'lucide-react'
+import { Mail, Copy, X, CheckCircle2, Send, Eye, Edit, Download, FileSpreadsheet, FileText, Key, Trash2 } from 'lucide-react'
 import ApplicantDetailModal from '../../components/admin/ApplicantDetailModal'
 import BulkInviteModal from '../../components/admin/BulkInviteModal'
 import EditApplicantModal from '../../components/admin/EditApplicantModal'
@@ -97,6 +97,7 @@ export default function ApplicantsListPage() {
   const [quickCodeApplicant, setQuickCodeApplicant] = useState<ApplicantRow | null>(null)
   const [quickCodeLoading, setQuickCodeLoading] = useState(false)
   const [quickCodeError, setQuickCodeError] = useState<string | null>(null)
+  const [deletingApplicantId, setDeletingApplicantId] = useState<string | null>(null)
 
   // crear manualmente (modal simple inline)
   const [creating, setCreating] = useState(false)
@@ -309,6 +310,41 @@ Fundación Carmen Goudie`
       setQuickCodeError(err.message || 'Error al generar código')
     } finally {
       setQuickCodeLoading(false)
+    }
+  }
+
+  /**
+   * Eliminar postulante y todos sus datos relacionados
+   */
+  async function deleteApplicant(applicant: ApplicantRow) {
+    const confirmed = window.confirm(
+      `¿Estás seguro de eliminar a ${applicant.fullName || applicant.email}?\n\nEsto eliminará:\n- El usuario y postulante\n- Todas sus postulaciones\n- Formularios enviados\n- Códigos de invitación\n- Archivos asociados\n\nEsta acción NO se puede deshacer.`
+    )
+    
+    if (!confirmed) return
+
+    setDeletingApplicantId(applicant.id)
+
+    try {
+      const res = await authFetch(`${API_BASE}/applicants/delete-by-email/${encodeURIComponent(applicant.email)}`, {
+        method: 'GET',
+        headers,
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.message || 'Error al eliminar postulante')
+      }
+
+      // Recargar la lista
+      await load()
+      
+      alert(`Postulante eliminado exitosamente`)
+    } catch (err: any) {
+      console.error('Error eliminando postulante:', err)
+      alert(`Error al eliminar: ${err.message || 'Error desconocido'}`)
+    } finally {
+      setDeletingApplicantId(null)
     }
   }
 
@@ -1079,14 +1115,14 @@ Fundación Carmen Goudie`
                 <table className="w-full text-sm">
                 <thead className="text-left text-slate-600 bg-slate-100 dark:bg-slate-900 dark:text-slate-300">
                   <tr className="border-b dark:border-slate-700">
-                    <th className="py-3 pr-3 font-semibold">Nombre</th>
-                    <th className="py-3 pr-3 font-semibold">RUT</th>
-                    <th className="py-3 pr-3 font-semibold">Correo</th>
-                    <th className="py-3 pr-3 font-semibold">Teléfono</th>
-                    <th className="py-3 pr-3 font-semibold">Escuela/Colegio</th>
-                    <th className="py-3 pr-3 font-semibold">Creado</th>
-                    <th className="py-3 pr-3 font-semibold">Invitación</th>
-                    <th className="py-3 font-semibold">Acciones</th>
+                    <th className="py-3 pr-3 font-semibold w-44 min-w-[11rem]">Nombre</th>
+                    <th className="py-3 pr-3 font-semibold w-32 min-w-[8rem]">RUT</th>
+                    <th className="py-3 pr-3 font-semibold w-52 min-w-[13rem]">Correo</th>
+                    <th className="py-3 pr-3 font-semibold w-28 min-w-[7rem]">Teléfono</th>
+                    <th className="py-3 pr-3 font-semibold w-48 min-w-[12rem]">Escuela/Colegio</th>
+                    <th className="py-3 pr-3 font-semibold w-28 min-w-[7rem]">Creado</th>
+                    <th className="py-3 pr-3 font-semibold w-36 min-w-[9rem]">Invitación</th>
+                    <th className="py-3 font-semibold w-52 min-w-[13rem]">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1102,11 +1138,11 @@ Fundación Carmen Goudie`
                       
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
-                          <td className="py-2 pr-3 font-medium !text-slate-900">{name}</td>
+                          <td className="py-2 pr-3 font-medium !text-slate-900 truncate max-w-[11rem]" title={name}>{name}</td>
                           <td className="py-2 pr-3 font-mono text-xs !text-slate-700">{rut}</td>
-                          <td className="py-2 pr-3 !text-slate-700">{r.email}</td>
+                          <td className="py-2 pr-3 !text-slate-700 truncate max-w-[13rem]" title={r.email}>{r.email}</td>
                           <td className="py-2 pr-3 !text-slate-700">{r.phone || '—'}</td>
-                          <td className="py-2 pr-3 !text-slate-700">{school}</td>
+                          <td className="py-2 pr-3 !text-slate-700 truncate max-w-[12rem]" title={school}>{school}</td>
                           <td className="py-2 pr-3 !text-slate-700">
                             {r.createdAt
                               ? new Date(r.createdAt).toLocaleDateString('es-CL')
@@ -1155,6 +1191,18 @@ Fundación Carmen Goudie`
                                 title="Ver detalles"
                               >
                                 <Eye className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => deleteApplicant(r)}
+                                disabled={deletingApplicantId === r.id}
+                                className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                                title="Eliminar postulante"
+                              >
+                                {deletingApplicantId === r.id ? (
+                                  <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-3 h-3" />
+                                )}
                               </button>
                             </div>
                           </td>
@@ -1243,11 +1291,25 @@ Fundación Carmen Goudie`
                         Editar
                       </button>
                       <button
-                        onClick={() => setSelectedApplicantId(r.id)}
+                        onClick={() => {
+                          setSelectedApplicantId(r.id)
+                          setDetailModalOpen(true)
+                        }}
                         className="inline-flex items-center justify-center gap-1 rounded-md bg-slate-600 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700"
                       >
                         <Eye className="w-4 h-4" />
                         Ver
+                      </button>
+                      <button
+                        onClick={() => deleteApplicant(r)}
+                        disabled={deletingApplicantId === r.id}
+                        className="inline-flex items-center justify-center gap-1 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                      >
+                        {deletingApplicantId === r.id ? (
+                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
