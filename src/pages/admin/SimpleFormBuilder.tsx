@@ -243,12 +243,13 @@ export default function SimpleFormBuilder() {
       })
       
       if (milestone?.formId) {
-        // Actualizar
+        // Actualizar - eliminar id del payload
         console.log('[SimpleFormBuilder] PATCH a /forms/' + milestone.formId)
+        const { id, ...formDataWithoutId } = formData
         const res = await fetch(`${API_BASE}/forms/${milestone.formId}`, {
           method: 'PATCH',
           headers,
-          body: JSON.stringify(formData)
+          body: JSON.stringify(formDataWithoutId)
         })
         console.log('[SimpleFormBuilder] PATCH response:', res.status, res.ok)
         

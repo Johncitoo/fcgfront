@@ -110,8 +110,11 @@ export default function MilestonesManagementPage() {
         throw new Error('⚠️ Debes seleccionar una convocatoria antes de crear o editar un hito')
       }
 
+      // Eliminar id del formData para evitar error "property id should not exist"
+      const { id, ...formDataWithoutId } = formData
+      
       const payload = {
-        ...formData,
+        ...formDataWithoutId,
         whoCanFill: [formData.whoCanFill], // Convertir a array
         callId: selectedCallId,
         orderIndex: editingMilestone ? editingMilestone.orderIndex : milestones.length + 1,
