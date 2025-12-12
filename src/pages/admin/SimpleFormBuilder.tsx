@@ -334,21 +334,26 @@ export default function SimpleFormBuilder() {
         }
       }
       
-      console.log('[SimpleFormBuilder] Guardado exitoso, recargando milestones y form...')
+      console.log('[SimpleFormBuilder] Guardado exitoso, esperando que DB se actualice...')
+      
+      // Esperar 500ms para asegurar que la DB termine de persistir
+      await new Promise(resolve => setTimeout(resolve, 500))
       
       // Recargar milestones primero para actualizar el formId
+      console.log('[SimpleFormBuilder] Recargando milestones...')
       await loadMilestones()
       
-      // Pequeña pausa para asegurar que los milestones se actualicen
-      await new Promise(resolve => setTimeout(resolve, 200))
+      // Pausa adicional
+      await new Promise(resolve => setTimeout(resolve, 300))
       
-      // Recargar el formulario para ver los cambios
+      // Recargar el formulario para ver los cambios con timestamp diferente
+      console.log('[SimpleFormBuilder] Recargando formulario con nuevo timestamp...')
       await loadForm()
       
-      // Otra pausa para asegurar que el estado se actualice completamente
+      // Pausa final para asegurar render
       await new Promise(resolve => setTimeout(resolve, 200))
       
-      console.log('[SimpleFormBuilder] Recarga completa')
+      console.log('[SimpleFormBuilder] ✅ Recarga completa')
       alert('✅ Formulario guardado correctamente')
     } catch (err: any) {
       console.error('[SimpleFormBuilder] Error al guardar:', err)
