@@ -347,8 +347,14 @@ export default function SimpleFormBuilder() {
       
       console.log('[SimpleFormBuilder] ✅ Guardado exitoso, state actualizado con respuesta del backend')
       
-      // Recargar milestones para actualizar referencias (sin bloquear UI)
-      loadMilestones().catch(err => console.error('[SimpleFormBuilder] Error recargando milestones:', err))
+      // CRÍTICO: Recargar milestones Y el form para sincronizar completamente
+      await loadMilestones()
+      
+      // Esperar un momento para que el backend propague cambios
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Recargar el formulario para confirmar persistencia
+      await loadForm()
       
       alert('✅ Formulario guardado correctamente')
     } catch (err: any) {
