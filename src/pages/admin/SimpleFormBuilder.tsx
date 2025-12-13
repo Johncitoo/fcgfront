@@ -355,11 +355,10 @@ export default function SimpleFormBuilder() {
       console.log('[SimpleFormBuilder] ✅ Guardado exitoso')
       alert('✅ Formulario guardado correctamente')
       
-      // 🛡️ VERIFICACIÓN OPCIONAL: Confirmar persistencia después de un delay
-      setTimeout(async () => {
-        console.log('[SimpleFormBuilder] 🔍 Verificación final de persistencia...')
-        setIsSaving(false) // Desactivar flag antes de verificar
-        await loadForm()
+      // TEMPORAL: Desactivar verificación hasta resolver problema de persistencia backend
+      setTimeout(() => {
+        setIsSaving(false) // Desactivar flag después de guardar
+        console.log('[SimpleFormBuilder] Flag isSaving desactivado')
       }, 1000)
     } catch (err: any) {
       console.error('[SimpleFormBuilder] Error al guardar:', err)
