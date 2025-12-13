@@ -338,7 +338,14 @@ export default function SimpleFormBuilder() {
       
       // POLLING: Verificar que los datos se guardaron correctamente
       const expectedSections = formData.sections.length
-      console.log('[SimpleFormBuilder] Esperando ver', expectedSections, 'secciones en DB')
+      const formIdToCheck = formData.id
+      console.log('[SimpleFormBuilder] Esperando ver', expectedSections, 'secciones en DB para form', formIdToCheck)
+      
+      if (!formIdToCheck) {
+        console.error('[SimpleFormBuilder] ⚠️ No hay formId para verificar')
+        alert('⚠️ Error: No se pudo obtener el ID del formulario')
+        return
+      }
       
       let attempts = 0
       const maxAttempts = 10 // 10 intentos = 5 segundos máximo
@@ -349,22 +356,10 @@ export default function SimpleFormBuilder() {
         console.log(`[SimpleFormBuilder] Intento ${attempts}/${maxAttempts} - Esperando 500ms...`)
         await new Promise(resolve => setTimeout(resolve, 500))
         
-        // Recargar milestones (por si es form nuevo)
-        if (attempts === 1) {
-          console.log('[SimpleFormBuilder] Recargando milestones...')
-          await loadMilestones()
-        }
-        
-        // Verificar en DB
+        // Verificar DIRECTAMENTE en DB usando el formId
         console.log('[SimpleFormBuilder] Verificando datos en DB...')
-        const milestone = milestones.find(m => m.id === selectedMilestoneId)
-        if (!milestone?.formId) {
-          console.log('[SimpleFormBuilder] ⚠️ Milestone aún no tiene formId')
-          continue
-        }
-        
         const timestamp = Date.now()
-        const verifyRes = await fetch(`${API_BASE}/forms/${milestone.formId}?_t=${timestamp}`, { 
+        const verifyRes = await fetch(`${API_BASE}/forms/${formIdToCheck}?_t=${timestamp}`, { 
           headers: {
             ...headers,
             'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -376,12 +371,14 @@ export default function SimpleFormBuilder() {
           const verifyData = await verifyRes.json()
           const dbSections = verifyData.schema?.sections || verifyData.sections || []
           console.log(`[SimpleFormBuilder] DB tiene ${dbSections.length} secciones, esperamos ${expectedSections}`)
+          console.log('[SimpleFormBuilder] Títulos en DB:', dbSections.map((s: any) => s.title).join(', '))
           
           if (dbSections.length === expectedSections) {
             console.log('[SimpleFormBuilder] ✅ VERIFICADO: DB tiene las secciones correctas')
             verified = true
             
-            // Recargar el formulario con los datos verificados
+            // Recargar milestones y formulario con los datos verificados
+            await loadMilestones()
             await loadForm()
             break
           } else {
@@ -395,6 +392,7 @@ export default function SimpleFormBuilder() {
         alert('✅ Formulario guardado correctamente')
       } else {
         console.error('[SimpleFormBuilder] ⚠️ No se pudo verificar el guardado después de', attempts, 'intentos')
+        console.error('[SimpleFormBuilder] ⚠️ Esperábamos', expectedSections, 'secciones pero la DB no coincidió')
         alert('⚠️ Formulario guardado pero la verificación tomó más tiempo del esperado. Presiona F5 para ver los cambios.')
       }
     } catch (err: any) {
