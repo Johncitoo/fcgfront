@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCall } from '../../contexts/CallContext'
 import { useCallContext } from '../../contexts/CallContext'
+import { useToast } from '../../contexts/ToastContext'
+import { useConfirm } from '../../contexts/ConfirmContext'
 import { Mail, Copy, X, CheckCircle2, Send, Eye, Edit, Download, FileSpreadsheet, FileText, Key, Trash2 } from 'lucide-react'
 import ApplicantDetailModal from '../../components/admin/ApplicantDetailModal'
 import BulkInviteModal from '../../components/admin/BulkInviteModal'
@@ -99,6 +101,10 @@ export default function ApplicantsListPage() {
   const [quickCodeError, setQuickCodeError] = useState<string | null>(null)
   const [deletingApplicantId, setDeletingApplicantId] = useState<string | null>(null)
 
+  // Hooks para notificaciones
+  const { showSuccess, showError, showWarning } = useToast()
+  const { confirm } = useConfirm()
+
   // crear manualmente (modal simple inline)
   const [creating, setCreating] = useState(false)
   const [createForm, setCreateForm] = useState({
@@ -129,7 +135,7 @@ export default function ApplicantsListPage() {
   // Función para abrir modal de invitación
   function openInviteModal(applicant: ApplicantRow) {
     if (!selectedCall) {
-      alert('Selecciona una convocatoria primero')
+      showWarning('Selecciona una convocatoria primero')
       return
     }
     setSelectedApplicant(applicant)
@@ -266,7 +272,7 @@ Fundación Carmen Goudie`
   // Función para generar código rápido (sin modal de invitación)
   async function generateQuickCode(applicant: ApplicantRow) {
     if (!selectedCall) {
-      alert('Selecciona una convocatoria primero')
+      showWarning('Selecciona una convocatoria primero')
       return
     }
 
@@ -317,9 +323,13 @@ Fundación Carmen Goudie`
    * Eliminar postulante y todos sus datos relacionados
    */
   async function deleteApplicant(applicant: ApplicantRow) {
-    const confirmed = window.confirm(
-      `¿Estás seguro de eliminar a ${applicant.fullName || applicant.email}?\n\nEsto eliminará:\n- El usuario y postulante\n- Todas sus postulaciones\n- Formularios enviados\n- Códigos de invitación\n- Archivos asociados\n\nEsta acción NO se puede deshacer.`
-    )
+    const confirmed = await confirm({
+      title: 'Eliminar postulante',
+      message: `¿Estás seguro de eliminar a ${applicant.fullName || applicant.email}?\n\nEsto eliminará:\n• El usuario y postulante\n• Todas sus postulaciones\n• Formularios enviados\n• Códigos de invitación\n• Archivos asociados\n\nEsta acción NO se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    })
     
     if (!confirmed) return
 
@@ -339,10 +349,10 @@ Fundación Carmen Goudie`
       // Recargar la lista
       await load()
       
-      alert(`Postulante eliminado exitosamente`)
+      showSuccess('Postulante eliminado exitosamente')
     } catch (err: any) {
       console.error('Error eliminando postulante:', err)
-      alert(`Error al eliminar: ${err.message || 'Error desconocido'}`)
+      showError(`Error al eliminar: ${err.message || 'Error desconocido'}`)
     } finally {
       setDeletingApplicantId(null)
     }
@@ -352,9 +362,13 @@ Fundación Carmen Goudie`
   async function regenerateInviteCode() {
     if (!selectedApplicant || !selectedCall) return
 
-    const confirmed = window.confirm(
-      '¿Estás seguro de regenerar el código de invitación? El código anterior dejará de funcionar.'
-    )
+    const confirmed = await confirm({
+      title: 'Regenerar código',
+      message: '¿Estás seguro de regenerar el código de invitación? El código anterior dejará de funcionar.',
+      confirmText: 'Regenerar',
+      cancelText: 'Cancelar',
+      type: 'warning'
+    })
     if (!confirmed) return
 
     setInviteLoading(true)
@@ -363,7 +377,7 @@ Fundación Carmen Goudie`
     try {
       // Generar nuevo código
       await generateManualInvite()
-      alert('Código regenerado exitosamente')
+      showSuccess('Código regenerado exitosamente')
     } catch (err: any) {
       setInviteError(err.message || 'Error al regenerar código')
     } finally {
@@ -421,7 +435,7 @@ Fundación Carmen Goudie`
   // Función para abrir modal de selección de hito
   async function openMilestoneSelection() {
     if (!selectedCall) {
-      alert('Selecciona una convocatoria primero')
+      showWarning('Selecciona una convocatoria primero')
       return
     }
 
@@ -438,7 +452,7 @@ Fundación Carmen Goudie`
       const milestonesWithForms = milestones.filter((m: any) => m.formId)
       
       if (milestonesWithForms.length === 0) {
-        alert('No hay formularios disponibles para descargar')
+        showWarning('No hay formularios disponibles para descargar')
         return
       }
 
@@ -452,7 +466,7 @@ Fundación Carmen Goudie`
       setAvailableMilestones(milestonesWithForms)
       setMilestoneModalOpen(true)
     } catch (err: any) {
-      alert(`Error: ${err.message}`)
+      showError(`Error: ${err.message}`)
     }
   }
 
@@ -719,9 +733,9 @@ Fundación Carmen Goudie`
       link.click()
       URL.revokeObjectURL(link.href)
 
-      alert(`CSV descargado exitosamente con ${csvRows.length - 1} respuestas del hito "${selectedMilestone.name}"`)
+      showSuccess(`CSV descargado exitosamente con ${csvRows.length - 1} respuestas del hito "${selectedMilestone.name}"`)
     } catch (err: any) {
-      alert(`Error al descargar CSV: ${err.message}`)
+      showError(`Error al descargar CSV: ${err.message}`)
       console.error(err)
     }
   }
@@ -929,9 +943,9 @@ Fundación Carmen Goudie`
       link.click()
       URL.revokeObjectURL(link.href)
 
-      alert(`Excel descargado exitosamente con ${excelRows.length - 1} respuestas del hito "${selectedMilestone.name}"`)
+      showSuccess(`Excel descargado exitosamente con ${excelRows.length - 1} respuestas del hito "${selectedMilestone.name}"`)
     } catch (err: any) {
-      alert(`Error al descargar Excel: ${err.message}`)
+      showError(`Error al descargar Excel: ${err.message}`)
       console.error(err)
     }
   }
@@ -1829,7 +1843,7 @@ Fundación Carmen Goudie`
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(quickGeneratedCode)
-                          alert('Código copiado al portapapeles')
+                          showSuccess('Código copiado al portapapeles')
                         }}
                         className="p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
                         title="Copiar código"
