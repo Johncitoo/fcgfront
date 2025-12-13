@@ -334,27 +334,69 @@ export default function SimpleFormBuilder() {
         }
       }
       
-      console.log('[SimpleFormBuilder] Guardado exitoso, esperando que DB se actualice...')
+      console.log('[SimpleFormBuilder] Guardado exitoso, verificando persistencia...')
       
-      // Esperar 500ms para asegurar que la DB termine de persistir
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // POLLING: Verificar que los datos se guardaron correctamente
+      const expectedSections = formData.sections.length
+      console.log('[SimpleFormBuilder] Esperando ver', expectedSections, 'secciones en DB')
       
-      // Recargar milestones primero para actualizar el formId
-      console.log('[SimpleFormBuilder] Recargando milestones...')
-      await loadMilestones()
+      let attempts = 0
+      const maxAttempts = 10 // 10 intentos = 5 segundos máximo
+      let verified = false
       
-      // Pausa adicional
-      await new Promise(resolve => setTimeout(resolve, 300))
+      while (attempts < maxAttempts && !verified) {
+        attempts++
+        console.log(`[SimpleFormBuilder] Intento ${attempts}/${maxAttempts} - Esperando 500ms...`)
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Recargar milestones (por si es form nuevo)
+        if (attempts === 1) {
+          console.log('[SimpleFormBuilder] Recargando milestones...')
+          await loadMilestones()
+        }
+        
+        // Verificar en DB
+        console.log('[SimpleFormBuilder] Verificando datos en DB...')
+        const milestone = milestones.find(m => m.id === selectedMilestoneId)
+        if (!milestone?.formId) {
+          console.log('[SimpleFormBuilder] ⚠️ Milestone aún no tiene formId')
+          continue
+        }
+        
+        const timestamp = Date.now()
+        const verifyRes = await fetch(`${API_BASE}/forms/${milestone.formId}?_t=${timestamp}`, { 
+          headers: {
+            ...headers,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        })
+        
+        if (verifyRes.ok) {
+          const verifyData = await verifyRes.json()
+          const dbSections = verifyData.schema?.sections || verifyData.sections || []
+          console.log(`[SimpleFormBuilder] DB tiene ${dbSections.length} secciones, esperamos ${expectedSections}`)
+          
+          if (dbSections.length === expectedSections) {
+            console.log('[SimpleFormBuilder] ✅ VERIFICADO: DB tiene las secciones correctas')
+            verified = true
+            
+            // Recargar el formulario con los datos verificados
+            await loadForm()
+            break
+          } else {
+            console.log('[SimpleFormBuilder] ⚠️ DB aún no coincide, reintentando...')
+          }
+        }
+      }
       
-      // Recargar el formulario para ver los cambios con timestamp diferente
-      console.log('[SimpleFormBuilder] Recargando formulario con nuevo timestamp...')
-      await loadForm()
-      
-      // Pausa final para asegurar render
-      await new Promise(resolve => setTimeout(resolve, 200))
-      
-      console.log('[SimpleFormBuilder] ✅ Recarga completa')
-      alert('✅ Formulario guardado correctamente')
+      if (verified) {
+        console.log('[SimpleFormBuilder] ✅ Formulario guardado y verificado correctamente')
+        alert('✅ Formulario guardado correctamente')
+      } else {
+        console.error('[SimpleFormBuilder] ⚠️ No se pudo verificar el guardado después de', attempts, 'intentos')
+        alert('⚠️ Formulario guardado pero la verificación tomó más tiempo del esperado. Presiona F5 para ver los cambios.')
+      }
     } catch (err: any) {
       console.error('[SimpleFormBuilder] Error al guardar:', err)
       alert('❌ Error al guardar: ' + err.message)
