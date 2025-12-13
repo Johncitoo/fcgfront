@@ -144,6 +144,7 @@ export default function SimpleFormBuilder() {
   const [formData, setFormData] = useState<FormData | null>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [isSaving, setIsSaving] = useState(false) // Flag para prevenir race condition
   const [showFieldPicker, setShowFieldPicker] = useState<string | null>(null)
   const [editingField, setEditingField] = useState<{ sectionId: string; fieldId: string } | null>(null)
   const [previewMode, setPreviewMode] = useState(false)
@@ -169,8 +170,13 @@ export default function SimpleFormBuilder() {
       setFormData(null)
       return
     }
+    // CRÍTICO: No cargar durante guardado para evitar race condition
+    if (isSaving) {
+      console.log('[SimpleFormBuilder] useEffect bloqueado - guardado en progreso')
+      return
+    }
     loadForm()
-  }, [selectedMilestoneId])
+  }, [selectedMilestoneId, isSaving])
 
   async function loadMilestones() {
     try {
@@ -243,6 +249,8 @@ export default function SimpleFormBuilder() {
   async function saveForm() {
     if (!formData || !selectedMilestoneId) return
     setSaving(true)
+    setIsSaving(true) // Activar flag para bloquear useEffect
+    
     try {
       const milestone = milestones.find(m => m.id === selectedMilestoneId)
       
@@ -276,10 +284,9 @@ export default function SimpleFormBuilder() {
         const updated = await res.json()
         console.log('[SimpleFormBuilder] RESPUESTA BACKEND después de PATCH:', JSON.stringify(updated, null, 2))
         
-        // CRÍTICO: Actualizar formData CON LA RESPUESTA DEL PATCH (tiene los datos correctos)
-        // No confiar en GET posterior debido a race condition de PostgreSQL
+        // ⚡ ACTUALIZACIÓN INMEDIATA: Usar respuesta del PATCH (UX rápida)
         const updatedSections = updated.schema?.sections || updated.sections || []
-        console.log('[SimpleFormBuilder] Actualizando state con', updatedSections.length, 'secciones del PATCH')
+        console.log('[SimpleFormBuilder] ✅ Actualización inmediata con', updatedSections.length, 'secciones del PATCH')
         setFormData({
           id: updated.id,
           title: updated.name || updated.title || formData.title,
@@ -345,21 +352,19 @@ export default function SimpleFormBuilder() {
         }
       }
       
-      console.log('[SimpleFormBuilder] ✅ Guardado exitoso, state actualizado con respuesta del backend')
-      
-      // CRÍTICO: Recargar milestones Y el form para sincronizar completamente
-      await loadMilestones()
-      
-      // Esperar un momento para que el backend propague cambios
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Recargar el formulario para confirmar persistencia
-      await loadForm()
-      
+      console.log('[SimpleFormBuilder] ✅ Guardado exitoso')
       alert('✅ Formulario guardado correctamente')
+      
+      // 🛡️ VERIFICACIÓN OPCIONAL: Confirmar persistencia después de un delay
+      setTimeout(async () => {
+        console.log('[SimpleFormBuilder] 🔍 Verificación final de persistencia...')
+        setIsSaving(false) // Desactivar flag antes de verificar
+        await loadForm()
+      }, 1000)
     } catch (err: any) {
       console.error('[SimpleFormBuilder] Error al guardar:', err)
       alert('❌ Error al guardar: ' + err.message)
+      setIsSaving(false) // Desactivar flag en caso de error
     } finally {
       setSaving(false)
     }
