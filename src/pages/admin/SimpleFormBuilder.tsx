@@ -275,6 +275,17 @@ export default function SimpleFormBuilder() {
         
         const updated = await res.json()
         console.log('[SimpleFormBuilder] RESPUESTA BACKEND después de PATCH:', JSON.stringify(updated, null, 2))
+        
+        // CRÍTICO: Actualizar formData CON LA RESPUESTA DEL PATCH (tiene los datos correctos)
+        // No confiar en GET posterior debido a race condition de PostgreSQL
+        const updatedSections = updated.schema?.sections || updated.sections || []
+        console.log('[SimpleFormBuilder] Actualizando state con', updatedSections.length, 'secciones del PATCH')
+        setFormData({
+          id: updated.id,
+          title: updated.name || updated.title || formData.title,
+          description: updated.description || formData.description || '',
+          sections: updatedSections
+        })
       } else {
         // Crear - NO incluir milestoneId en el payload (el DTO no lo acepta)
         console.log('[SimpleFormBuilder] POST a /forms')
@@ -334,67 +345,12 @@ export default function SimpleFormBuilder() {
         }
       }
       
-      console.log('[SimpleFormBuilder] Guardado exitoso, verificando persistencia...')
+      console.log('[SimpleFormBuilder] ✅ Guardado exitoso, state actualizado con respuesta del backend')
       
-      // POLLING: Verificar que los datos se guardaron correctamente
-      const expectedSections = formData.sections.length
-      const formIdToCheck = formData.id
-      console.log('[SimpleFormBuilder] Esperando ver', expectedSections, 'secciones en DB para form', formIdToCheck)
+      // Recargar milestones para actualizar referencias (sin bloquear UI)
+      loadMilestones().catch(err => console.error('[SimpleFormBuilder] Error recargando milestones:', err))
       
-      if (!formIdToCheck) {
-        console.error('[SimpleFormBuilder] ⚠️ No hay formId para verificar')
-        alert('⚠️ Error: No se pudo obtener el ID del formulario')
-        return
-      }
-      
-      let attempts = 0
-      const maxAttempts = 10 // 10 intentos = 5 segundos máximo
-      let verified = false
-      
-      while (attempts < maxAttempts && !verified) {
-        attempts++
-        console.log(`[SimpleFormBuilder] Intento ${attempts}/${maxAttempts} - Esperando 500ms...`)
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // Verificar DIRECTAMENTE en DB usando el formId
-        console.log('[SimpleFormBuilder] Verificando datos en DB...')
-        const timestamp = Date.now()
-        const verifyRes = await fetch(`${API_BASE}/forms/${formIdToCheck}?_t=${timestamp}`, { 
-          headers: {
-            ...headers,
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache'
-          }
-        })
-        
-        if (verifyRes.ok) {
-          const verifyData = await verifyRes.json()
-          const dbSections = verifyData.schema?.sections || verifyData.sections || []
-          console.log(`[SimpleFormBuilder] DB tiene ${dbSections.length} secciones, esperamos ${expectedSections}`)
-          console.log('[SimpleFormBuilder] Títulos en DB:', dbSections.map((s: any) => s.title).join(', '))
-          
-          if (dbSections.length === expectedSections) {
-            console.log('[SimpleFormBuilder] ✅ VERIFICADO: DB tiene las secciones correctas')
-            verified = true
-            
-            // Recargar milestones y formulario con los datos verificados
-            await loadMilestones()
-            await loadForm()
-            break
-          } else {
-            console.log('[SimpleFormBuilder] ⚠️ DB aún no coincide, reintentando...')
-          }
-        }
-      }
-      
-      if (verified) {
-        console.log('[SimpleFormBuilder] ✅ Formulario guardado y verificado correctamente')
-        alert('✅ Formulario guardado correctamente')
-      } else {
-        console.error('[SimpleFormBuilder] ⚠️ No se pudo verificar el guardado después de', attempts, 'intentos')
-        console.error('[SimpleFormBuilder] ⚠️ Esperábamos', expectedSections, 'secciones pero la DB no coincidió')
-        alert('⚠️ Formulario guardado pero la verificación tomó más tiempo del esperado. Presiona F5 para ver los cambios.')
-      }
+      alert('✅ Formulario guardado correctamente')
     } catch (err: any) {
       console.error('[SimpleFormBuilder] Error al guardar:', err)
       alert('❌ Error al guardar: ' + err.message)
