@@ -43,7 +43,10 @@ interface FormSection {
 interface FormSchema {
   id: string
   title: string
-  sections: FormSection[]
+  schema?: {
+    sections: FormSection[]
+  }
+  sections?: FormSection[]  // Compatibilidad con ambos formatos
 }
 
 interface ReviewerFormModalProps {
@@ -88,7 +91,14 @@ export default function ReviewerFormModal({
 
         // 2. Cargar el esquema del formulario
         const form = await apiGet<FormSchema>(`/forms/${milestone.formId}`)
-        setSchema(form)
+        
+        // El backend puede devolver form.schema.sections o form.sections
+        const sections = form.schema?.sections || form.sections || []
+        const normalizedForm = {
+          ...form,
+          sections
+        }
+        setSchema(normalizedForm)
 
         // 3. Buscar submission existente
         const submissions = await apiGet<any[]>(`/form-submissions/application/${applicationId}`)
@@ -113,7 +123,7 @@ export default function ReviewerFormModal({
 
         // Inicializar valores vacíos para campos no guardados
         const initialValues: Record<string, any> = {}
-        for (const section of form.sections) {
+        for (const section of sections) {
           for (const field of section.fields) {
             if (field.active !== false) {
               const key = field.name
@@ -184,7 +194,8 @@ export default function ReviewerFormModal({
     // Validar campos requeridos
     if (schema) {
       const missingFields: string[] = []
-      for (const section of schema.sections) {
+      const sections = schema.schema?.sections || schema.sections || []
+      for (const section of sections) {
         for (const field of section.fields) {
           if (field.required && field.active !== false) {
             const value = values[field.name]
@@ -382,7 +393,7 @@ export default function ReviewerFormModal({
               {error}
             </div>
           ) : schema ? (
-            <div className="space-y-6">
+            <di(schema.schema?.sections || schema.sections || [])ace-y-6">
               {schema.sections.map((section) => (
                 <div key={section.id} className="rounded-lg border bg-slate-50 p-4">
                   <h3 className="mb-3 text-lg font-semibold text-slate-900">{section.title}</h3>
