@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { apiGet, apiPost, apiPatch } from '../../lib/api'
+import ReviewerFormModal from '../../components/ReviewerFormModal'
 
 type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
 type MilestoneStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED' | 'NEEDS_CHANGES'
@@ -72,6 +73,7 @@ export default function ApplicationDetailPage() {
   const [viewingAnswers, setViewingAnswers] = useState<string | null>(null)
   const [answers, setAnswers] = useState<any>(null)
   const [loadingAnswers, setLoadingAnswers] = useState(false)
+  const [completingMilestone, setCompletingMilestone] = useState<MilestoneProgress | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -397,6 +399,24 @@ export default function ApplicationDetailPage() {
                               )}
                             </div>
                           )}
+
+                          {m.whoCanFill === 'REVIEWER' && (
+                            <div className="mt-3">
+                              {m.status === 'COMPLETED' ? (
+                                <div className="text-xs text-emerald-700">
+                                  ✓ Entrevista completada el {m.completedAt ? new Date(m.completedAt).toLocaleString() : '—'}
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setCompletingMilestone(m)}
+                                  className="btn-primary text-xs flex items-center gap-1"
+                                  disabled={isBlocked}
+                                >
+                                  ✍️ Completar entrevista
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )})}
                     </div>
@@ -549,6 +569,28 @@ export default function ApplicationDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Modal para completar formulario de entrevista (REVIEWER) */}
+      {completingMilestone && app && (
+        <ReviewerFormModal
+          milestoneProgressId={completingMilestone.mp_id}
+          milestoneId={completingMilestone.milestoneId}
+          milestoneName={completingMilestone.milestoneName}
+          applicationId={app.id}
+          applicantName={app.applicantName || 'Postulante'}
+          onClose={() => setCompletingMilestone(null)}
+          onCompleted={() => {
+            setCompletingMilestone(null)
+            setMsg('Entrevista completada exitosamente')
+            // Recargar milestones
+            if (id) {
+              apiGet<{ progress: MilestoneProgress[] }>(`/milestones/progress/${id}`)
+                .then(data => setMilestones(data.progress || []))
+                .catch(console.error)
+            }
+          }}
+        />
+      )}
     </div>
   )
 }
