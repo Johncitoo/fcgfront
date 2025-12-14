@@ -1,34 +1,62 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function SideNav() {
+  const location = useLocation()
+  const { user } = useAuth()
+  
+  // Detectar si estamos en rutas de reviewer
+  const isReviewerSection = location.pathname.startsWith('/reviewer')
+  const baseRoute = isReviewerSection ? '/reviewer' : '/admin'
+  
+  // Solo mostrar gestión de usuarios si es ADMIN
+  const isAdmin = user?.role === 'ADMIN'
+
   return (
     <aside className="hidden border-r bg-white md:block">
       <div className="sticky top-14 h-[calc(100vh-3.5rem)] w-64 overflow-y-auto px-3 py-3">
         <Section title="Panel">
-          <Item to="/admin" label="Inicio" />
+          <Item to={baseRoute} label="Inicio" />
         </Section>
 
         <Section title="Gestión">
-          <Item to="/admin/applicants" label="Postulantes" />
-          <Item to="/admin/institutions" label="Escuelas/Colegios" />
-          <Item to="/admin/calls" label="Convocatorias" />
-          <Item to="/admin/invites" label="Invitaciones" />
-          <Item to="/admin/applications" label="Postulaciones" />
+          <Item to={`${baseRoute}/applicants`} label="Postulantes" />
+          <Item to={`${baseRoute}/institutions`} label="Escuelas/Colegios" />
+          <Item to={`${baseRoute}/calls`} label="Convocatorias" />
+          <Item to={`${baseRoute}/invites`} label="Invitaciones" />
+          <Item to={`${baseRoute}/applications`} label="Postulaciones" />
         </Section>
 
         <Section title="Formularios">
-          <Item to="/admin/hitos" label="Configurar Hitos" />
-          <Item to="/admin/formularios" label="Diseñar Formularios" />
+          <Item to={`${baseRoute}/hitos`} label="Configurar Hitos" />
+          <Item to={`${baseRoute}/formularios`} label="Diseñar Formularios" />
         </Section>
 
-        <Section title="Comunicaciones">
-          <Item to="/admin/email/templates" label="Plantillas" />
-          <Item to="/admin/email/logs" label="Historial" />
-        </Section>
+        {isAdmin && (
+          <Section title="Comunicaciones">
+            <Item to="/admin/email/templates" label="Plantillas" />
+            <Item to={`${baseRoute}/email/logs`} label="Historial" />
+          </Section>
+        )}
 
-        <Section title="Monitoreo">
-          <Item to="/admin/audit" label="Auditoría" />
-        </Section>
+        {!isAdmin && (
+          <Section title="Monitoreo">
+            <Item to={`${baseRoute}/email/logs`} label="Logs Email" />
+            <Item to={`${baseRoute}/audit`} label="Auditoría" />
+          </Section>
+        )}
+
+        {isAdmin && (
+          <>
+            <Section title="Monitoreo">
+              <Item to="/admin/audit" label="Auditoría" />
+            </Section>
+            
+            <Section title="Sistema">
+              <Item to="/admin/users" label="Usuarios" disabled />
+            </Section>
+          </>
+        )}
       </div>
     </aside>
   )

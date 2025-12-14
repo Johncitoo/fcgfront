@@ -124,7 +124,7 @@ export default function MilestonesManagementPage() {
         status: formData.status,
         callId: selectedCallId,
         orderIndex: editingMilestone ? editingMilestone.orderIndex : milestones.length + 1,
-        dueDate: formData.dueDate || undefined,
+        ...(formData.dueDate ? { dueDate: formData.dueDate } : {}), // Solo incluir si tiene valor
       }
 
       if (editingMilestone) {

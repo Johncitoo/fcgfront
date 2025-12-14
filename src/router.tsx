@@ -3,6 +3,7 @@ import { lazy } from 'react'
 
 // Lazy helpers
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'))
+const ReviewerLayout = lazy(() => import('./layouts/ReviewerLayout'))
 const ApplicantLayout = lazy(() => import('./layouts/ApplicantLayout'))
 const RequireAuth = lazy(() => import('./components/RequireAuth'))
 
@@ -115,38 +116,35 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Reviewer (protegido)
+  // Reviewer (protegido) - Panel completo reutilizando componentes de admin
   {
     path: '/reviewer',
     element: (
       <RequireAuth roles={['REVIEWER']}>
-        <ReviewerHome />
+        <ReviewerLayout />
       </RequireAuth>
     ),
-  },
-  {
-    path: '/reviewer/application/:id',
-    element: (
-      <RequireAuth roles={['REVIEWER']}>
-        <ApplicationFullFormPage />
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/reviewer/application/:id/history',
-    element: (
-      <RequireAuth roles={['REVIEWER']}>
-        <ApplicationHistoryPage />
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/reviewer/application/:id/review',
-    element: (
-      <RequireAuth roles={['REVIEWER']}>
-        <ApplicationReviewPage />
-      </RequireAuth>
-    ),
+    children: [
+      { index: true, element: <ReviewerHome /> },
+      { path: 'applicants', element: <ApplicantsListPage /> },
+      { path: 'applicants/:id', element: <ApplicantDetailPage /> },
+      { path: 'calls', element: <CallsListPage /> },
+      { path: 'calls/:id', element: <CallDetailPage /> },
+      { path: 'invites', element: <InvitesPage /> },
+      { path: 'institutions', element: <InstitutionsPage /> },
+      { path: 'applications', element: <ApplicationsListPage /> },
+      { path: 'applications/:id', element: <ApplicationDetailPage /> },
+      { path: 'application/:id', element: <ApplicationFullFormPage /> },
+      { path: 'application/:id/history', element: <ApplicationHistoryPage /> },
+      { path: 'application/:id/review', element: <ApplicationReviewPage /> },
+      { path: 'hitos', element: <MilestonesManagementPage /> },
+      { path: 'formularios', element: <SimpleFormBuilder /> },
+      { path: 'forms', element: <FormDesignerPage /> },
+      { path: 'forms/:formId/sections/:sectionId', element: <FormSectionEditorPage /> },
+      { path: 'email/logs', element: <EmailLogsPage /> },
+      { path: 'audit', element: <AuditPage /> },
+      { path: 'calls/:callId/milestones', element: <MilestoneManagement /> },
+    ],
   },
 
   // Sistema
