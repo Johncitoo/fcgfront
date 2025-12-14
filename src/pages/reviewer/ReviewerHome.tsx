@@ -5,16 +5,24 @@ type ApplicationStatus =
   | 'DRAFT'
   | 'SUBMITTED'
   | 'IN_REVIEW'
+  | 'IN_PROGRESS'
   | 'NEEDS_FIX'
+  | 'NEEDS_CHANGES'
   | 'APPROVED'
   | 'REJECTED'
 
 interface ReviewRow {
   id: string
-  applicant: { id: string; name: string; email: string }
-  call: { id: string; code: string; title: string }
+  applicantId: string
+  applicantName: string
+  applicantEmail: string
+  callId: string
+  callName: string
+  callYear?: number
   status: ApplicationStatus
-  updated_at?: string
+  overallStatus?: string
+  updatedAt?: string
+  currentMilestoneName?: string
 }
 
 const API_BASE =
@@ -103,18 +111,20 @@ export default function ReviewerHome() {
                   )}
                   {rows.map((r) => (
                     <tr key={r.id} className="border-b last:border-0">
-                      <td className="py-2 pr-3">{r.applicant.name || '—'}</td>
-                      <td className="py-2 pr-3">{r.applicant.email}</td>
+                      <td className="py-2 pr-3">{r.applicantName || '—'}</td>
+                      <td className="py-2 pr-3">{r.applicantEmail || '—'}</td>
                       <td className="py-2 pr-3">
-                        <div className="font-medium">{r.call.title}</div>
-                        <div className="text-xs text-slate-500">{r.call.code}</div>
+                        <div className="font-medium">{r.callName || '—'}</div>
+                        {r.callYear && (
+                          <div className="text-xs text-slate-500">{r.callYear}</div>
+                        )}
                       </td>
                       <td className="py-2 pr-3">
-                        <StatusPill status={r.status} />
+                        <StatusPill status={r.overallStatus || r.status} />
                       </td>
                       <td className="py-2 pr-3">
-                        {r.updated_at
-                          ? new Date(r.updated_at).toLocaleString()
+                        {r.updatedAt
+                          ? new Date(r.updatedAt).toLocaleString()
                           : '—'}
                       </td>
                       <td className="py-2">
@@ -137,14 +147,16 @@ export default function ReviewerHome() {
   )
 }
 
-function StatusPill({ status }: { status: ApplicationStatus }) {
+function StatusPill({ status }: { status: ApplicationStatus | string }) {
   const label =
     status === 'SUBMITTED'
       ? 'Enviada'
       : status === 'IN_REVIEW'
       ? 'En revisión'
-      : status === 'NEEDS_FIX'
-      ? 'Ajustes'
+      : status === 'IN_PROGRESS'
+      ? 'En progreso'
+      : status === 'NEEDS_FIX' || status === 'NEEDS_CHANGES'
+      ? 'Requiere ajustes'
       : status === 'APPROVED'
       ? 'Aprobada'
       : status === 'REJECTED'
@@ -156,10 +168,12 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
       : status === 'REJECTED'
       ? 'bg-rose-50 text-rose-700 border-rose-200'
-      : status === 'NEEDS_FIX'
+      : status === 'NEEDS_FIX' || status === 'NEEDS_CHANGES'
       ? 'bg-amber-50 text-amber-700 border-amber-200'
       : status === 'IN_REVIEW'
       ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+      : status === 'IN_PROGRESS'
+      ? 'bg-blue-50 text-blue-700 border-blue-200'
       : status === 'SUBMITTED'
       ? 'bg-sky-50 text-sky-700 border-sky-200'
       : 'bg-slate-50 text-slate-700 border-slate-200'
