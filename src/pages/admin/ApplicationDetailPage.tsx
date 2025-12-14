@@ -50,7 +50,7 @@ interface MilestoneProgress {
   reviewerName: string | null
   milestoneName: string
   orderIndex: number
-  whoCanFill: 'APPLICANT' | 'REVIEWER'
+  whoCanFill: string | string[]  // Puede ser string o array
   milestoneStatus: string
   formId: string | null
   m_required: boolean
@@ -284,6 +284,11 @@ export default function ApplicationDetailPage() {
                     <div className="space-y-3">
                       {milestones.map((m) => {
                         const isBlocked = m.status === 'REJECTED' && m.reviewNotes === 'Bloqueado por rechazo de hito anterior'
+                        // whoCanFill puede ser string o array - normalizar a array
+                        const canFillArray = Array.isArray(m.whoCanFill) ? m.whoCanFill : [m.whoCanFill]
+                        const isApplicantFill = canFillArray.includes('APPLICANT')
+                        const isReviewerFill = canFillArray.includes('REVIEWER')
+                        
                         return (
                         <div key={m.mp_id} className={`rounded-lg border p-4 ${isBlocked ? 'bg-slate-50 opacity-60' : ''}`}>
                           <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
@@ -291,7 +296,7 @@ export default function ApplicationDetailPage() {
                               <div className="flex items-center gap-2">
                                 <h4 className="font-medium">{m.milestoneName}</h4>
                                 <span className="text-xs text-slate-500">
-                                  ({m.whoCanFill === 'APPLICANT' ? 'Postulante' : 'Revisor'})
+                                  ({isApplicantFill ? 'Postulante' : isReviewerFill ? 'Revisor' : 'Revisor/Admin'})
                                 </span>
                                 {m.m_required && <span className="text-xs text-rose-600">*Obligatorio</span>}
                                 {isBlocked && <span className="text-xs text-slate-500">🔒 Bloqueado</span>}
@@ -390,7 +395,7 @@ export default function ApplicationDetailPage() {
                             </div>
                           )}
 
-                          {m.whoCanFill === 'APPLICANT' && (
+                          {isApplicantFill && (
                             <div className="mt-2 text-xs text-slate-600">
                               {m.status === 'COMPLETED' ? (
                                 <span className="text-emerald-700">✓ Completado el {m.completedAt ? new Date(m.completedAt).toLocaleString() : '—'}</span>
@@ -400,7 +405,7 @@ export default function ApplicationDetailPage() {
                             </div>
                           )}
 
-                          {m.whoCanFill === 'REVIEWER' && (
+                          {isReviewerFill && (
                             <div className="mt-3">
                               {m.status === 'COMPLETED' ? (
                                 <div className="text-xs text-emerald-700">
