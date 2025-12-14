@@ -573,7 +573,6 @@ export default function ApplicationDetailPage() {
       {/* Modal para completar formulario de entrevista (REVIEWER) */}
       {completingMilestone && app && (
         <ReviewerFormModal
-          milestoneProgressId={completingMilestone.mp_id}
           milestoneId={completingMilestone.milestoneId}
           milestoneName={completingMilestone.milestoneName}
           applicationId={app.id}

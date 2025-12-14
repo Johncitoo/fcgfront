@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { X, Save, CheckCircle2 } from 'lucide-react'
 import { apiGet, apiPost, apiPatch } from '../lib/api'
 
@@ -47,7 +47,6 @@ interface FormSchema {
 }
 
 interface ReviewerFormModalProps {
-  milestoneProgressId: string
   milestoneId: string
   milestoneName: string
   applicationId: string
@@ -57,7 +56,6 @@ interface ReviewerFormModalProps {
 }
 
 export default function ReviewerFormModal({
-  milestoneProgressId,
   milestoneId,
   milestoneName,
   applicationId,
@@ -105,7 +103,7 @@ export default function ReviewerFormModal({
           // Crear nueva submission
           const newSubmission = await apiPost('/form-submissions', {
             applicationId,
-            milestoneId,
+            milestoneId,<{ id: string; answers?: any }>
             formId: milestone.formId,
             answers: {},
           })
