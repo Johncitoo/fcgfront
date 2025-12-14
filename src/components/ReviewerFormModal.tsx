@@ -393,8 +393,8 @@ export default function ReviewerFormModal({
               {error}
             </div>
           ) : schema ? (
-            <di(schema.schema?.sections || schema.sections || [])ace-y-6">
-              {schema.sections.map((section) => (
+            <div className="space-y-6">
+              {(schema.schema?.sections || schema.sections || []).map((section) => (
                 <div key={section.id} className="rounded-lg border bg-slate-50 p-4">
                   <h3 className="mb-3 text-lg font-semibold text-slate-900">{section.title}</h3>
                   {section.description && (
