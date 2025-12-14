@@ -55,7 +55,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
       }
       
       // Verificar el rol del usuario - APPLICANT no necesita cargar convocatorias
-      const userStr = localStorage.getItem('fcg.user')
+      const userStr = localStorage.getItem('fcg.user_data')
       if (userStr) {
         try {
           const user = JSON.parse(userStr)
