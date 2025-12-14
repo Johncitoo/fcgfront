@@ -101,9 +101,9 @@ export default function ReviewerFormModal({
           console.log('✅ Submission existente cargada:', existingSubmission.id)
         } else {
           // Crear nueva submission
-          const newSubmission = await apiPost('/form-submissions', {
+          const newSubmission = await apiPost<{ id: string; answers?: any }>('/form-submissions', {
             applicationId,
-            milestoneId,<{ id: string; answers?: any }>
+            milestoneId,
             formId: milestone.formId,
             answers: {},
           })
