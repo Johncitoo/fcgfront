@@ -40,8 +40,10 @@ export default function ReviewerHome() {
           { headers },
         )
         if (!res.ok) throw new Error(await safeError(res))
-        const data = (await res.json()) as ReviewRow[]
-        setRows(data)
+        const result = await res.json()
+        // El endpoint devuelve { data: [], total, limit, offset }
+        const data = Array.isArray(result) ? result : (result.data || [])
+        setRows(data as ReviewRow[])
       } catch (err: any) {
         setError(err.message ?? 'No se pudo cargar la bandeja de revisión')
       } finally {
