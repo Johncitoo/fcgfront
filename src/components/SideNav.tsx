@@ -1,16 +1,16 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { authService } from '../lib/auth'
 
 export default function SideNav() {
   const location = useLocation()
-  const { user } = useAuth()
+  const userRole = authService.getUserRole()
   
   // Detectar si estamos en rutas de reviewer
   const isReviewerSection = location.pathname.startsWith('/reviewer')
   const baseRoute = isReviewerSection ? '/reviewer' : '/admin'
   
   // Solo mostrar gestión de usuarios si es ADMIN
-  const isAdmin = user?.role === 'ADMIN'
+  const isAdmin = userRole === 'ADMIN'
 
   return (
     <aside className="hidden border-r bg-white md:block">
