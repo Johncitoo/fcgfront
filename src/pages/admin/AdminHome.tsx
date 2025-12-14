@@ -117,7 +117,7 @@ export default function AdminHome() {
       const token = localStorage.getItem('fcg.access_token') ?? ''
       const headers = { Authorization: `Bearer ${token}` }
       
-      const res = await fetch(`${API_BASE}/calls?status=OPEN&limit=1`, { headers })
+      const res = await fetch(`${API_BASE}/calls?onlyActive=true&limit=1`, { headers })
       if (!res.ok) throw new Error('No se pudo cargar convocatoria activa')
       
       const data = await res.json()
