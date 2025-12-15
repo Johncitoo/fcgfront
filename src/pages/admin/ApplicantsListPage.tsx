@@ -1054,8 +1054,8 @@ Fundación Carmen Goudie`
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="mx-auto w-full max-w-6xl">
+    <div className="min-h-screen p-4">
+      <div className="mx-auto w-full max-w-[98%]">
         <header className="mb-6">
           <h1 className="text-2xl font-semibold">Postulantes</h1>
           <p className="text-slate-600">
@@ -1125,18 +1125,18 @@ Fundación Carmen Goudie`
           <>
             {/* Vista Desktop - Tabla */}
             <div className="hidden lg:block card overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[calc(100vh-16rem)]">
                 <table className="w-full text-sm">
-                <thead className="text-left text-slate-600 bg-slate-100">
+                <thead className="text-left text-slate-600 bg-slate-100 sticky top-0 z-10">
                   <tr className="border-b">
-                    <th className="py-3 pr-3 font-semibold w-44 min-w-[11rem]">Nombre</th>
-                    <th className="py-3 pr-3 font-semibold w-32 min-w-[8rem]">RUT</th>
-                    <th className="py-3 pr-3 font-semibold w-52 min-w-[13rem]">Correo</th>
-                    <th className="py-3 pr-3 font-semibold w-28 min-w-[7rem]">Teléfono</th>
-                    <th className="py-3 pr-3 font-semibold w-48 min-w-[12rem]">Escuela/Colegio</th>
-                    <th className="py-3 pr-3 font-semibold w-28 min-w-[7rem]">Creado</th>
-                    <th className="py-3 pr-3 font-semibold w-36 min-w-[9rem]">Invitación</th>
-                    <th className="py-3 font-semibold w-52 min-w-[13rem]">Acciones</th>
+                    <th className="py-3 px-3 font-semibold">Nombre</th>
+                    <th className="py-3 px-3 font-semibold">RUT</th>
+                    <th className="py-3 px-3 font-semibold">Correo</th>
+                    <th className="py-3 px-3 font-semibold">Teléfono</th>
+                    <th className="py-3 px-3 font-semibold">Escuela/Colegio</th>
+                    <th className="py-3 px-3 font-semibold">Creado</th>
+                    <th className="py-3 px-3 font-semibold">Invitación</th>
+                    <th className="py-3 px-3 font-semibold">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1152,18 +1152,16 @@ Fundación Carmen Goudie`
                       
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50">
-                          <td className="py-2 pr-3 font-medium !text-slate-900 truncate max-w-[11rem]" title={name}>{name}</td>
-                          <td className="py-2 pr-3 font-mono text-xs !text-slate-700">{rut}</td>
-                          <td className="py-2 pr-3 !text-slate-700 truncate max-w-[13rem]" title={r.email}>{r.email}</td>
-                          <td className="py-2 pr-3 !text-slate-700">{r.phone || '—'}</td>
-                          <td className="py-2 pr-3 !text-slate-700 truncate max-w-[12rem]" title={school}>{school}</td>
-                          <td className="py-2 pr-3 !text-slate-700">
-                            {r.createdAt
+                          <td className="py-2 px-3 font-medium !text-slate-900" title={name}>{name}</td>
+                          <td className="py-2 px-3 font-mono text-xs !text-slate-700">{rut}</td>
+                          <td className="py-2 px-3 !text-slate-700" title={r.email}>{r.email}</td>
+                          <td className="py-2 px-3 !text-slate-700">{r.phone || '—'}</td>
+                          <td className="py-2 px-3 !text-slate-700" title={school}>{school}</td>
+                          <td className="py-2 px-3 !text-slate-700 whitespace-nowrap">\n                            {r.createdAt
                               ? new Date(r.createdAt).toLocaleDateString('es-CL')
                               : '—'}
                           </td>
-                          <td className="py-2 pr-3">
-                            {inviteStatus ? (
+                          <td className="py-2 px-3 whitespace-nowrap">\n                            {inviteStatus ? (
                               <div className="flex items-center gap-2">
                                 <CheckCircle2 className="w-4 h-4 text-green-600" />
                                 <span className="text-xs text-green-700">
@@ -1180,8 +1178,7 @@ Fundación Carmen Goudie`
                               </button>
                             )}
                           </td>
-                          <td className="py-2">
-                            <div className="flex items-center gap-2">
+                          <td className="py-2 px-3 whitespace-nowrap">\n                            <div className="flex items-center gap-1.5">
                               <button
                                 onClick={() => generateQuickCode(r)}
                                 className="inline-flex items-center gap-1 rounded-md bg-purple-600 px-2 py-1 text-xs font-medium text-white hover:bg-purple-700"
