@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { apiGet, apiPost } from '../../lib/api'
 import { Calendar, Clock } from 'lucide-react'
 import { useCallContext } from '../../contexts/CallContext'
@@ -62,6 +62,8 @@ interface ListResponse<T> {
 
 export default function CallsListPage() {
   const { refreshCalls } = useCallContext()
+  const location = useLocation()
+  const baseRoute = location.pathname.startsWith('/reviewer') ? '/reviewer' : '/admin'
   
   // listado
   const [rows, setRows] = useState<CallRow[]>([])
@@ -298,7 +300,7 @@ export default function CallsListPage() {
                             </td>
                             <td className="py-3">
                               <Link
-                                to={`/admin/calls/${c.id}`}
+                                to={`${baseRoute}/calls/${c.id}`}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors"
                               >
                                 Abrir
@@ -344,7 +346,7 @@ export default function CallsListPage() {
                           </div>
                         )}
                         <Link 
-                          to={`/admin/calls/${c.id}`} 
+                          to={`${baseRoute}/calls/${c.id}`} 
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors w-full justify-center"
                         >
                           Abrir

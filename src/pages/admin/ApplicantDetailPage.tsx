@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useLocation } from 'react-router-dom'
 import { apiGet, apiPost, apiPatch } from '../../lib/api'
 
 type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
@@ -39,9 +39,13 @@ interface HistoryRow {
 
 export default function ApplicationDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const location = useLocation()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  
+  // Detectar si estamos en modo reviewer o admin
+  const baseRoute = location.pathname.startsWith('/reviewer') ? '/reviewer' : '/admin'
 
   const [app, setApp] = useState<ApplicationDTO | null>(null)
   const [hist, setHist] = useState<HistoryRow[]>([])
@@ -177,12 +181,12 @@ export default function ApplicationDetailPage() {
     <div className="min-h-screen p-4 md:p-6">
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Link to="/admin/applications" className="text-sm text-sky-700 hover:underline">
+          <Link to={`${baseRoute}/applications`} className="text-sm text-sky-700 hover:underline">
             ← Volver a postulaciones
           </Link>
           {app?.call_id && (
             <Link
-              to={`/admin/calls/${app.call_id}`}
+              to={`${baseRoute}/calls/${app.call_id}`}
               className="text-sm text-sky-700 hover:underline"
             >
               Ver convocatoria

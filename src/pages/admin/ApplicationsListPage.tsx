@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, useLocation } from 'react-router-dom'
 import { apiGet } from '../../lib/api'
 import { useCallContext } from '../../contexts/CallContext'
 
@@ -49,7 +49,11 @@ const STATUS_OPTIONS: { value: '' | OverallStatus; label: string }[] = [
 
 export default function ApplicationsListPage() {
   const [sp, setSp] = useSearchParams()
+  const location = useLocation()
   const { selectedCallId } = useCallContext()
+  
+  // Detectar si estamos en modo reviewer o admin
+  const baseRoute = location.pathname.startsWith('/reviewer') ? '/reviewer' : '/admin'
 
   // filtros
   const [q, setQ] = useState(sp.get('q') ?? '')
@@ -228,7 +232,7 @@ export default function ApplicationsListPage() {
                             <OverallStatusBadge status={r.overallStatus} />
                           </td>
                           <td className="py-2">
-                            <Link to={`/admin/applications/${r.id}`} className="btn text-xs">
+                            <Link to={`${baseRoute}/applications/${r.id}`} className="btn text-xs">
                               Revisar
                             </Link>
                           </td>
@@ -264,7 +268,7 @@ export default function ApplicationsListPage() {
                         </div>
                       </div>
                       <div className="mt-2">
-                        <Link to={`/admin/applications/${r.id}`} className="btn text-xs">
+                        <Link to={`${baseRoute}/applications/${r.id}`} className="btn text-xs">
                           Abrir
                         </Link>
                       </div>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom'
 import { apiGet, apiPatch, apiPost } from '../../lib/api'
 import { Calendar, Clock, AlertCircle, XCircle } from 'lucide-react'
 
@@ -39,11 +39,15 @@ interface StatRes {
 export default function CallDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
+  
+  // Detectar si estamos en modo reviewer o admin
+  const baseRoute = location.pathname.startsWith('/reviewer') ? '/reviewer' : '/admin'
 
   const [data, setData] = useState<CallRow | null>(null)
   const [stats, setStats] = useState<StatRes | null>(null)
@@ -168,7 +172,7 @@ export default function CallDetailPage() {
       <div className="mx-auto w-full max-w-7xl">
         {/* Breadcrumb + acciones */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Link to="/admin/calls" className="text-sm text-sky-700 hover:underline">
+          <Link to={`${baseRoute}/calls`} className="text-sm text-sky-700 hover:underline">
             ← Volver a convocatorias
           </Link>
           <div className="ml-auto flex flex-wrap gap-2">
