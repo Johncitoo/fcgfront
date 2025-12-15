@@ -35,6 +35,7 @@ const MilestoneManagement = lazy(() => import('./pages/admin/MilestoneManagement
 const MilestonesManagementPage = lazy(() => import('./pages/admin/MilestonesManagementPage'))
 const FormBuilderV2 = lazy(() => import('./pages/admin/FormBuilderV2'))
 const SimpleFormBuilder = lazy(() => import('./pages/admin/SimpleFormBuilder'))
+const FormTemplatesPage = lazy(() => import('./pages/admin/FormTemplatesPage'))
 
 // Applicant
 const ApplicantHome = lazy(() => import('./pages/applicant/ApplicantHome'))
@@ -87,6 +88,7 @@ export const router = createBrowserRouter([
     { path: 'applications/:id', element: <ApplicationDetailPage /> },
     { path: 'hitos', element: <MilestonesManagementPage /> }, // ✅ Gestión de hitos/fases
     { path: 'formularios', element: <SimpleFormBuilder /> }, // ✅ NUEVO diseñador super simple
+    { path: 'plantillas-formularios', element: <FormTemplatesPage /> }, // ✅ Plantillas reutilizables
     { path: 'forms', element: <FormDesignerPage /> }, // antiguo
     { path: 'forms-v2', element: <FormBuilderV2 /> }, // antiguo v2
     { path: 'forms/:formId/sections/:sectionId', element: <FormSectionEditorPage /> },

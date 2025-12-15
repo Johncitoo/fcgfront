@@ -30,6 +30,7 @@ export default function SideNav() {
         <Section title="Formularios">
           <Item to={`${baseRoute}/hitos`} label="Configurar Hitos" />
           <Item to={`${baseRoute}/formularios`} label="Diseñar Formularios" />
+          <Item to={`${baseRoute}/plantillas-formularios`} label="Plantillas" />
         </Section>
 
         {isAdmin && (
