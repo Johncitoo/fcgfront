@@ -88,12 +88,14 @@ export default function ApplicationDetailPage() {
         setApp(data)
         setScore(data.score != null ? String(data.score) : '')
         setNotes(data.notes ?? '')
-        try {
-          const h = await apiGet<HistoryRow[]>(`/applications/${id}/history`)
-          setHist(h)
-        } catch {
-          setHist([])
-        }
+        // Endpoint /history no existe en backend, comentado para evitar 404
+        // try {
+        //   const h = await apiGet<HistoryRow[]>(`/applications/${id}/history`)
+        //   setHist(h)
+        // } catch {
+        //   setHist([])
+        // }
+        setHist([])
         try {
           const progressData = await apiGet<{ progress: MilestoneProgress[] }>(`/milestones/progress/${id}`)
           setMilestones(progressData.progress || [])
@@ -137,8 +139,8 @@ export default function ApplicationDetailPage() {
     try {
       const updated = await apiPost<ApplicationDTO>(`/applications/${id}/${endpoint}`, payload ?? {})
       setApp(updated)
-      const h = await apiGet<HistoryRow[]>(`/applications/${id}/history`)
-      setHist(h)
+      // const h = await apiGet<HistoryRow[]>(`/applications/${id}/history`)
+      // setHist(h)
       setMsg('Estado actualizado correctamente.')
     } catch (e: any) {
       setActionErr(e.message ?? 'No fue posible cambiar el estado')
