@@ -244,7 +244,19 @@ export default function MilestonesManagementPage() {
       
       handleCloseModal()
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Error al guardar hito')
+      console.error('[MilestonesManagement] Error completo:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        stack: err.stack
+      })
+      
+      const errorMessage = err.response?.data?.message 
+        || err.response?.data?.error
+        || err.message 
+        || 'Error al guardar hito'
+      
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
