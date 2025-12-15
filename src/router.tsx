@@ -23,7 +23,6 @@ const ApplicantDetailPage = lazy(() => import('./pages/admin/ApplicantDetailPage
 const CallsListPage = lazy(() => import('./pages/admin/CallsListPage'))
 const CallDetailPage = lazy(() => import('./pages/admin/CallDetailPage'))
 const InvitesPage = lazy(() => import('./pages/admin/InvitesPage'))
-const FormDesignerPage = lazy(() => import('./pages/admin/FormDesignerPage'))
 const EmailTemplatesPage = lazy(() => import('./pages/admin/EmailTemplatesPage'))
 const EmailLogsPage = lazy(() => import('./pages/admin/EmailLogsPage'))
 const ApplicationsListPage = lazy(() => import('./pages/admin/ApplicationsListPage'))
@@ -89,7 +88,7 @@ export const router = createBrowserRouter([
     { path: 'milestones', element: <MilestonesManagementPage /> }, // ✅ Gestión de hitos/fases
     { path: 'forms-builder', element: <SimpleFormBuilder /> }, // ✅ NUEVO diseñador super simple
     { path: 'form-templates', element: <FormTemplatesPage /> }, // ✅ Plantillas reutilizables
-    { path: 'forms', element: <FormDesignerPage /> }, // antiguo
+    { path: 'forms', element: <SimpleFormBuilder /> }, // Usar SimpleFormBuilder que funciona bien
     { path: 'forms-v2', element: <FormBuilderV2 /> }, // antiguo v2
     { path: 'forms/:formId/sections/:sectionId', element: <FormSectionEditorPage /> },
     { path: 'email/templates', element: <EmailTemplatesPage /> },
@@ -142,7 +141,7 @@ export const router = createBrowserRouter([
       { path: 'milestones', element: <MilestonesManagementPage /> },
       { path: 'forms-builder', element: <SimpleFormBuilder /> },
       { path: 'form-templates', element: <FormTemplatesPage /> }, // ✅ Plantillas para reviewers
-      { path: 'forms', element: <FormDesignerPage /> },
+      { path: 'forms', element: <SimpleFormBuilder /> }, // Usar SimpleFormBuilder que funciona bien
       { path: 'forms/:formId/sections/:sectionId', element: <FormSectionEditorPage /> },
       { path: 'email/logs', element: <EmailLogsPage /> },
       { path: 'audit', element: <AuditPage /> },
