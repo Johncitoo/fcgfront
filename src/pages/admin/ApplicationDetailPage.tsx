@@ -327,14 +327,15 @@ export default function ApplicationDetailPage() {
                           )}
 
                           {/* Botón para ver respuestas si el hito tiene respuestas guardadas */}
-                          {(m.status === 'COMPLETED' || m.status === 'IN_PROGRESS') && m.whoCanFill === 'APPLICANT' && (
-                            <div className="mt-2">
+                          {(m.status === 'COMPLETED' || m.status === 'IN_PROGRESS') && (
+                            <div className="mt-3">
                               <button
                                 onClick={() => loadAnswers(m.mp_id)}
                                 disabled={loadingAnswers}
-                                className="btn text-xs"
+                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-700 bg-sky-50 border border-sky-200 rounded-lg hover:bg-sky-100 hover:border-sky-300 transition-colors disabled:opacity-50"
                               >
-                                👁️ Ver respuestas del formulario
+                                <span>👁️</span>
+                                <span>{loadingAnswers && viewingAnswers === m.mp_id ? 'Cargando...' : 'Ver respuestas del formulario'}</span>
                               </button>
                             </div>
                           )}
@@ -430,50 +431,146 @@ export default function ApplicationDetailPage() {
                 </div>
               </div>
 
-              {/* Modal para ver respuestas */}
+              {/* Modal para ver respuestas del hito */}
               {viewingAnswers && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-                  <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6">
-                    <div className="mb-4 flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">Respuestas del Formulario</h3>
+                  <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6">
+                    <div className="mb-4 flex items-center justify-between border-b pb-3">
+                      <div>
+                        <h3 className="text-xl font-semibold text-slate-800">Respuestas del Formulario</h3>
+                        {answers && (
+                          <p className="text-sm text-slate-600 mt-1">
+                            {answers.formName || 'Formulario'} • Enviado: {answers.submittedAt ? new Date(answers.submittedAt).toLocaleString() : 'No enviado'}
+                          </p>
+                        )}
+                      </div>
                       <button
                         onClick={() => {
                           setViewingAnswers(null)
                           setAnswers(null)
                         }}
-                        className="text-slate-500 hover:text-slate-700"
+                        className="text-2xl text-slate-400 hover:text-slate-700 transition-colors"
                       >
                         ✕
                       </button>
                     </div>
+
                     {loadingAnswers ? (
-                      <p className="text-slate-600">Cargando respuestas...</p>
+                      <div className="flex items-center justify-center py-12">
+                        <p className="text-slate-600">Cargando respuestas...</p>
+                      </div>
                     ) : answers ? (
-                      <div className="space-y-4">
-                        <div className="rounded border bg-slate-50 p-3">
-                          <div className="text-xs text-slate-500">Formulario: {answers.formName || '—'}</div>
-                          <div className="text-xs text-slate-500">
-                            Enviado: {answers.submittedAt ? new Date(answers.submittedAt).toLocaleString() : 'No enviado'}
+                      <div className="space-y-6">
+                        {/* Estado del formulario */}
+                        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium text-slate-700">Estado:</span>
+                              <span className="ml-2 text-slate-900">{answers.status || 'DRAFT'}</span>
+                            </div>
+                            <div>
+                              <span className="font-medium text-slate-700">Última actualización:</span>
+                              <span className="ml-2 text-slate-900">
+                                {answers.updatedAt ? new Date(answers.updatedAt).toLocaleString() : '—'}
+                              </span>
+                            </div>
                           </div>
-                          <div className="text-xs text-slate-500">Estado: {answers.status}</div>
                         </div>
-                        {answers.answers && Object.keys(answers.answers).length > 0 ? (
+
+                        {/* Respuestas estructuradas por secciones */}
+                        {answers.formSchema?.sections && answers.answers ? (
+                          <div className="space-y-5">
+                            {answers.formSchema.sections.map((section: any, sectionIdx: number) => (
+                              <div key={sectionIdx} className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+                                <div className="bg-sky-50 border-b border-sky-100 px-5 py-3">
+                                  <h4 className="text-base font-semibold text-sky-900">{section.title || `Sección ${sectionIdx + 1}`}</h4>
+                                  {section.description && (
+                                    <p className="text-sm text-sky-700 mt-1">{section.description}</p>
+                                  )}
+                                </div>
+                                <div className="p-5 space-y-4">
+                                  {section.fields && section.fields.length > 0 ? (
+                                    section.fields.map((field: any, fieldIdx: number) => {
+                                      const fieldValue = answers.answers[field.name || field.label];
+                                      
+                                      return (
+                                        <div key={fieldIdx} className="border-b border-slate-100 last:border-0 pb-4 last:pb-0">
+                                          <div className="text-sm font-medium text-slate-700 mb-2">
+                                            {field.label}
+                                            {field.required && <span className="text-rose-500 ml-1">*</span>}
+                                          </div>
+                                          <div className="text-sm text-slate-900">
+                                            {field.type === 'file' && fieldValue ? (
+                                              <div className="flex flex-wrap gap-2">
+                                                {Array.isArray(fieldValue) ? (
+                                                  fieldValue.map((file: any, i: number) => (
+                                                    <a
+                                                      key={i}
+                                                      href={file.url || file}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      className="inline-flex items-center gap-2 px-3 py-2 bg-sky-50 text-sky-700 rounded-md hover:bg-sky-100 transition-colors"
+                                                    >
+                                                      <span>📎</span>
+                                                      <span>{file.name || `Archivo ${i + 1}`}</span>
+                                                    </a>
+                                                  ))
+                                                ) : (
+                                                  <a
+                                                    href={fieldValue.url || fieldValue}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-2 px-3 py-2 bg-sky-50 text-sky-700 rounded-md hover:bg-sky-100 transition-colors"
+                                                  >
+                                                    <span>📎</span>
+                                                    <span>{fieldValue.name || 'Archivo'}</span>
+                                                  </a>
+                                                )}
+                                              </div>
+                                            ) : fieldValue !== undefined && fieldValue !== null && fieldValue !== '' ? (
+                                              <div className="whitespace-pre-wrap bg-slate-50 rounded-md p-3">
+                                                {typeof fieldValue === 'object' ? JSON.stringify(fieldValue, null, 2) : String(fieldValue)}
+                                              </div>
+                                            ) : (
+                                              <span className="text-slate-400 italic">Sin respuesta</span>
+                                            )}
+                                          </div>
+                                          {field.helpText && (
+                                            <p className="text-xs text-slate-500 mt-1">{field.helpText}</p>
+                                          )}
+                                        </div>
+                                      );
+                                    })
+                                  ) : (
+                                    <p className="text-sm text-slate-500 italic">Esta sección no tiene campos</p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : answers.answers && Object.keys(answers.answers).length > 0 ? (
+                          // Fallback: mostrar respuestas sin estructura
                           <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-slate-700">Respuestas:</h4>
                             {Object.entries(answers.answers).map(([key, value]: [string, any]) => (
-                              <div key={key} className="rounded border bg-white p-3">
-                                <div className="mb-1 text-sm font-medium text-slate-700">{key}</div>
-                                <div className="text-sm text-slate-800">
+                              <div key={key} className="rounded-lg border border-slate-200 bg-white p-4">
+                                <div className="mb-2 text-sm font-medium text-slate-700">{key}</div>
+                                <div className="text-sm text-slate-900 bg-slate-50 rounded p-3">
                                   {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
                                 </div>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-sm text-slate-600">No hay respuestas guardadas.</p>
+                          <div className="flex items-center justify-center py-12">
+                            <p className="text-sm text-slate-600">No hay respuestas guardadas para este hito.</p>
+                          </div>
                         )}
                       </div>
                     ) : (
-                      <p className="text-sm text-slate-600">No se encontraron respuestas para este hito.</p>
+                      <div className="flex items-center justify-center py-12">
+                        <p className="text-sm text-slate-600">No se encontraron respuestas para este hito.</p>
+                      </div>
                     )}
                   </div>
                 </div>
