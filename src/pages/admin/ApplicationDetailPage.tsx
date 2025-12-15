@@ -193,7 +193,7 @@ export default function ApplicationDetailPage() {
     setLoadingFiles(true)
     setFiles([])
     try {
-      const data = await apiGet(`/documents/${id}`)
+      const data = await apiGet<{ items: any[] }>(`/documents/${id}`)
       setFiles(data.items || [])
       setViewingFiles(true)
     } catch (e: any) {
