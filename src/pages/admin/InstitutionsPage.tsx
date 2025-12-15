@@ -344,14 +344,14 @@ export default function InstitutionsPage() {
 
       {/* Modal */}
       {creating && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4">
-          <div className="w-full max-w-lg rounded-lg border bg-white shadow-lg">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4 overflow-y-auto">
+          <div className="w-full max-w-lg rounded-lg border bg-white shadow-lg my-8">
             <div className="border-b px-5 py-3">
               <div className="text-base font-semibold">
                 {editing ? 'Editar institución' : 'Nueva institución'}
               </div>
             </div>
-            <form onSubmit={onCreate} className="px-5 py-4 space-y-3">
+            <form onSubmit={onCreate} className="px-5 py-4 space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
               {createError && (
                 <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
                   {createError}
