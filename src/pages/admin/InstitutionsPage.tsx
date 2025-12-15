@@ -106,10 +106,26 @@ export default function InstitutionsPage() {
     try {
       if (!createForm.name.trim()) throw new Error('El nombre es obligatorio')
 
+      // Convertir camelCase a snake_case para el backend
+      const payload = {
+        name: createForm.name,
+        code: createForm.code || undefined,
+        commune: createForm.commune || undefined,
+        province: createForm.province || undefined,
+        region: createForm.region || undefined,
+        type: createForm.type,
+        email: createForm.email || undefined,
+        phone: createForm.phone || undefined,
+        address: createForm.address || undefined,
+        director_name: createForm.directorName || undefined,
+        website: createForm.website || undefined,
+        notes: createForm.notes || undefined,
+      }
+
       if (editing) {
-        await apiPatch(`/institutions/${editing.id}`, createForm)
+        await apiPatch(`/institutions/${editing.id}`, payload)
       } else {
-        await apiPost('/institutions', createForm)
+        await apiPost('/institutions', payload)
       }
 
       setCreating(false)
