@@ -1054,68 +1054,42 @@ Fundación Carmen Goudie`
   }
 
   return (
-    <div className="min-h-screen p-6 bg-slate-50">
-      <div className="mx-auto w-full max-w-7xl">
-        {/* Header mejorado con estadísticas */}
-        <header className="mb-8">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Postulantes</h1>
-              <p className="text-slate-600 text-lg">
-                Gestión y seguimiento de postulantes registrados
-              </p>
-            </div>
-            {meta && (
-              <div className="bg-white rounded-lg shadow-sm border px-6 py-3">
-                <div className="text-sm text-slate-500 mb-1">Total Registrados</div>
-                <div className="text-3xl font-bold text-sky-600">{meta.total}</div>
-              </div>
-            )}
-          </div>
-          
-          {selectedCall && (
-            <div className="bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-200 rounded-lg px-4 py-3 flex items-center gap-3">
-              <div className="bg-sky-600 rounded-full p-2">
-                <FileText className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="text-sm font-medium text-slate-700">Convocatoria activa</div>
-                <div className="text-base font-semibold text-sky-900">{selectedCall.name}</div>
-              </div>
-            </div>
-          )}
+    <div className="min-h-screen p-6">
+      <div className="mx-auto w-full max-w-6xl">
+        <header className="mb-6">
+          <h1 className="text-2xl font-semibold">Postulantes</h1>
+          <p className="text-slate-600">
+            Ingreso manual, búsqueda y visualización de postulantes.
+          </p>
         </header>
 
-        {/* Barra de acciones mejorada */}
-        <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
-            <div className="flex gap-2 flex-1 min-w-[250px]">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Buscar por nombre, correo o RUT..."
-                  className="w-full rounded-lg border-2 border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition-all"
-                />
-              </div>
-              <button
-                onClick={() => {
-                  setOffset(0)
-                  load()
-                }}
-                className="rounded-lg bg-slate-800 px-6 py-2.5 text-sm font-medium text-white hover:bg-slate-900 transition-colors"
-              >
-                Buscar
-              </button>
-            </div>
+        {/* Barra de acciones */}
+        <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+          <div className="flex gap-2 flex-1 min-w-[200px]">
+            <input
+              type="text"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar por nombre o correo…"
+              className="flex-1 rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+            />
+            <button
+              onClick={() => {
+                setOffset(0)
+                load()
+              }}
+              className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-slate-50"
+            >
+              Buscar
+            </button>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             {selectedCall && (
               <>
                 <button
                   onClick={openMilestoneSelection}
-                  className="rounded-lg border-2 border-emerald-600 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center transition-all shadow-sm"
+                  className="rounded-md border border-green-600 px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center"
                   title="Descargar respuestas de formularios en CSV"
                 >
                   <Download className="w-4 h-4" />
@@ -1127,53 +1101,42 @@ Fundación Carmen Goudie`
             )}
             <button
               onClick={() => setCreating(true)}
-              className="rounded-lg bg-gradient-to-r from-sky-600 to-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:from-sky-700 hover:to-blue-700 w-full sm:w-auto transition-all shadow-md hover:shadow-lg"
+              className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700 w-full sm:w-auto"
             >
-              + Ingresar postulante
+              Ingresar postulante
             </button>
           </div>
-        </div>
         </div>
 
         {/* Vista de tabla / cards responsive */}
         {loading ? (
-          <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-sky-600 border-r-transparent mb-4"></div>
-            <p className="text-slate-600 font-medium">Cargando postulantes...</p>
+          <div className="card p-6">
+            <p className="text-slate-600">Cargando…</p>
           </div>
         ) : error ? (
-          <div className="bg-rose-50 rounded-lg border-2 border-rose-200 p-6">
-            <div className="flex items-center gap-3">
-              <div className="bg-rose-100 rounded-full p-2">
-                <X className="w-5 h-5 text-rose-600" />
-              </div>
-              <p className="text-sm text-rose-700 font-medium">{error}</p>
-            </div>
+          <div className="card p-6">
+            <p className="text-sm text-rose-700">{error}</p>
           </div>
         ) : rows.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
-            <div className="bg-slate-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <Mail className="w-8 h-8 text-slate-400" />
-            </div>
-            <p className="text-slate-500 font-medium mb-2">No hay postulantes registrados</p>
-            <p className="text-sm text-slate-400">Agrega un nuevo postulante para comenzar</p>
+          <div className="card p-6">
+            <p className="text-center text-slate-500">No hay registros.</p>
           </div>
         ) : (
           <>
             {/* Vista Desktop - Tabla */}
-            <div className="hidden lg:block bg-white rounded-lg shadow-md border overflow-hidden">
+            <div className="hidden lg:block card overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                <thead className="text-left text-slate-700 bg-gradient-to-r from-slate-50 to-slate-100">
+                <thead className="text-left text-slate-600 bg-slate-100">
                   <tr className="border-b">
-                    <th className="py-4 px-4 font-semibold w-44 min-w-[11rem]">Nombre</th>
-                    <th className="py-4 px-3 font-semibold w-32 min-w-[8rem]">RUT</th>
-                    <th className="py-4 px-3 font-semibold w-52 min-w-[13rem]">Correo</th>
-                    <th className="py-4 px-3 font-semibold w-28 min-w-[7rem]">Teléfono</th>
-                    <th className="py-4 px-3 font-semibold w-48 min-w-[12rem]">Escuela/Colegio</th>
-                    <th className="py-4 px-3 font-semibold w-28 min-w-[7rem]">Creado</th>
-                    <th className="py-4 px-3 font-semibold w-36 min-w-[9rem]">Invitación</th>
-                    <th className="py-4 px-3 font-semibold w-52 min-w-[13rem]">Acciones</th>
+                    <th className="py-3 pr-3 font-semibold w-44 min-w-[11rem]">Nombre</th>
+                    <th className="py-3 pr-3 font-semibold w-32 min-w-[8rem]">RUT</th>
+                    <th className="py-3 pr-3 font-semibold w-52 min-w-[13rem]">Correo</th>
+                    <th className="py-3 pr-3 font-semibold w-28 min-w-[7rem]">Teléfono</th>
+                    <th className="py-3 pr-3 font-semibold w-48 min-w-[12rem]">Escuela/Colegio</th>
+                    <th className="py-3 pr-3 font-semibold w-28 min-w-[7rem]">Creado</th>
+                    <th className="py-3 pr-3 font-semibold w-36 min-w-[9rem]">Invitación</th>
+                    <th className="py-3 font-semibold w-52 min-w-[13rem]">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1188,67 +1151,65 @@ Fundación Carmen Goudie`
                       const inviteStatus = inviteStatuses[r.id]
                       
                       return (
-                        <tr key={r.id} className="border-b last:border-0 hover:bg-sky-50/50 transition-colors">
-                          <td className="py-3.5 px-4 font-semibold text-slate-900 truncate max-w-[11rem]" title={name}>{name}</td>
-                          <td className="py-3.5 px-3 font-mono text-xs text-slate-600 bg-slate-50 rounded">{rut}</td>
-                          <td className="py-3.5 px-3 text-slate-700 truncate max-w-[13rem]" title={r.email}>{r.email}</td>
-                          <td className="py-3.5 px-3 text-slate-700">{r.phone || '—'}</td>
-                          <td className="py-3.5 px-3 text-slate-700 truncate max-w-[12rem]" title={school}>{school}</td>
-                          <td className="py-3.5 px-3 text-slate-600 text-xs">
+                        <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50">
+                          <td className="py-2 pr-3 font-medium !text-slate-900 truncate max-w-[11rem]" title={name}>{name}</td>
+                          <td className="py-2 pr-3 font-mono text-xs !text-slate-700">{rut}</td>
+                          <td className="py-2 pr-3 !text-slate-700 truncate max-w-[13rem]" title={r.email}>{r.email}</td>
+                          <td className="py-2 pr-3 !text-slate-700">{r.phone || '—'}</td>
+                          <td className="py-2 pr-3 !text-slate-700 truncate max-w-[12rem]" title={school}>{school}</td>
+                          <td className="py-2 pr-3 !text-slate-700">
                             {r.createdAt
                               ? new Date(r.createdAt).toLocaleDateString('es-CL')
                               : '—'}
                           </td>
-                          <td className="py-3.5 px-3">
+                          <td className="py-2 pr-3">
                             {inviteStatus ? (
                               <div className="flex items-center gap-2">
-                                <div className="bg-emerald-100 rounded-full px-3 py-1.5 flex items-center gap-1.5">
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-                                  <span className="text-xs font-medium text-emerald-800">
-                                    {inviteStatus.method === 'auto' ? 'Email' : 'Manual'}
-                                  </span>
-                                </div>
+                                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                <span className="text-xs text-green-700">
+                                  Invitado ({inviteStatus.method === 'auto' ? 'Email' : 'Manual'})
+                                </span>
                               </div>
                             ) : (
                               <button
                                 onClick={() => openInviteModal(r)}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-700 transition-all shadow-sm hover:shadow"
+                                className="inline-flex items-center gap-1 rounded-md bg-sky-600 px-2 py-1 text-xs font-medium text-white hover:bg-sky-700"
                               >
                                 <Send className="w-3 h-3" />
                                 Invitar
                               </button>
                             )}
                           </td>
-                          <td className="py-3.5 px-3">
-                            <div className="flex items-center gap-1.5">
+                          <td className="py-2">
+                            <div className="flex items-center gap-2">
                               <button
                                 onClick={() => generateQuickCode(r)}
-                                className="inline-flex items-center gap-1 rounded-lg bg-purple-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-purple-700 transition-all shadow-sm hover:shadow"
+                                className="inline-flex items-center gap-1 rounded-md bg-purple-600 px-2 py-1 text-xs font-medium text-white hover:bg-purple-700"
                                 title="Generar código"
                               >
-                                <Key className="w-3.5 h-3.5" />
+                                <Key className="w-3 h-3" />
                               </button>
                               <button
                                 onClick={() => setEditingApplicant(r)}
-                                className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-amber-700 transition-all shadow-sm hover:shadow"
+                                className="inline-flex items-center gap-1 rounded-md bg-amber-600 px-2 py-1 text-xs font-medium text-white hover:bg-amber-700"
                                 title="Editar postulante"
                               >
-                                <Edit className="w-3.5 h-3.5" />
+                                <Edit className="w-3 h-3" />
                               </button>
                               <button
                                 onClick={() => {
                                   setSelectedApplicantId(r.id)
                                   setDetailModalOpen(true)
                                 }}
-                                className="inline-flex items-center gap-1 rounded-lg bg-slate-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-slate-700 transition-all shadow-sm hover:shadow"
+                                className="inline-flex items-center gap-1 rounded-md bg-slate-600 px-2 py-1 text-xs font-medium text-white hover:bg-slate-700"
                                 title="Ver detalles"
                               >
-                                <Eye className="w-3.5 h-3.5" />
+                                <Eye className="w-3 h-3" />
                               </button>
                               <button
                                 onClick={() => deleteApplicant(r)}
                                 disabled={deletingApplicantId === r.id}
-                                className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-all shadow-sm hover:shadow"
+                                className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
                                 title="Eliminar postulante"
                               >
                                 {deletingApplicantId === r.id ? (
@@ -1268,7 +1229,7 @@ Fundación Carmen Goudie`
             </div>
 
             {/* Vista Mobile - Cards */}
-            <div className="lg:hidden space-y-4">
+            <div className="lg:hidden space-y-3">
               {rows.map((r) => {
                 const name = r.fullName || fullName(r) || '—'
                 const rut = r.rutNumber && r.rutDv 
@@ -1280,69 +1241,65 @@ Fundación Carmen Goudie`
                 const inviteStatus = inviteStatuses[r.id]
                 
                 return (
-                  <div key={r.id} className="bg-white rounded-xl shadow-md border-2 border-slate-100 p-5 space-y-4 hover:border-sky-200 transition-all">
+                  <div key={r.id} className="card p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-slate-900 truncate text-lg">{name}</h3>
-                        <p className="text-xs font-mono text-slate-500 bg-slate-100 rounded px-2 py-1 inline-block mt-2">{rut}</p>
+                        <h3 className="font-semibold !text-slate-900 truncate">{name}</h3>
+                        <p className="text-xs font-mono !text-slate-600 mt-1">{rut}</p>
                       </div>
                       {inviteStatus && (
-                        <div className="bg-emerald-100 rounded-full p-2">
-                          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                        </div>
+                        <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
                       )}
                     </div>
 
-                    <div className="space-y-2.5 text-sm bg-slate-50 rounded-lg p-3">
-                      <div className="flex gap-3">
-                        <span className="text-slate-500 font-medium w-24 flex-shrink-0">Correo:</span>
-                        <span className="text-slate-900 break-all font-medium">{r.email}</span>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex gap-2">
+                        <span className="!text-slate-600 w-20 flex-shrink-0">Correo:</span>
+                        <span className="!text-slate-900 break-all">{r.email}</span>
                       </div>
                       {r.phone && (
-                        <div className="flex gap-3">
-                          <span className="text-slate-500 font-medium w-24 flex-shrink-0">Teléfono:</span>
-                          <span className="text-slate-900">{r.phone}</span>
+                        <div className="flex gap-2">
+                          <span className="!text-slate-600 w-20 flex-shrink-0">Teléfono:</span>
+                          <span className="!text-slate-900">{r.phone}</span>
                         </div>
                       )}
-                      <div className="flex gap-3">
-                        <span className="text-slate-500 font-medium w-24 flex-shrink-0">Escuela:</span>
-                        <span className="text-slate-900 flex-1">{school}</span>
+                      <div className="flex gap-2">
+                        <span className="!text-slate-600 w-20 flex-shrink-0">Escuela:</span>
+                        <span className="!text-slate-900 flex-1">{school}</span>
                       </div>
-                      <div className="flex gap-3">
-                        <span className="text-slate-500 font-medium w-24 flex-shrink-0">Creado:</span>
-                        <span className="text-slate-900">
+                      <div className="flex gap-2">
+                        <span className="!text-slate-600 w-20 flex-shrink-0">Creado:</span>
+                        <span className="!text-slate-900">
                           {r.createdAt ? new Date(r.createdAt).toLocaleDateString('es-CL') : '—'}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 pt-3 border-t-2 border-slate-100">
+                    <div className="flex flex-wrap gap-2 pt-2 border-t">
                       {!inviteStatus ? (
                         <button
                           onClick={() => openInviteModal(r)}
-                          className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700 transition-all shadow-sm"
+                          className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700"
                         >
                           <Send className="w-4 h-4" />
                           Invitar
                         </button>
                       ) : (
-                        <div className="flex-1 flex items-center justify-center gap-2 text-sm bg-emerald-50 rounded-lg py-2.5 px-3">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                          <span className="font-medium text-emerald-800">
-                            {inviteStatus.method === 'auto' ? 'Invitado por Email' : 'Invitado Manual'}
-                          </span>
+                        <div className="flex-1 flex items-center justify-center gap-2 text-sm text-green-700">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Invitado ({inviteStatus.method === 'auto' ? 'Email' : 'Manual'})</span>
                         </div>
                       )}
                       <button
                         onClick={() => generateQuickCode(r)}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-purple-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-purple-700 transition-all shadow-sm"
+                        className="inline-flex items-center justify-center gap-1 rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700"
                       >
                         <Key className="w-4 h-4" />
                         Código
                       </button>
                       <button
                         onClick={() => setEditingApplicant(r)}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-amber-700 transition-all shadow-sm"
+                        className="inline-flex items-center justify-center gap-1 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700"
                       >
                         <Edit className="w-4 h-4" />
                         Editar
@@ -1352,7 +1309,7 @@ Fundación Carmen Goudie`
                           setSelectedApplicantId(r.id)
                           setDetailModalOpen(true)
                         }}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-slate-700 transition-all shadow-sm"
+                        className="inline-flex items-center justify-center gap-1 rounded-md bg-slate-600 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700"
                       >
                         <Eye className="w-4 h-4" />
                         Ver
@@ -1360,7 +1317,7 @@ Fundación Carmen Goudie`
                       <button
                         onClick={() => deleteApplicant(r)}
                         disabled={deletingApplicantId === r.id}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-red-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-all shadow-sm"
+                        className="inline-flex items-center justify-center gap-1 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
                       >
                         {deletingApplicantId === r.id ? (
                           <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1377,16 +1334,16 @@ Fundación Carmen Goudie`
         )}
 
         {/* Paginación */}
-        <div className="mt-6 bg-white rounded-lg shadow-sm border p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm">
-          <div className="flex items-center gap-3">
-            <span className="text-slate-600 font-medium">Filas por página:</span>
+        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-600">Filas por página:</span>
             <select
               value={limit}
               onChange={(e) => {
                 setLimit(Number(e.target.value))
                 setOffset(0)
               }}
-              className="rounded-lg border-2 border-slate-200 px-3 py-2 font-medium focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition-all"
+              className="rounded-md border px-2 py-1"
             >
               {[10, 20, 50, 100].map((n) => (
                 <option key={n} value={n}>
@@ -1394,28 +1351,31 @@ Fundación Carmen Goudie`
                 </option>
               ))}
             </select>
-            {meta && (
-              <span className="text-slate-500 ml-2">
-                Mostrando {offset + 1} - {Math.min(offset + limit, meta.total)} de {meta.total}
-              </span>
-            )}
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => setOffset(Math.max(0, offset - limit))}
               disabled={offset === 0}
-              className="rounded-lg border-2 border-slate-200 px-4 py-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-all"
+              className="rounded-md border px-3 py-1.5 disabled:opacity-50"
             >
               Anterior
             </button>
             <button
               onClick={() => setOffset(offset + limit)}
               disabled={meta ? offset + limit >= meta.total : undefined}
-              className="rounded-lg border-2 border-slate-200 px-4 py-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-all"
+              className="rounded-md border px-3 py-1.5 disabled:opacity-50"
             >
               Siguiente
             </button>
+            <span className="text-slate-600">
+              {meta
+                ? `${Math.min(meta.total, offset + 1)}–${Math.min(
+                    meta.total,
+                    offset + rows.length,
+                  )} de ${meta.total}`
+                : ''}
+            </span>
           </div>
         </div>
       </div>
