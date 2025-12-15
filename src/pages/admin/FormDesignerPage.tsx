@@ -214,13 +214,16 @@ export default function FormDesignerPage() {
     try {
       setSaving(true)
       
-      // Convertir tipos a formato de DB
+      // Limpiar y convertir a formato de DB (remover propiedades que el backend no acepta)
       const sectionsForDb = sections.map(section => ({
-        ...section,
-        fields: section.fields.map(field => ({
-          ...field,
-          type: mapFieldTypeToDb(field.type),
-        })),
+        title: section.title,
+        fields: section.fields.map(field => {
+          const { id, ...fieldWithoutId } = field
+          return {
+            ...fieldWithoutId,
+            type: mapFieldTypeToDb(field.type),
+          }
+        }),
       }))
       
       const res = await fetch(`${API_BASE}/admin/forms?callId=${callId}`, {
