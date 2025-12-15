@@ -214,15 +214,25 @@ export default function FormDesignerPage() {
     try {
       setSaving(true)
       
-      // Limpiar y convertir a formato de DB (remover propiedades que el backend no acepta)
+      // Construir payload limpio con solo las propiedades permitidas por el DTO
       const sectionsForDb = sections.map(section => ({
         title: section.title,
         fields: section.fields.map(field => {
-          const { id, ...fieldWithoutId } = field
-          return {
-            ...fieldWithoutId,
+          const cleanField: any = {
+            label: field.label,
             type: mapFieldTypeToDb(field.type),
           }
+          
+          // Agregar solo propiedades opcionales que existan
+          if (field.name) cleanField.name = field.name
+          if (field.placeholder) cleanField.placeholder = field.placeholder
+          if (field.hint) cleanField.hint = field.hint
+          if (field.helpText) cleanField.helpText = field.helpText
+          if (field.required !== undefined) cleanField.required = field.required
+          if (field.options) cleanField.options = field.options
+          if (field.validation) cleanField.validation = field.validation
+          
+          return cleanField
         }),
       }))
       
