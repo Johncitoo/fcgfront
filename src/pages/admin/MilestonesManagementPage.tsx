@@ -194,7 +194,7 @@ export default function MilestonesManagementPage() {
           }
 
           console.log('[MilestonesManagement] Creando formulario desde plantilla:', formPayload)
-          const newForm = await apiPost('/forms', formPayload)
+          const newForm = await apiPost<{ id: string }>('/forms', formPayload)
           
           if (!newForm?.id) {
             throw new Error('Error al crear formulario desde plantilla')
