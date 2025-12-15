@@ -86,9 +86,9 @@ export const router = createBrowserRouter([
     { path: 'institutions', element: <InstitutionsPage /> },
     { path: 'applications', element: <ApplicationsListPage /> },
     { path: 'applications/:id', element: <ApplicationDetailPage /> },
-    { path: 'hitos', element: <MilestonesManagementPage /> }, // ✅ Gestión de hitos/fases
-    { path: 'formularios', element: <SimpleFormBuilder /> }, // ✅ NUEVO diseñador super simple
-    { path: 'plantillas-formularios', element: <FormTemplatesPage /> }, // ✅ Plantillas reutilizables
+    { path: 'milestones', element: <MilestonesManagementPage /> }, // ✅ Gestión de hitos/fases
+    { path: 'forms-builder', element: <SimpleFormBuilder /> }, // ✅ NUEVO diseñador super simple
+    { path: 'form-templates', element: <FormTemplatesPage /> }, // ✅ Plantillas reutilizables
     { path: 'forms', element: <FormDesignerPage /> }, // antiguo
     { path: 'forms-v2', element: <FormBuilderV2 /> }, // antiguo v2
     { path: 'forms/:formId/sections/:sectionId', element: <FormSectionEditorPage /> },
@@ -139,8 +139,9 @@ export const router = createBrowserRouter([
       { path: 'application/:id', element: <ApplicationFullFormPage /> },
       { path: 'application/:id/history', element: <ApplicationHistoryPage /> },
       { path: 'application/:id/review', element: <ApplicationReviewPage /> },
-      { path: 'hitos', element: <MilestonesManagementPage /> },
-      { path: 'formularios', element: <SimpleFormBuilder /> },
+      { path: 'milestones', element: <MilestonesManagementPage /> },
+      { path: 'forms-builder', element: <SimpleFormBuilder /> },
+      { path: 'form-templates', element: <FormTemplatesPage /> }, // ✅ Plantillas para reviewers
       { path: 'forms', element: <FormDesignerPage /> },
       { path: 'forms/:formId/sections/:sectionId', element: <FormSectionEditorPage /> },
       { path: 'email/logs', element: <EmailLogsPage /> },

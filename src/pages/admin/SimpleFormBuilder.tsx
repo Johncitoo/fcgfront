@@ -422,7 +422,7 @@ export default function SimpleFormBuilder() {
       
       // Redirigir a la página de plantillas
       setTimeout(() => {
-        navigate('/admin/plantillas-formularios')
+        navigate('/admin/form-templates')
       }, 500)
     }
     
@@ -658,7 +658,7 @@ export default function SimpleFormBuilder() {
           <div className="flex items-center justify-between gap-4 mb-4">
             <div className="flex items-center gap-3">
               <Link 
-                to={isTemplateMode ? "/admin/plantillas-formularios" : "/admin"} 
+                to={isTemplateMode ? "/admin/form-templates" : "/admin"} 
                 className="p-2 hover:bg-slate-100 rounded-lg"
                 title="Volver"
               >

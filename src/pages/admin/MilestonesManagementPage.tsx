@@ -670,7 +670,7 @@ export default function MilestonesManagementPage() {
                     {!loadingTemplates && templates.length === 0 && (
                       <p className="text-xs text-gray-500 mt-2">
                         No hay plantillas disponibles.{' '}
-                        <a href="/admin/plantillas-formularios" className="text-purple-600 hover:underline">
+                        <a href="/admin/form-templates" className="text-purple-600 hover:underline">
                           Crear plantilla
                         </a>
                       </p>
