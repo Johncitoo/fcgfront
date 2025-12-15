@@ -1157,11 +1157,13 @@ Fundación Carmen Goudie`
                           <td className="py-2 px-3 !text-slate-700" title={r.email}>{r.email}</td>
                           <td className="py-2 px-3 !text-slate-700">{r.phone || '—'}</td>
                           <td className="py-2 px-3 !text-slate-700" title={school}>{school}</td>
-                          <td className="py-2 px-3 !text-slate-700 whitespace-nowrap">\n                            {r.createdAt
+                          <td className="py-2 px-3 !text-slate-700 whitespace-nowrap">
+                            {r.createdAt
                               ? new Date(r.createdAt).toLocaleDateString('es-CL')
                               : '—'}
                           </td>
-                          <td className="py-2 px-3 whitespace-nowrap">\n                            {inviteStatus ? (
+                          <td className="py-2 px-3 whitespace-nowrap">
+                            {inviteStatus ? (
                               <div className="flex items-center gap-2">
                                 <CheckCircle2 className="w-4 h-4 text-green-600" />
                                 <span className="text-xs text-green-700">
@@ -1178,7 +1180,8 @@ Fundación Carmen Goudie`
                               </button>
                             )}
                           </td>
-                          <td className="py-2 px-3 whitespace-nowrap">\n                            <div className="flex items-center gap-1.5">
+                          <td className="py-2 px-3 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5">
                               <button
                                 onClick={() => generateQuickCode(r)}
                                 className="inline-flex items-center gap-1 rounded-md bg-purple-600 px-2 py-1 text-xs font-medium text-white hover:bg-purple-700"
