@@ -73,6 +73,9 @@ export default function ApplicationDetailPage() {
   const [viewingAnswers, setViewingAnswers] = useState<string | null>(null)
   const [answers, setAnswers] = useState<any>(null)
   const [loadingAnswers, setLoadingAnswers] = useState(false)
+  const [viewingFiles, setViewingFiles] = useState(false)
+  const [files, setFiles] = useState<any[]>([])
+  const [loadingFiles, setLoadingFiles] = useState(false)
   const [completingMilestone, setCompletingMilestone] = useState<MilestoneProgress | null>(null)
 
   useEffect(() => {
@@ -182,6 +185,21 @@ export default function ApplicationDetailPage() {
       setActionErr(e.message ?? 'No se pudieron cargar las respuestas')
     } finally {
       setLoadingAnswers(false)
+    }
+  }
+
+  async function loadFiles() {
+    if (!id) return
+    setLoadingFiles(true)
+    setFiles([])
+    try {
+      const data = await apiGet(`/documents/${id}`)
+      setFiles(data.items || [])
+      setViewingFiles(true)
+    } catch (e: any) {
+      setActionErr(e.message ?? 'No se pudieron cargar los archivos')
+    } finally {
+      setLoadingFiles(false)
     }
   }
 
@@ -328,14 +346,22 @@ export default function ApplicationDetailPage() {
 
                           {/* Botón para ver respuestas si el hito tiene respuestas guardadas */}
                           {(m.status === 'COMPLETED' || m.status === 'IN_PROGRESS') && (
-                            <div className="mt-3">
+                            <div className="mt-3 flex flex-wrap gap-2">
                               <button
                                 onClick={() => loadAnswers(m.mp_id)}
                                 disabled={loadingAnswers}
                                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-700 bg-sky-50 border border-sky-200 rounded-lg hover:bg-sky-100 hover:border-sky-300 transition-colors disabled:opacity-50"
                               >
                                 <span>👁️</span>
-                                <span>{loadingAnswers && viewingAnswers === m.mp_id ? 'Cargando...' : 'Ver respuestas del formulario'}</span>
+                                <span>{loadingAnswers && viewingAnswers === m.mp_id ? 'Cargando...' : 'Ver respuestas'}</span>
+                              </button>
+                              <button
+                                onClick={loadFiles}
+                                disabled={loadingFiles}
+                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 hover:border-emerald-300 transition-colors disabled:opacity-50"
+                              >
+                                <span>📎</span>
+                                <span>{loadingFiles ? 'Cargando...' : 'Ver archivos'}</span>
                               </button>
                             </div>
                           )}
@@ -570,6 +596,113 @@ export default function ApplicationDetailPage() {
                     ) : (
                       <div className="flex items-center justify-center py-12">
                         <p className="text-sm text-slate-600">No se encontraron respuestas para este hito.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Modal para ver archivos de la aplicación */}
+              {viewingFiles && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                  <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6">
+                    <div className="mb-4 flex items-center justify-between border-b pb-3">
+                      <div>
+                        <h3 className="text-xl font-semibold text-slate-800">Archivos de la Aplicación</h3>
+                        <p className="text-sm text-slate-600 mt-1">
+                          {files.length} {files.length === 1 ? 'archivo encontrado' : 'archivos encontrados'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setViewingFiles(false)
+                          setFiles([])
+                        }}
+                        className="text-2xl text-slate-400 hover:text-slate-700 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {loadingFiles ? (
+                      <div className="flex items-center justify-center py-12">
+                        <p className="text-slate-600">Cargando archivos...</p>
+                      </div>
+                    ) : files.length > 0 ? (
+                      <div className="space-y-3">
+                        {files.map((file, idx) => (
+                          <div key={file.id || idx} className="rounded-lg border border-slate-200 bg-white p-4 hover:shadow-md transition-shadow">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-2xl">
+                                    {file.fileType?.includes('image') ? '🖼️' : 
+                                     file.fileType?.includes('pdf') ? '📄' : 
+                                     file.fileType?.includes('doc') ? '📝' : 
+                                     file.fileType?.includes('sheet') || file.fileType?.includes('excel') ? '📊' : '📎'}
+                                  </span>
+                                  <div>
+                                    <p className="font-medium text-slate-900">{file.fileName || file.name || `Archivo ${idx + 1}`}</p>
+                                    <p className="text-xs text-slate-500">
+                                      {file.fileType || 'Tipo desconocido'} 
+                                      {file.fileSize && ` • ${(file.fileSize / 1024).toFixed(2)} KB`}
+                                    </p>
+                                  </div>
+                                </div>
+                                {file.description && (
+                                  <p className="text-sm text-slate-600 mt-2">{file.description}</p>
+                                )}
+                                {file.fieldName && (
+                                  <p className="text-xs text-slate-500 mt-1">
+                                    <span className="font-medium">Campo:</span> {file.fieldName}
+                                  </p>
+                                )}
+                                <div className="flex flex-wrap gap-2 mt-2 text-xs text-slate-500">
+                                  {file.uploadedAt && (
+                                    <span>Subido: {new Date(file.uploadedAt).toLocaleString()}</span>
+                                  )}
+                                  {file.status && (
+                                    <span className={`px-2 py-1 rounded ${
+                                      file.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
+                                      file.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' :
+                                      'bg-slate-100 text-slate-700'
+                                    }`}>
+                                      {file.status}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <a
+                                  href={file.fileUrl || file.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-lg hover:bg-sky-700 transition-colors"
+                                >
+                                  <span>📥</span>
+                                  <span>Descargar</span>
+                                </a>
+                                {(file.fileUrl || file.url) && (file.fileType?.includes('image') || file.fileType?.includes('pdf')) && (
+                                  <a
+                                    href={file.fileUrl || file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-700 bg-sky-50 border border-sky-200 rounded-lg hover:bg-sky-100 transition-colors"
+                                  >
+                                    <span>👁️</span>
+                                    <span>Ver</span>
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <span className="text-6xl mb-4">📂</span>
+                        <p className="text-lg text-slate-600 font-medium">No hay archivos adjuntos</p>
+                        <p className="text-sm text-slate-500 mt-2">Esta aplicación no tiene archivos cargados aún.</p>
                       </div>
                     )}
                   </div>
