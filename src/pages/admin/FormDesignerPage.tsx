@@ -226,7 +226,6 @@ export default function FormDesignerPage() {
           // Agregar solo propiedades opcionales que existan
           if (field.name) cleanField.name = field.name
           if (field.placeholder) cleanField.placeholder = field.placeholder
-          if (field.hint) cleanField.hint = field.hint
           if (field.helpText) cleanField.helpText = field.helpText
           if (field.required !== undefined) cleanField.required = field.required
           if (field.options) cleanField.options = field.options
