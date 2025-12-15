@@ -366,7 +366,8 @@ export default function ApplicationDetailPage() {
                         const isAdminFill = canFillArray.includes('ADMIN')
                         
                         // Verificar si el usuario actual puede completar este hito
-                        const canUserComplete = isAdminFill ? currentUserRole === 'ADMIN' : (isReviewerFill ? (currentUserRole === 'ADMIN' || currentUserRole === 'REVIEWER') : true)
+                        // REVIEWER e ADMIN solo pueden ser completados por ADMIN
+                        const canUserComplete = (isAdminFill || isReviewerFill) ? currentUserRole === 'ADMIN' : true
                         
                         return (
                         <div key={m.mp_id} className={`rounded-lg border p-4 ${isBlocked ? 'bg-slate-50 opacity-60' : ''}`}>
