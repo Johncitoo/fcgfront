@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useLocation } from 'react-router-dom'
 import { apiGet, apiPost, apiPatch } from '../../lib/api'
+import { authService } from '../../lib/auth'
 import ReviewerFormModal from '../../components/ReviewerFormModal'
 
 type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
@@ -58,9 +59,15 @@ interface MilestoneProgress {
 
 export default function ApplicationDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const location = useLocation()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  
+  // Detectar si estamos en modo reviewer o admin
+  const isReviewerMode = location.pathname.startsWith('/reviewer')
+  const baseRoute = isReviewerMode ? '/reviewer' : '/admin'
+  const currentUserRole = authService.getUserRole() || 'ADMIN'
   const [app, setApp] = useState<ApplicationDTO | null>(null)
   const [hist, setHist] = useState<HistoryRow[]>([])
   const [score, setScore] = useState('')
@@ -257,11 +264,11 @@ export default function ApplicationDetailPage() {
     <div className="min-h-screen p-4 md:p-6">
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Link to="/admin/applications" className="text-sm text-sky-700 hover:underline">
+          <Link to={`${baseRoute}/applications`} className="text-sm text-sky-700 hover:underline">
             ← Volver a postulaciones
           </Link>
           {app?.callId && (
-            <Link to={`/admin/calls/${app.callId}`} className="text-sm text-sky-700 hover:underline">
+            <Link to={`${baseRoute}/calls/${app.callId}`} className="text-sm text-sky-700 hover:underline">
               Ver convocatoria
             </Link>
           )}
@@ -356,6 +363,10 @@ export default function ApplicationDetailPage() {
                         const canFillArray = Array.isArray(m.whoCanFill) ? m.whoCanFill : [m.whoCanFill]
                         const isApplicantFill = canFillArray.includes('APPLICANT')
                         const isReviewerFill = canFillArray.includes('REVIEWER')
+                        const isAdminFill = canFillArray.includes('ADMIN')
+                        
+                        // Verificar si el usuario actual puede completar este hito
+                        const canUserComplete = isAdminFill ? currentUserRole === 'ADMIN' : (isReviewerFill ? (currentUserRole === 'ADMIN' || currentUserRole === 'REVIEWER') : true)
                         
                         return (
                         <div key={m.mp_id} className={`rounded-lg border p-4 ${isBlocked ? 'bg-slate-50 opacity-60' : ''}`}>
@@ -364,10 +375,11 @@ export default function ApplicationDetailPage() {
                               <div className="flex items-center gap-2">
                                 <h4 className="font-medium">{m.milestoneName}</h4>
                                 <span className="text-xs text-slate-500">
-                                  ({isApplicantFill ? 'Postulante' : isReviewerFill ? 'Revisor' : 'Revisor/Admin'})
+                                  ({isApplicantFill ? 'Postulante' : isReviewerFill ? 'Revisor' : isAdminFill ? 'Admin' : 'Desconocido'})
                                 </span>
                                 {m.m_required && <span className="text-xs text-rose-600">*Obligatorio</span>}
                                 {isBlocked && <span className="text-xs text-slate-500">🔒 Bloqueado</span>}
+                                {isAdminFill && !canUserComplete && <span className="text-xs text-amber-600">👁️ Solo lectura</span>}
                               </div>
                               <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                                 <MilestoneStatusBadge status={m.status} />
@@ -488,7 +500,7 @@ export default function ApplicationDetailPage() {
                                 <div className="text-xs text-emerald-700">
                                   ✓ Entrevista completada el {m.completedAt ? new Date(m.completedAt).toLocaleString() : '—'}
                                 </div>
-                              ) : (
+                              ) : canUserComplete ? (
                                 <button
                                   onClick={() => setCompletingMilestone(m)}
                                   className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
@@ -497,6 +509,33 @@ export default function ApplicationDetailPage() {
                                   <span className="text-lg">✍️</span>
                                   <span>Completar entrevista</span>
                                 </button>
+                              ) : (
+                                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                                  ⚠️ Este hito solo puede ser completado por un administrador
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {isAdminFill && (
+                            <div className="mt-3">
+                              {m.status === 'COMPLETED' ? (
+                                <div className="text-xs text-emerald-700">
+                                  ✓ Completado el {m.completedAt ? new Date(m.completedAt).toLocaleString() : '—'}
+                                </div>
+                              ) : canUserComplete ? (
+                                <button
+                                  onClick={() => setCompletingMilestone(m)}
+                                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                  disabled={isBlocked}
+                                >
+                                  <span className="text-lg">👨‍💼</span>
+                                  <span>Completar (Admin)</span>
+                                </button>
+                              ) : (
+                                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                                  🔒 Este hito solo puede ser completado por un administrador. Puedes ver las respuestas cuando estén disponibles.
+                                </div>
                               )}
                             </div>
                           )}

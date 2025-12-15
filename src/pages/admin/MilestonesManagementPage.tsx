@@ -46,7 +46,7 @@ export default function MilestonesManagementPage() {
     name: string
     description: string
     required: boolean
-    whoCanFill: 'APPLICANT' | 'REVIEWER'
+    whoCanFill: 'APPLICANT' | 'REVIEWER' | 'ADMIN'
     status: 'ACTIVE' | 'PENDING'
     dueDate: string
   }>({
@@ -134,7 +134,7 @@ export default function MilestonesManagementPage() {
         name: milestone.name,
         description: milestone.description || '',
         required: milestone.required,
-        whoCanFill: (Array.isArray(milestone.whoCanFill) ? milestone.whoCanFill[0] : 'APPLICANT') as 'APPLICANT' | 'REVIEWER',
+        whoCanFill: (Array.isArray(milestone.whoCanFill) ? milestone.whoCanFill[0] : 'APPLICANT') as 'APPLICANT' | 'REVIEWER' | 'ADMIN',
         status: milestone.status,
         dueDate: milestone.dueDate ? milestone.dueDate.split('T')[0] : '',
       })
@@ -497,8 +497,18 @@ export default function MilestonesManagementPage() {
                             <span className={`badge ${milestone.status === 'ACTIVE' ? 'badge-success' : 'badge-neutral'}`}>
                               {milestone.status === 'ACTIVE' ? '● Activo' : '○ Pendiente'}
                             </span>
-                            <span className={`badge ${milestone.whoCanFill?.[0] === 'APPLICANT' ? 'badge-info' : 'badge-purple'}`}>
-                              {milestone.whoCanFill?.[0] === 'APPLICANT' ? 'Postulante' : 'Revisor'}
+                            <span className={`badge ${
+                              milestone.whoCanFill?.[0] === 'APPLICANT' 
+                                ? 'badge-info' 
+                                : milestone.whoCanFill?.[0] === 'ADMIN'
+                                ? 'bg-purple-100 text-purple-700'
+                                : 'badge-purple'
+                            }`}>
+                              {milestone.whoCanFill?.[0] === 'APPLICANT' 
+                                ? 'Postulante' 
+                                : milestone.whoCanFill?.[0] === 'ADMIN'
+                                ? '👨‍💼 Solo Admin'
+                                : 'Revisor'}
                             </span>
                             {milestone.required && (
                               <span className="badge badge-warn">Obligatorio</span>
@@ -689,8 +699,12 @@ export default function MilestonesManagementPage() {
                     className="input"
                   >
                     <option value="APPLICANT">Postulante</option>
-                    <option value="REVIEWER">Revisor/Admin</option>
+                    <option value="REVIEWER">Revisor</option>
+                    <option value="ADMIN">Solo Admin</option>
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Los admins pueden completar cualquier hito. Los revisores solo pueden completar hitos de "Revisor" o ver los de "Solo Admin".
+                  </p>
                 </div>
 
                 {/* Estado */}
