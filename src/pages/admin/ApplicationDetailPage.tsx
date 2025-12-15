@@ -414,10 +414,11 @@ export default function ApplicationDetailPage() {
                               ) : (
                                 <button
                                   onClick={() => setCompletingMilestone(m)}
-                                  className="btn-primary text-xs flex items-center gap-1"
+                                  className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                                   disabled={isBlocked}
                                 >
-                                  ✍️ Completar entrevista
+                                  <span className="text-lg">✍️</span>
+                                  <span>Completar entrevista</span>
                                 </button>
                               )}
                             </div>
