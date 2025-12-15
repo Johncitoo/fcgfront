@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { 
   Plus, Trash2, Eye, GripVertical, Save, FileText,
-  AlertCircle, CheckCircle2, ArrowLeft
+  AlertCircle, CheckCircle2, ArrowLeft, BookTemplate
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useCallContext } from '../../contexts/CallContext'
 import { CallStatusBadge } from '../../components/CallStatusBadge'
 
@@ -139,6 +139,14 @@ const FIELD_TEMPLATES = [
 
 export default function SimpleFormBuilder() {
   const { selectedCall } = useCallContext()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  
+  // MODO PLANTILLA: Detectar desde URL o state
+  const isTemplateMode = searchParams.get('template') === 'true' || location.state?.isTemplate === true
+  const templateIdFromUrl = searchParams.get('templateId') || location.state?.templateId
+  
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [selectedMilestoneId, setSelectedMilestoneId] = useState('')
   const [formData, setFormData] = useState<FormData | null>(null)
@@ -153,8 +161,24 @@ export default function SimpleFormBuilder() {
   const token = localStorage.getItem('fcg.access_token') ?? ''
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 
-  // Cargar hitos cuando cambia convocatoria
+  // MODO PLANTILLA: Cargar plantilla existente si viene templateId
   useEffect(() => {
+    if (isTemplateMode && templateIdFromUrl) {
+      loadTemplate(templateIdFromUrl)
+    } else if (isTemplateMode && !templateIdFromUrl) {
+      // Nueva plantilla vacía
+      setFormData({
+        title: 'Nueva plantilla',
+        description: '',
+        sections: []
+      })
+    }
+  }, [isTemplateMode, templateIdFromUrl])
+
+  // Cargar hitos cuando cambia convocatoria (SOLO en modo normal)
+  useEffect(() => {
+    if (isTemplateMode) return // Skip en modo plantilla
+    
     if (!selectedCall?.id) {
       setMilestones([])
       setSelectedMilestoneId('')
@@ -162,10 +186,12 @@ export default function SimpleFormBuilder() {
       return
     }
     loadMilestones()
-  }, [selectedCall?.id])
+  }, [selectedCall?.id, isTemplateMode])
 
-  // Cargar formulario cuando cambia hito
+  // Cargar formulario cuando cambia hito (SOLO en modo normal)
   useEffect(() => {
+    if (isTemplateMode) return // Skip en modo plantilla
+    
     if (!selectedMilestoneId) {
       setFormData(null)
       return
@@ -176,7 +202,7 @@ export default function SimpleFormBuilder() {
       return
     }
     loadForm()
-  }, [selectedMilestoneId, isSaving])
+  }, [selectedMilestoneId, isSaving, isTemplateMode])
 
   async function loadMilestones() {
     try {
@@ -188,6 +214,55 @@ export default function SimpleFormBuilder() {
       }
     } catch (err) {
       console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function loadTemplate(templateId: string) {
+    try {
+      setLoading(true)
+      console.log('[SimpleFormBuilder] Cargando plantilla:', templateId)
+      
+      const timestamp = Date.now()
+      const res = await fetch(`${API_BASE}/forms/${templateId}?_t=${timestamp}`, { 
+        headers: {
+          ...headers,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      })
+      
+      if (!res.ok) {
+        throw new Error(`Error al cargar plantilla: ${res.status}`)
+      }
+      
+      const data = await res.json()
+      console.log('[SimpleFormBuilder] Plantilla cargada:', data)
+      
+      // Validar que sea una plantilla
+      if (!data.isTemplate) {
+        console.warn('[SimpleFormBuilder] ADVERTENCIA: El formulario cargado no es una plantilla')
+      }
+      
+      const sections = data.schema?.sections || data.sections || []
+      
+      setFormData({
+        id: data.id,
+        title: data.name || data.title || 'Plantilla sin título',
+        description: data.description || '',
+        sections: Array.isArray(sections) ? sections : []
+      })
+    } catch (err: any) {
+      console.error('[SimpleFormBuilder] Error cargando plantilla:', err)
+      alert('❌ Error al cargar la plantilla: ' + err.message)
+      
+      // Crear plantilla vacía en caso de error
+      setFormData({
+        title: 'Nueva plantilla',
+        description: '',
+        sections: []
+      })
     } finally {
       setLoading(false)
     }
@@ -247,12 +322,117 @@ export default function SimpleFormBuilder() {
   }
 
   async function saveForm() {
-    if (!formData || !selectedMilestoneId) return
+    if (!formData) {
+      alert('❌ No hay datos para guardar')
+      return
+    }
+    
+    // MODO PLANTILLA: Validar que tenga título
+    if (isTemplateMode && !formData.title.trim()) {
+      alert('❌ La plantilla debe tener un título')
+      return
+    }
+    
+    // MODO NORMAL: Validar que haya milestone seleccionado
+    if (!isTemplateMode && !selectedMilestoneId) {
+      alert('❌ Debes seleccionar un hito')
+      return
+    }
+    
     setSaving(true)
     setIsSaving(true) // Activar flag para bloquear useEffect
     
     try {
-      const milestone = milestones.find(m => m.id === selectedMilestoneId)
+      if (isTemplateMode) {
+        // ============ MODO PLANTILLA ============
+        await saveAsTemplate()
+      } else {
+        // ============ MODO NORMAL (vinculado a milestone) ============
+        await saveToMilestone()
+      }
+    } catch (err: any) {
+      console.error('[SimpleFormBuilder] Error al guardar:', err)
+      alert('❌ Error al guardar: ' + err.message)
+      setIsSaving(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function saveAsTemplate() {
+    if (!formData) return
+    
+    const payload = {
+      name: formData.title.trim(),
+      title: formData.title.trim(),
+      description: formData.description?.trim() || '',
+      sections: formData.sections,
+      isTemplate: true // ← CLAVE: Marcar como plantilla
+    }
+    
+    console.log('[SimpleFormBuilder] Guardando como plantilla:', payload)
+    
+    if (formData.id && templateIdFromUrl) {
+      // ACTUALIZAR plantilla existente
+      console.log('[SimpleFormBuilder] PATCH plantilla existente:', formData.id)
+      
+      const res = await fetch(`${API_BASE}/forms/${formData.id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(payload)
+      })
+      
+      if (!res.ok) {
+        const error = await res.text()
+        throw new Error('Error al actualizar plantilla: ' + error)
+      }
+      
+      const updated = await res.json()
+      console.log('[SimpleFormBuilder] Plantilla actualizada:', updated)
+      
+      alert('✅ Plantilla actualizada correctamente')
+      
+      // Actualizar estado local
+      const updatedSections = updated.schema?.sections || updated.sections || []
+      setFormData({
+        id: updated.id,
+        title: updated.name || updated.title || formData.title,
+        description: updated.description || '',
+        sections: updatedSections
+      })
+    } else {
+      // CREAR nueva plantilla
+      console.log('[SimpleFormBuilder] POST nueva plantilla')
+      
+      const res = await fetch(`${API_BASE}/forms`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+      })
+      
+      if (!res.ok) {
+        const error = await res.text()
+        throw new Error('Error al crear plantilla: ' + error)
+      }
+      
+      const newTemplate = await res.json()
+      console.log('[SimpleFormBuilder] Plantilla creada:', newTemplate)
+      
+      alert('✅ Plantilla guardada correctamente')
+      
+      // Redirigir a la página de plantillas
+      setTimeout(() => {
+        navigate('/admin/plantillas-formularios')
+      }, 500)
+    }
+    
+    setIsSaving(false)
+  }
+
+  async function saveToMilestone() {
+    if (!formData || !selectedMilestoneId) return
+    
+    const milestone = milestones.find(m => m.id === selectedMilestoneId)
       
       console.log('[SimpleFormBuilder] Guardando formulario...', {
         formDataSections: formData.sections.length,
@@ -302,7 +482,6 @@ export default function SimpleFormBuilder() {
           sectionsCount: formData.sections.length
         })
         
-        // Eliminar id del formData antes de enviar
         const { id, ...formDataWithoutId } = formData
         
         const res = await fetch(`${API_BASE}/forms`, {
@@ -360,13 +539,6 @@ export default function SimpleFormBuilder() {
         setIsSaving(false) // Desactivar flag después de guardar
         console.log('[SimpleFormBuilder] Flag isSaving desactivado')
       }, 1000)
-    } catch (err: any) {
-      console.error('[SimpleFormBuilder] Error al guardar:', err)
-      alert('❌ Error al guardar: ' + err.message)
-      setIsSaving(false) // Desactivar flag en caso de error
-    } finally {
-      setSaving(false)
-    }
   }
 
   function addSection() {
@@ -485,19 +657,37 @@ export default function SimpleFormBuilder() {
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4 mb-4">
             <div className="flex items-center gap-3">
-              <Link to="/admin" className="p-2 hover:bg-slate-100 rounded-lg">
+              <Link 
+                to={isTemplateMode ? "/admin/plantillas-formularios" : "/admin"} 
+                className="p-2 hover:bg-slate-100 rounded-lg"
+                title="Volver"
+              >
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
                 <h1 className="text-xl font-bold flex items-center gap-2">
-                  <FileText className="w-6 h-6 text-sky-600" />
-                  Diseñador de Formularios
+                  {isTemplateMode ? (
+                    <>
+                      <BookTemplate className="w-6 h-6 text-purple-600" />
+                      {templateIdFromUrl ? 'Editar Plantilla' : 'Nueva Plantilla'}
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-6 h-6 text-sky-600" />
+                      Diseñador de Formularios
+                    </>
+                  )}
                 </h1>
-                <p className="text-sm text-slate-500">Crea formularios fácil y rápido</p>
+                <p className="text-sm text-slate-500">
+                  {isTemplateMode 
+                    ? 'Crea plantillas reutilizables para tus formularios'
+                    : 'Crea formularios fácil y rápido'
+                  }
+                </p>
               </div>
             </div>
 
-            <CallStatusBadge />
+            {!isTemplateMode && <CallStatusBadge />}
 
             {formData && (
               <div className="flex items-center gap-2">
@@ -513,17 +703,37 @@ export default function SimpleFormBuilder() {
                 <button
                   onClick={saveForm}
                   disabled={saving}
-                  className="flex items-center gap-2 px-6 py-2 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700 disabled:opacity-50"
+                  className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium disabled:opacity-50 ${
+                    isTemplateMode 
+                      ? 'bg-purple-600 text-white hover:bg-purple-700'
+                      : 'bg-sky-600 text-white hover:bg-sky-700'
+                  }`}
                 >
                   <Save className="w-4 h-4" />
-                  {saving ? 'Guardando...' : 'Guardar formulario'}
+                  {saving ? 'Guardando...' : (isTemplateMode ? 'Guardar plantilla' : 'Guardar formulario')}
                 </button>
               </div>
             )}
           </div>
 
-          {/* Selector de hito */}
-          {!selectedCall ? (
+          {/* MODO PLANTILLA: Sin selector de hito */}
+          {isTemplateMode ? (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <BookTemplate className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-purple-900 mb-1">
+                    Modo Plantilla
+                  </h3>
+                  <p className="text-purple-700 text-sm">
+                    Esta plantilla podrá ser reutilizada en múltiples hitos y convocatorias.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Selector de hito (MODO NORMAL) */
+            !selectedCall ? (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -559,6 +769,7 @@ export default function SimpleFormBuilder() {
                 </p>
               )}
             </div>
+          )
           )}
         </div>
       </div>
