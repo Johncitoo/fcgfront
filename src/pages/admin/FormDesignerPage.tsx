@@ -215,25 +215,30 @@ export default function FormDesignerPage() {
       setSaving(true)
       
       // Construir payload limpio con solo las propiedades permitidas por el DTO
-      const sectionsForDb = sections.map(section => ({
-        title: section.title,
-        fields: section.fields.map(field => {
-          const cleanField: any = {
-            label: field.label,
-            type: mapFieldTypeToDb(field.type),
-          }
-          
-          // Agregar solo propiedades opcionales que existan
-          if (field.name) cleanField.name = field.name
-          if (field.placeholder) cleanField.placeholder = field.placeholder
-          if (field.helpText) cleanField.helpText = field.helpText
-          if (field.required !== undefined) cleanField.required = field.required
-          if (field.options) cleanField.options = field.options
-          if (field.validation) cleanField.validation = field.validation
-          
-          return cleanField
-        }),
-      }))
+      const sectionsForDb = sections.map(section => {
+        const cleanSection: any = {
+          title: String(section.title || ''),
+          fields: section.fields.map(field => {
+            const cleanField: any = {
+              label: String(field.label || ''),
+              type: mapFieldTypeToDb(field.type),
+            }
+            
+            // Agregar solo propiedades opcionales que existan
+            if (field.name) cleanField.name = String(field.name)
+            if (field.placeholder) cleanField.placeholder = String(field.placeholder)
+            if (field.helpText) cleanField.helpText = String(field.helpText)
+            if (field.required !== undefined) cleanField.required = Boolean(field.required)
+            if (field.options) cleanField.options = field.options
+            if (field.validation) cleanField.validation = field.validation
+            
+            return cleanField
+          })
+        }
+        return cleanSection
+      })
+      
+      console.log('🔍 Payload a enviar:', JSON.stringify({ sections: sectionsForDb }, null, 2))
       
       const res = await fetch(`${API_BASE}/admin/forms?callId=${callId}`, {
         method: 'PUT',
