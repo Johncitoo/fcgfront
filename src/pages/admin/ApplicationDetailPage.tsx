@@ -193,14 +193,62 @@ export default function ApplicationDetailPage() {
     setLoadingFiles(true)
     setFiles([])
     try {
-      const data = await apiGet<{ items: any[] }>(`/documents/${id}`)
-      setFiles(data.items || [])
+      const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
+      const token = localStorage.getItem('fcg.access_token') ?? ''
+      const url = `${API_BASE}/files/list?entityType=APPLICATION&entityId=${id}`
+      
+      const filesRes = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (!filesRes.ok) {
+        throw new Error('Error al cargar archivos')
+      }
+      
+      const filesData = await filesRes.json()
+      const files = filesData.files || filesData
+      setFiles(files)
       setViewingFiles(true)
     } catch (e: any) {
       setActionErr(e.message ?? 'No se pudieron cargar los archivos')
     } finally {
       setLoadingFiles(false)
     }
+  }
+
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  function downloadFile(fileId: string, filename: string) {
+    const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
+    const token = localStorage.getItem('fcg.access_token') ?? ''
+    const url = `${API_BASE}/files/${fileId}/download`
+    
+    // Descargar con autenticación
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.blob())
+      .then(blob => {
+        const blobUrl = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = filename
+        link.click()
+        window.URL.revokeObjectURL(blobUrl)
+      })
+      .catch(err => {
+        console.error('Error downloading file:', err)
+        alert('Error al descargar el archivo')
+      })
   }
 
   return (
@@ -608,10 +656,7 @@ export default function ApplicationDetailPage() {
                   <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6">
                     <div className="mb-4 flex items-center justify-between border-b pb-3">
                       <div>
-                        <h3 className="text-xl font-semibold text-slate-800">Archivos de la Aplicación</h3>
-                        <p className="text-sm text-slate-600 mt-1">
-                          {files.length} {files.length === 1 ? 'archivo encontrado' : 'archivos encontrados'}
-                        </p>
+                        <h3 className="text-xl font-semibold text-slate-800">Archivos ({files.length})</h3>
                       </div>
                       <button
                         onClick={() => {
@@ -626,83 +671,46 @@ export default function ApplicationDetailPage() {
 
                     {loadingFiles ? (
                       <div className="flex items-center justify-center py-12">
-                        <p className="text-slate-600">Cargando archivos...</p>
-                      </div>
-                    ) : files.length > 0 ? (
-                      <div className="space-y-3">
-                        {files.map((file, idx) => (
-                          <div key={file.id || idx} className="rounded-lg border border-slate-200 bg-white p-4 hover:shadow-md transition-shadow">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="text-2xl">
-                                    {file.fileType?.includes('image') ? '🖼️' : 
-                                     file.fileType?.includes('pdf') ? '📄' : 
-                                     file.fileType?.includes('doc') ? '📝' : 
-                                     file.fileType?.includes('sheet') || file.fileType?.includes('excel') ? '📊' : '📎'}
-                                  </span>
-                                  <div>
-                                    <p className="font-medium text-slate-900">{file.fileName || file.name || `Archivo ${idx + 1}`}</p>
-                                    <p className="text-xs text-slate-500">
-                                      {file.fileType || 'Tipo desconocido'} 
-                                      {file.fileSize && ` • ${(file.fileSize / 1024).toFixed(2)} KB`}
-                                    </p>
-                                  </div>
-                                </div>
-                                {file.description && (
-                                  <p className="text-sm text-slate-600 mt-2">{file.description}</p>
-                                )}
-                                {file.fieldName && (
-                                  <p className="text-xs text-slate-500 mt-1">
-                                    <span className="font-medium">Campo:</span> {file.fieldName}
-                                  </p>
-                                )}
-                                <div className="flex flex-wrap gap-2 mt-2 text-xs text-slate-500">
-                                  {file.uploadedAt && (
-                                    <span>Subido: {new Date(file.uploadedAt).toLocaleString()}</span>
-                                  )}
-                                  {file.status && (
-                                    <span className={`px-2 py-1 rounded ${
-                                      file.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
-                                      file.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' :
-                                      'bg-slate-100 text-slate-700'
-                                    }`}>
-                                      {file.status}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                <a
-                                  href={file.fileUrl || file.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-lg hover:bg-sky-700 transition-colors"
-                                >
-                                  <span>📥</span>
-                                  <span>Descargar</span>
-                                </a>
-                                {(file.fileUrl || file.url) && (file.fileType?.includes('image') || file.fileType?.includes('pdf')) && (
-                                  <a
-                                    href={file.fileUrl || file.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-700 bg-sky-50 border border-sky-200 rounded-lg hover:bg-sky-100 transition-colors"
-                                  >
-                                    <span>👁️</span>
-                                    <span>Ver</span>
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <span className="text-6xl mb-4">📂</span>
-                        <p className="text-lg text-slate-600 font-medium">No hay archivos adjuntos</p>
-                        <p className="text-sm text-slate-500 mt-2">Esta aplicación no tiene archivos cargados aún.</p>
+                      <div className="space-y-3">
+                        {files.length === 0 ? (
+                          <div className="text-center py-12 text-gray-500">
+                            No hay archivos adjuntos
+                          </div>
+                        ) : (
+                          files.map((file) => (
+                            <div
+                              key={file.id}
+                              className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 hover:shadow-md"
+                            >
+                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-medium truncate text-gray-900">{file.originalFilename}</div>
+                                  <div className="text-sm text-gray-500">
+                                    {formatFileSize(file.size)} • {file.mimetype}
+                                  </div>
+                                  {file.description && (
+                                    <div className="text-sm text-gray-600 mt-1">{file.description}</div>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => downloadFile(file.id, file.originalFilename)}
+                                className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 hover:shadow-lg transition-all duration-200 flex-shrink-0 ml-4 active:scale-95"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Descargar
+                              </button>
+                            </div>
+                          ))
+                        )}
                       </div>
                     )}
                   </div>
