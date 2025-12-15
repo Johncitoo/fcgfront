@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api'
-import { GripVertical, Lock, Unlock, X } from 'lucide-react'
+import { GripVertical, Lock, Unlock, X, BookTemplate, Eye } from 'lucide-react'
 import { useCallContext } from '../../contexts/CallContext'
 
 interface Milestone {
@@ -15,6 +15,21 @@ interface Milestone {
   dueDate?: string
   createdAt: string
   updatedAt: string
+}
+
+interface FormTemplate {
+  id: string
+  name: string
+  description?: string
+  isTemplate: boolean
+  schema?: {
+    sections?: Array<{
+      id: string
+      title: string
+      fields: Array<{ id: string; label: string; type: string; required?: boolean }>
+    }>
+  }
+  createdAt: string
 }
 
 export default function MilestonesManagementPage() {
@@ -43,6 +58,13 @@ export default function MilestonesManagementPage() {
     dueDate: '',
   })
 
+  // Plantillas states
+  const [templates, setTemplates] = useState<FormTemplate[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
+  const [loadingTemplates, setLoadingTemplates] = useState(false)
+  const [showTemplatePreview, setShowTemplatePreview] = useState(false)
+  const [previewTemplate, setPreviewTemplate] = useState<FormTemplate | null>(null)
+
   // Drag & drop states
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [isReorderLocked, setIsReorderLocked] = useState(true)
@@ -52,6 +74,11 @@ export default function MilestonesManagementPage() {
       loadMilestones()
     }
   }, [selectedCallId])
+
+  // Cargar plantillas al montar el componente
+  useEffect(() => {
+    loadTemplates()
+  }, [])
 
   const loadMilestones = async () => {
     try {
@@ -68,6 +95,33 @@ export default function MilestonesManagementPage() {
       setError(err.response?.data?.message || 'Error al cargar hitos')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadTemplates = async () => {
+    try {
+      setLoadingTemplates(true)
+      console.log('[MilestonesManagement] Cargando plantillas disponibles...')
+      
+      // Obtener solo plantillas (isTemplate=true)
+      const data = await apiGet<FormTemplate[]>('/forms?isTemplate=true')
+      
+      // Validar respuesta
+      if (!Array.isArray(data)) {
+        console.warn('[MilestonesManagement] Respuesta de plantillas no es array:', data)
+        setTemplates([])
+        return
+      }
+      
+      console.log('[MilestonesManagement] Plantillas cargadas:', data.length)
+      setTemplates(data)
+    } catch (err: any) {
+      console.error('[MilestonesManagement] Error al cargar plantillas:', err)
+      // No mostrar error crítico, solo log
+      // Las plantillas son opcionales
+      setTemplates([])
+    } finally {
+      setLoadingTemplates(false)
     }
   }
 
@@ -101,6 +155,7 @@ export default function MilestonesManagementPage() {
   const handleCloseModal = () => {
     setShowModal(false)
     setEditingMilestone(null)
+    setSelectedTemplateId('') // Limpiar plantilla seleccionada
     setError(null)
     setSuccess(null)
   }
@@ -115,7 +170,46 @@ export default function MilestonesManagementPage() {
         throw new Error('⚠️ Debes seleccionar una convocatoria antes de crear o editar un hito')
       }
 
-      // Construir payload sin incluir id
+      // 📋 Si hay plantilla seleccionada, clonarla primero
+      let clonedFormId: string | undefined
+
+      if (!editingMilestone && selectedTemplateId) {
+        console.log('[MilestonesManagement] Clonando plantilla:', selectedTemplateId)
+        
+        try {
+          // 1. Obtener plantilla completa
+          const template = await apiGet<FormTemplate>(`/forms/${selectedTemplateId}`)
+          
+          if (!template) {
+            throw new Error('No se pudo cargar la plantilla seleccionada')
+          }
+
+          // 2. Crear nuevo formulario basado en la plantilla
+          const formPayload = {
+            name: `${formData.name} - Formulario`, // Nombre descriptivo
+            description: template.description || `Formulario creado desde plantilla "${template.name}"`,
+            isTemplate: false, // Este NO es plantilla
+            parentFormId: template.id, // Referencia a la plantilla original
+            schema: template.schema, // Copiar estructura completa
+          }
+
+          console.log('[MilestonesManagement] Creando formulario desde plantilla:', formPayload)
+          const newForm = await apiPost('/forms', formPayload)
+          
+          if (!newForm?.id) {
+            throw new Error('Error al crear formulario desde plantilla')
+          }
+
+          clonedFormId = newForm.id
+          console.log('[MilestonesManagement] Formulario creado exitosamente:', clonedFormId)
+          
+        } catch (cloneError: any) {
+          console.error('[MilestonesManagement] Error al clonar plantilla:', cloneError)
+          throw new Error(`Error al crear formulario desde plantilla: ${cloneError.message || 'Error desconocido'}`)
+        }
+      }
+
+      // Construir payload del hito
       const payload = {
         name: formData.name,
         description: formData.description,
@@ -125,6 +219,7 @@ export default function MilestonesManagementPage() {
         callId: selectedCallId,
         orderIndex: editingMilestone ? editingMilestone.orderIndex : milestones.length + 1,
         ...(formData.dueDate ? { dueDate: formData.dueDate } : {}), // Solo incluir si tiene valor
+        ...(clonedFormId ? { formId: clonedFormId } : {}), // 🔗 Vincular formulario clonado
       }
 
       if (editingMilestone) {
@@ -135,7 +230,12 @@ export default function MilestonesManagementPage() {
         console.log('[MilestonesManagement] Creando hito nuevo:', payload)
         const newMilestone = await apiPost('/milestones', payload)
         console.log('[MilestonesManagement] Hito creado:', newMilestone)
-        setSuccess('Hito creado correctamente')
+        
+        if (clonedFormId) {
+          setSuccess(`Hito creado correctamente con formulario basado en plantilla "${templates.find(t => t.id === selectedTemplateId)?.name}"`)
+        } else {
+          setSuccess('Hito creado correctamente')
+        }
       }
 
       console.log('[MilestonesManagement] Recargando lista de hitos...')
@@ -144,7 +244,7 @@ export default function MilestonesManagementPage() {
       
       handleCloseModal()
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al guardar hito')
+      setError(err.response?.data?.message || err.message || 'Error al guardar hito')
     } finally {
       setLoading(false)
     }
@@ -505,6 +605,67 @@ export default function MilestonesManagementPage() {
                   />
                 </div>
 
+                {/* Selector de Plantilla (solo al crear) */}
+                {!editingMilestone && (
+                  <div className="border-2 border-dashed border-purple-200 rounded-lg p-4 bg-purple-50/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BookTemplate className="w-5 h-5 text-purple-600" />
+                      <label className="block text-sm font-medium text-gray-700">
+                        Usar plantilla de formulario (opcional)
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Si seleccionas una plantilla, se creará automáticamente un formulario basado en ella para este hito.
+                    </p>
+                    
+                    <div className="flex gap-2">
+                      <select
+                        value={selectedTemplateId}
+                        onChange={(e) => setSelectedTemplateId(e.target.value)}
+                        className="input flex-1"
+                        disabled={loadingTemplates}
+                      >
+                        <option value="">-- Sin plantilla --</option>
+                        {templates.map((template) => (
+                          <option key={template.id} value={template.id}>
+                            {template.name}
+                          </option>
+                        ))}
+                      </select>
+                      
+                      {selectedTemplateId && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const template = templates.find(t => t.id === selectedTemplateId)
+                            if (template) {
+                              setPreviewTemplate(template)
+                              setShowTemplatePreview(true)
+                            }
+                          }}
+                          className="btn btn-sm btn-outline text-purple-600 border-purple-300 hover:bg-purple-50"
+                          title="Vista previa de plantilla"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    {loadingTemplates && (
+                      <p className="text-xs text-gray-500 mt-2">Cargando plantillas...</p>
+                    )}
+                    
+                    {!loadingTemplates && templates.length === 0 && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        No hay plantillas disponibles.{' '}
+                        <a href="/admin/plantillas-formularios" className="text-purple-600 hover:underline">
+                          Crear plantilla
+                        </a>
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Quién completa */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -583,6 +744,124 @@ export default function MilestonesManagementPage() {
                 className="btn btn-outline flex-1 transition-all duration-200 hover:bg-gray-100"
               >
                 Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Vista Previa de Plantilla */}
+      {showTemplatePreview && previewTemplate && (
+        <div 
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fadeIn"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowTemplatePreview(false)
+              setPreviewTemplate(null)
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-slideUp">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-purple-50 to-pink-50">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <BookTemplate className="w-6 h-6 text-purple-600" />
+                  Vista Previa de Plantilla
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">{previewTemplate.name}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowTemplatePreview(false)
+                  setPreviewTemplate(null)
+                }}
+                className="text-gray-400 hover:text-gray-700 hover:bg-white/50 rounded-full p-1 transition-all duration-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {previewTemplate.description && (
+                <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <p className="text-sm text-gray-700">{previewTemplate.description}</p>
+                </div>
+              )}
+
+              {previewTemplate.schema?.sections && previewTemplate.schema.sections.length > 0 ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {previewTemplate.schema.sections.length}
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">Secciones</div>
+                    </div>
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {previewTemplate.schema.sections.reduce((sum, s) => sum + (s.fields?.length || 0), 0)}
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">Campos totales</div>
+                    </div>
+                    <div className="text-center p-4 bg-amber-50 rounded-lg">
+                      <div className="text-2xl font-bold text-amber-600">
+                        {previewTemplate.schema.sections.reduce((sum, s) => 
+                          sum + (s.fields?.filter(f => f.required).length || 0), 0
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">Obligatorios</div>
+                    </div>
+                  </div>
+
+                  {previewTemplate.schema.sections.map((section, idx) => (
+                    <div key={section.id || idx} className="border rounded-lg p-4 bg-gray-50">
+                      <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <span className="w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xs font-bold">
+                          {idx + 1}
+                        </span>
+                        {section.title}
+                      </h3>
+                      
+                      {section.fields && section.fields.length > 0 ? (
+                        <div className="space-y-2">
+                          {section.fields.map((field, fieldIdx) => (
+                            <div key={field.id || fieldIdx} className="flex items-center gap-2 text-sm p-2 bg-white rounded border">
+                              <span className="text-gray-500 font-mono text-xs">{field.type}</span>
+                              <span className="flex-1">{field.label}</span>
+                              {field.required && (
+                                <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded">
+                                  Obligatorio
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">Sin campos</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <BookTemplate className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">Esta plantilla no tiene secciones definidas</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="border-t p-4 bg-gray-50/50 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowTemplatePreview(false)
+                  setPreviewTemplate(null)
+                }}
+                className="btn btn-outline"
+              >
+                Cerrar
               </button>
             </div>
           </div>
