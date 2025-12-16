@@ -18,6 +18,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts'
+import { DualEmailQuotaWidget } from '../../components/DualEmailQuotaWidget'
 
 interface ApplicationStats {
   draft: number
@@ -373,6 +374,11 @@ export default function AdminHome() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Widget de Cuota de Emails */}
+          <div className="animate-slide-up" style={{ animationDelay: '0.5s' }}>
+            <DualEmailQuotaWidget />
           </div>
 
           {/* Distribución por Estado y Top Instituciones */}
