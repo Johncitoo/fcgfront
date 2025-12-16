@@ -46,7 +46,7 @@ export default function RequireAuth({ roles, children }: Props) {
 
         // Verificar roles si se especificaron
         if (roles?.length && !roles.includes(userRole)) {
-          console.warn(`⛔ Acceso denegado: rol ${userRole} no autorizado para esta sección`)
+          console.warn(`Acceso denegado: rol ${userRole} no autorizado para esta sección`)
           setOk(false)
           return
         }

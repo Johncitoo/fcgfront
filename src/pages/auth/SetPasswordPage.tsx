@@ -80,7 +80,7 @@ export default function SetPasswordPage() {
           )
         } catch (tokenError: any) {
           // Si el token falla (404, expirado), usar endpoint dev
-          console.warn('⚠️ Token inválido o expirado, usando endpoint de desarrollo')
+          console.warn('Token inválido o expirado, usando endpoint de desarrollo')
           resp = await apiPost<AuthResponse | { message?: string }>(
             '/onboarding/dev/set-password',
             { email: email.trim(), password: pwd },
@@ -88,7 +88,7 @@ export default function SetPasswordPage() {
         }
       } else {
         // Sin token válido, usar endpoint dev directamente
-        console.log('📝 Sin token, usando endpoint de desarrollo')
+        console.log('Sin token, usando endpoint de desarrollo')
         resp = await apiPost<AuthResponse | { message?: string }>(
           '/onboarding/dev/set-password',
           { email: email.trim(), password: pwd },
@@ -134,7 +134,7 @@ export default function SetPasswordPage() {
     fullName: string;
     role: 'ADMIN' | 'REVIEWER' | 'APPLICANT';
   }) {
-    console.log('🎯 afterLogin llamado para usuario:', user.role, user.email)
+    console.log('afterLogin llamado para usuario:', user.role, user.email)
     setSuccess('Tu contraseña se definió y tu sesión ha sido iniciada.')
     
     // Si es APPLICANT, redirigir al primer hito disponible
@@ -171,7 +171,7 @@ export default function SetPasswordPage() {
         }>
       }>(`/milestones/progress/${applicationId}`)
 
-      console.log('📊 Hitos obtenidos:', progressResponse.data.progress.length)
+      console.log('Hitos obtenidos:', progressResponse.data.progress.length)
       progressResponse.data.progress.forEach(m => {
         console.log(`  - ${m.milestoneName || 'Hito'} (${m.orderIndex}): status=${m.status}, whoCanFill=${m.whoCanFill}, milestoneStatus=${m.milestoneStatus}`)
       })
@@ -188,19 +188,19 @@ export default function SetPasswordPage() {
 
       if (firstMilestone) {
         // Redirigir al primer hito disponible
-        console.log('🎯 Primer hito encontrado:', firstMilestone.mp_id, firstMilestone.milestoneName)
+        console.log('Primer hito encontrado:', firstMilestone.mp_id, firstMilestone.milestoneName)
         setTimeout(() => {
           navigate(`/applicant/milestone/${firstMilestone.mp_id}?app=${applicationId}`, { replace: true })
         }, 350)
       } else {
         // Si no hay hitos disponibles, ir al dashboard
-        console.log('⚠️ No hay hitos disponibles para completar, redirigiendo al dashboard')
+        console.log('No hay hitos disponibles para completar, redirigiendo al dashboard')
         setTimeout(() => {
           navigate('/applicant', { replace: true })
         }, 350)
       }
     } catch (error: any) {
-      console.error('❌ Error al obtener hitos:', error)
+      console.error('Error al obtener hitos:', error)
       console.error('Error details:', error.response?.data || error.message)
       // En caso de error, redirigir al dashboard
       setTimeout(() => {
@@ -333,31 +333,31 @@ export default function SetPasswordPage() {
                       <ul className="text-xs text-sky-800 space-y-0.5">
                         <li className="flex items-center gap-1.5">
                           <span className={pwd.length >= 12 ? 'text-emerald-600' : ''}>
-                            {pwd.length >= 12 ? '✓' : '○'}
+                            {pwd.length >= 12 ? '✔' : '○'}
                           </span>
                           Mínimo 12 caracteres
                         </li>
                         <li className="flex items-center gap-1.5">
                           <span className={/[A-Z]/.test(pwd) ? 'text-emerald-600' : ''}>
-                            {/[A-Z]/.test(pwd) ? '✓' : '○'}
+                            {/[A-Z]/.test(pwd) ? '✔' : '○'}
                           </span>
                           Al menos 1 mayúscula
                         </li>
                         <li className="flex items-center gap-1.5">
                           <span className={/[a-z]/.test(pwd) ? 'text-emerald-600' : ''}>
-                            {/[a-z]/.test(pwd) ? '✓' : '○'}
+                            {/[a-z]/.test(pwd) ? '✔' : '○'}
                           </span>
                           Al menos 1 minúscula
                         </li>
                         <li className="flex items-center gap-1.5">
                           <span className={/\d/.test(pwd) ? 'text-emerald-600' : ''}>
-                            {/\d/.test(pwd) ? '✓' : '○'}
+                            {/\d/.test(pwd) ? '✔' : '○'}
                           </span>
                           Al menos 1 número
                         </li>
                         <li className="flex items-center gap-1.5">
                           <span className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd) ? 'text-emerald-600' : ''}>
-                            {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd) ? '✓' : '○'}
+                            {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd) ? '✔' : '○'}
                           </span>
                           Al menos 1 carácter especial (!@#$%...)
                         </li>

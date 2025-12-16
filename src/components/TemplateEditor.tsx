@@ -237,7 +237,7 @@ export function TemplateEditor({ value, onChange, availableVariables, placeholde
       {/* Helper text */}
       <div className="bg-gray-50 border-t border-gray-300 p-2 text-xs text-gray-600">
         <p>
-          💡 <strong>Tip:</strong> Las variables como <code className="bg-gray-200 px-1 rounded">{'{{nombre}}'}</code> se reemplazarán automáticamente con la información real al enviar el email.
+          <strong>Tip:</strong> Las variables como <code className="bg-gray-200 px-1 rounded">{'{{nombre}}'}</code> se reemplazarán automáticamente con la información real al enviar el email.
         </p>
       </div>
     </div>

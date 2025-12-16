@@ -98,7 +98,7 @@ export default function SendAnnouncementsPage() {
       const milestonesArray = Array.isArray(data) ? data : [];
       setMilestones(milestonesArray);
       if (milestonesArray.length === 0) {
-        console.warn('⚠️ No hay hitos para esta convocatoria');
+        console.warn('No hay hitos para esta convocatoria');
       }
     } catch (error) {
       console.error('❌ Error loading milestones:', error);

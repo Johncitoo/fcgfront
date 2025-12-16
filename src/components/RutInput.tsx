@@ -131,7 +131,7 @@ export default function RutInput({
       
       {showSuccess && showValidation && (
         <p className="text-xs text-green-600">
-          ✓ RUT válido
+          RUT válido
         </p>
       )}
     </div>

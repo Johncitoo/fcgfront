@@ -110,8 +110,8 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
                 <div className="flex-1">
                   <p className="text-sm font-medium text-green-900">Envío completado</p>
                   <div className="text-sm text-green-700 mt-2 space-y-1">
-                    <p>✅ Invitaciones enviadas: <strong>{result.sent}</strong></p>
-                    <p>❌ Fallidas: <strong>{result.failed}</strong></p>
+                    <p>Invitaciones enviadas: <strong>{result.sent}</strong></p>
+                    <p>Fallidas: <strong>{result.failed}</strong></p>
                   </div>
                 </div>
               </div>
@@ -141,7 +141,7 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
               </div>
 
               <div className="rounded-lg bg-sky-50 border border-sky-200 p-4">
-                <p className="text-xs font-medium text-sky-900 mb-2">📧 Cada invitación incluirá:</p>
+                <p className="text-xs font-medium text-sky-900 mb-2">Cada invitación incluirá:</p>
                 <ul className="text-xs text-sky-700 space-y-1 list-disc list-inside">
                   <li>Código de invitación único</li>
                   <li>Saludo personalizado con el nombre del postulante</li>
