@@ -90,11 +90,18 @@ export default function SendAnnouncementsPage() {
     if (!selectedCall) return;
     setLoadingMilestones(true);
     try {
+      console.log('🎯 Cargando hitos para convocatoria:', selectedCall.id, selectedCall.name);
       const data = await apiGet<MilestoneOption[]>(`/announcements/milestones/${selectedCall.id}`);
-      console.log('Milestones loaded:', data);
-      setMilestones(data);
+      console.log('✅ Hitos recibidos del backend:', data);
+      console.log('📊 Cantidad de hitos:', Array.isArray(data) ? data.length : 0);
+      const milestonesArray = Array.isArray(data) ? data : [];
+      setMilestones(milestonesArray);
+      if (milestonesArray.length === 0) {
+        console.warn('⚠️ No hay hitos para esta convocatoria');
+      }
     } catch (error) {
-      console.error('Error loading milestones:', error);
+      console.error('❌ Error loading milestones:', error);
+      setMilestones([]);
     } finally {
       setLoadingMilestones(false);
     }
@@ -424,6 +431,10 @@ export default function SendAnnouncementsPage() {
                   </label>
                   {loadingMilestones ? (
                     <div className="text-sm text-slate-500">Cargando hitos...</div>
+                  ) : milestones.length === 0 ? (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+                      ⚠️ No hay hitos creados para esta convocatoria. Crea hitos primero en la sección de Hitos.
+                    </div>
                   ) : (
                     <select
                       value={selectedMilestone}
