@@ -522,7 +522,7 @@ export default function LoginPage() {
                   Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
                 </p>
                 <div className="mb-4">
-                  <Label htmlFor="forgotEmail" className="text-gray-900 font-semibold">Email</Label>
+                  <Label htmlFor="forgotEmail" className="text-gray-900 font-semibold text-sm">Email</Label>
                   <Input
                     id="forgotEmail"
                     type="email"
@@ -531,6 +531,7 @@ export default function LoginPage() {
                     placeholder="tu@email.com"
                     required
                     disabled={forgotLoading}
+                    className="mt-1 text-gray-900 placeholder:text-gray-400"
                   />
                 </div>
                 <div className="flex gap-3">
@@ -539,14 +540,14 @@ export default function LoginPage() {
                     variant="outline"
                     onClick={() => setShowForgotModal(false)}
                     disabled={forgotLoading}
-                    className="flex-1"
+                    className="flex-1 text-gray-900 font-semibold hover:bg-gray-100"
                   >
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
                     disabled={forgotLoading || !forgotEmail.trim()}
-                    className="flex-1"
+                    className="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-semibold"
                   >
                     {forgotLoading ? 'Enviando...' : 'Enviar enlace'}
                   </Button>
