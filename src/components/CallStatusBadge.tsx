@@ -5,6 +5,18 @@ interface CallStatusBadgeProps {
   showDetails?: boolean;
 }
 
+/**
+ * Badge que muestra el estado actual de una convocatoria.
+ * Estados: activa (verde), programada (amarillo), vencida (rojo), inactiva (gris), cerrada (gris).
+ * Calcula estado en base a fechas startDate/endDate, status y flag isActive.
+ * Modo compacto (showDetails=false) muestra solo badge.
+ * Modo detallado (showDetails=true) muestra card con información adicional.
+ * 
+ * @param showDetails - Si mostrar detalles adicionales (default: false)
+ * 
+ * @example
+ * <CallStatusBadge showDetails={true} />
+ */
 export function CallStatusBadge({ showDetails = false }: CallStatusBadgeProps) {
   const { selectedCall } = useCallContext();
 
@@ -110,6 +122,18 @@ export function CallStatusBadge({ showDetails = false }: CallStatusBadgeProps) {
   );
 }
 
+/**
+ * Hook que calcula el estado actual de la convocatoria seleccionada.
+ * Retorna si está activa y su estado (active, scheduled, expired, inactive, closed).
+ * 
+ * @returns Objeto con isActive (boolean) y status (string)
+ * 
+ * @example
+ * const { isActive, status } = useCallStatus();
+ * if (!isActive) {
+ *   return <Alert>Convocatoria no disponible</Alert>;
+ * }
+ */
 export function useCallStatus() {
   const { selectedCall } = useCallContext();
 

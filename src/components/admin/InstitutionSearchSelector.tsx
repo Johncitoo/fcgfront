@@ -20,6 +20,25 @@ interface Props {
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
+/**
+ * Selector de institución con búsqueda autocomplete y debounce.
+ * Busca por nombre, RBD o comuna con 300ms de debounce.
+ * Muestra institución seleccionada con botón para limpiar.
+ * Soporta creación de nueva institución mediante callback opcional.
+ * 
+ * @param value - ID de la institución seleccionada
+ * @param onChange - Callback con ID de institución al seleccionar
+ * @param required - Si el campo es obligatorio
+ * @param onCreateNew - Callback opcional para crear nueva institución
+ * 
+ * @example
+ * <InstitutionSearchSelector
+ *   value={institutionId}
+ *   onChange={setInstitutionId}
+ *   required
+ *   onCreateNew={() => setShowNewInstModal(true)}
+ * />
+ */
 export default function InstitutionSearchSelector({ value, onChange, required, onCreateNew }: Props) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Institution[]>([])
@@ -41,7 +60,12 @@ export default function InstitutionSearchSelector({ value, onChange, required, o
     }
   }, [value])
 
-  // Buscar instituciones
+  /**
+   * Busca instituciones por query en nombre, RBD o comuna.
+   * Límite 50 resultados, solo activas.
+   * 
+   * @param q - Término de búsqueda
+   */
   const search = useCallback(async (q: string) => {
     if (!q.trim()) {
       setResults([])

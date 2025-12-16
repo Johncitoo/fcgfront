@@ -27,6 +27,22 @@ interface Props {
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
+/**
+ * Modal para editar datos de un postulante.
+ * Permite actualizar nombre, RUT, teléfono, fecha nacimiento, dirección, comuna, región e institución.
+ * Usa InstitutionSearchSelector para selección de institución.
+ * 
+ * @param applicant - Datos actuales del postulante a editar
+ * @param onClose - Callback al cerrar el modal
+ * @param onSuccess - Callback al guardar exitosamente
+ * 
+ * @example
+ * <EditApplicantModal
+ *   applicant={selectedApplicant}
+ *   onClose={() => setShowEdit(false)}
+ *   onSuccess={() => { refetch(); setShowEdit(false); }}
+ * />
+ */
 export default function EditApplicantModal({ applicant, onClose, onSuccess }: Props) {
   const [form, setForm] = useState({
     first_name: applicant.firstName || '',
@@ -52,6 +68,10 @@ export default function EditApplicantModal({ applicant, onClose, onSuccess }: Pr
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
+  /**
+   * Envía actualización de postulante al backend.
+   * Endpoint: PATCH /applicants/:id
+   */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)

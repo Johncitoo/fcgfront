@@ -13,6 +13,17 @@ interface State {
   countdown: number
 }
 
+/**
+ * Boundary de captura de errores de React con manejo especial para chunk errors.
+ * Detecta errores de carga dinámica (nuevas versiones deployed) y recarga automáticamente.
+ * Para chunk errors: muestra cuenta regresiva 3 segundos y recarga.
+ * Para otros errores: muestra UI con botones de recarga/volver.
+ * 
+ * @example
+ * <ErrorBoundary>
+ *   <App />
+ * </ErrorBoundary>
+ */
 export default class ErrorBoundary extends Component<Props, State> {
   state: State = { 
     hasError: false, 

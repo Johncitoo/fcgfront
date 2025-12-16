@@ -3,6 +3,23 @@ import { X, FileText, Download, ChevronDown, ChevronUp, User, Mail, Calendar } f
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
+/**
+ * Modal detallado de postulante con 3 pestañas: info, formularios y archivos.
+ * Carga aplicaciones, submissions de formularios y archivos asociados.
+ * Muestra respuestas de formularios con formato legible según schema.
+ * Permite descargar archivos subidos por el postulante.
+ * 
+ * @param applicantId - UUID del postulante
+ * @param isOpen - Si el modal está visible
+ * @param onClose - Callback al cerrar
+ * 
+ * @example
+ * <ApplicantDetailModal
+ *   applicantId="user-uuid-123"
+ *   isOpen={showDetail}
+ *   onClose={() => setShowDetail(false)}
+ * />
+ */
 interface ApplicantDetailModalProps {
   applicantId: string
   isOpen: boolean
@@ -96,6 +113,13 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
     }
   }, [isOpen, applicantId])
 
+  /**
+   * Carga datos completos del postulante:
+   * - Información básica
+   * - Aplicaciones con sus submissions de formularios
+   * - Schemas de formularios para renderizar respuestas
+   * - Archivos subidos por aplicación
+   */
   async function loadApplicantData() {
     setLoading(true)
     setError(null)
@@ -188,10 +212,22 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
     }
   }
 
+  /**
+   * Expande/colapsa un formulario en la vista de submissions.
+   * Solo un formulario expandido a la vez.
+   * 
+   * @param formId - ID del formulario a toggle
+   */
   function toggleFormExpanded(formId: string) {
     setExpandedForm(expandedForm === formId ? null : formId)
   }
 
+  /**
+   * Formatea bytes a formato legible (B, KB, MB).
+   * 
+   * @param bytes - Tamaño en bytes
+   * @returns String formateado con unidad
+   */
   function formatFileSize(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`

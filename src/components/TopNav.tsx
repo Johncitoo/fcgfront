@@ -2,9 +2,22 @@ import { Link, useNavigate } from 'react-router-dom'
 import { authService } from '../lib/auth'
 import { LogOut } from 'lucide-react'
 
+/**
+ * Barra superior de navegación con branding y botón de logout.
+ * Sticky en top con backdrop blur.
+ * Branding: logo F en círculo azul + nombre completo (desktop) o FCG (mobile).
+ * Botón logout con confirmación antes de cerrar sesión.
+ * 
+ * @example
+ * <TopNav /> // En layout principal
+ */
 export default function TopNav() {
   const navigate = useNavigate()
 
+  /**
+   * Maneja logout con confirmación.
+   * Limpia authService y redirige a /auth/login.
+   */
   const handleLogout = () => {
     if (confirm('¿Cerrar sesión?')) {
       authService.logout()

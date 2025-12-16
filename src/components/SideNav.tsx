@@ -1,6 +1,16 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { authService } from '../lib/auth'
 
+/**
+ * Barra lateral de navegación para admin y reviewer.
+ * Menús organizados en secciones: Panel, Gestión, Formularios, Comunicaciones, Monitoreo, Sistema.
+ * Adapta rutas base según si está en /admin o /reviewer.
+ * Opciones de Comunicaciones y Sistema solo visibles para ADMIN.
+ * Oculta en mobile (responsive con md:block).
+ * 
+ * @example
+ * <SideNav /> // En layout de admin/reviewer
+ */
 export default function SideNav() {
   const location = useLocation()
   const userRole = authService.getUserRole()
@@ -64,6 +74,13 @@ export default function SideNav() {
   )
 }
 
+/**
+ * Sección con título para agrupar items del menú.
+ * Título en mayúsculas pequeñas, gris.
+ * 
+ * @param title - Título de la sección
+ * @param children - Items del menú
+ */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-4">
@@ -75,6 +92,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
+/**
+ * Item individual del menú con NavLink o span deshabilitado.
+ * Resalta con fondo gris cuando activo.
+ * 
+ * @param to - Ruta del link
+ * @param label - Texto del item
+ * @param disabled - Si está deshabilitado (muestra cursor-not-allowed)
+ */
 function Item({
   to,
   label,
