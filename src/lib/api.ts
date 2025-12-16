@@ -7,9 +7,20 @@ const baseURL = API_BASE_URL.endsWith('/api')
   ? API_BASE_URL 
   : `${API_BASE_URL}/api`;
 
-// Exportar la URL base para uso directo con fetch
+/**
+ * URL base del API para uso directo con fetch.
+ * Se construye a partir de VITE_API_URL con /api añadido si no lo tiene.
+ */
 export const API_BASE = baseURL;
 
+/**
+ * Instancia configurada de axios para llamadas al API.
+ * Incluye interceptors para autenticación automática y manejo de errores 401.
+ * Timeout: 10 segundos.
+ * 
+ * @example
+ * const response = await api.get('/applications');
+ */
 export const api = axios.create({
   baseURL,
   headers: {
@@ -50,12 +61,33 @@ api.interceptors.response.use(
   },
 );
 
-// Helper functions
+/**
+ * Realiza una petición GET al API.
+ * Incluye autenticación automática vía interceptor.
+ * 
+ * @template T - Tipo de respuesta esperada
+ * @param url - URL relativa al baseURL
+ * @returns Datos de la respuesta
+ * 
+ * @example
+ * const apps = await apiGet<Application[]>('/applications');
+ */
 export async function apiGet<T = unknown>(url: string): Promise<T> {
   const response = await api.get<T>(url);
   return response.data;
 }
 
+/**
+ * Realiza una petición POST al API.
+ * 
+ * @template T - Tipo de respuesta esperada
+ * @param url - URL relativa al baseURL
+ * @param data - Datos a enviar en el body
+ * @returns Datos de la respuesta
+ * 
+ * @example
+ * const result = await apiPost('/applications', { callId: 'uuid' });
+ */
 export async function apiPost<T = unknown>(
   url: string,
   data?: Record<string, unknown>,
@@ -64,6 +96,17 @@ export async function apiPost<T = unknown>(
   return response.data;
 }
 
+/**
+ * Realiza una petición PATCH al API.
+ * 
+ * @template T - Tipo de respuesta esperada
+ * @param url - URL relativa al baseURL
+ * @param data - Datos a actualizar
+ * @returns Datos de la respuesta
+ * 
+ * @example
+ * await apiPatch('/applications/uuid-123', { status: 'SUBMITTED' });
+ */
 export async function apiPatch<T = unknown>(
   url: string,
   data?: Record<string, unknown>,
@@ -72,14 +115,31 @@ export async function apiPatch<T = unknown>(
   return response.data;
 }
 
+/**
+ * Realiza una petición DELETE al API.
+ * 
+ * @template T - Tipo de respuesta esperada
+ * @param url - URL relativa al baseURL
+ * @returns Datos de la respuesta
+ * 
+ * @example
+ * await apiDelete('/applications/uuid-123');
+ */
 export async function apiDelete<T = unknown>(url: string): Promise<T> {
   const response = await api.delete<T>(url);
   return response.data;
 }
 
 /**
- * Helper para fetch con manejo automático de 401
- * Redirige a login si el token es inválido
+ * Helper para fetch nativo con autenticación y manejo de errores 401.
+ * Incluye token automáticamente y redirige a login si es inválido.
+ * 
+ * @param url - URL completa de la petición
+ * @param options - Opciones de fetch
+ * @returns Response de fetch
+ * 
+ * @example
+ * const response = await authFetch('https://api.example.com/data', { method: 'GET' });
  */
 export async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const token = localStorage.getItem('fcg.access_token');

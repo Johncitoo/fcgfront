@@ -56,7 +56,24 @@ export interface UploadResponse {
 
 export const filesService = {
   /**
-   * Upload a file
+   * Sube un archivo al storage con metadatos.
+   * 
+   * @param options - Opciones de carga
+   * @param options.file - Archivo File a subir
+   * @param options.category - Categoría del archivo
+   * @param options.entityType - Tipo de entidad relacionada (opcional)
+   * @param options.entityId - ID de entidad relacionada (opcional)
+   * @param options.description - Descripción del archivo (opcional)
+   * @param token - Token JWT de autenticación
+   * @returns Respuesta con metadatos y URLs del archivo
+   * 
+   * @example
+   * const result = await filesService.upload({
+   *   file: myFile,
+   *   category: FileCategory.DOCUMENT,
+   *   entityType: EntityType.APPLICATION,
+   *   entityId: 'app-uuid'
+   * }, token);
    */
   async upload(options: UploadFileOptions, token: string): Promise<UploadResponse> {
     const formData = new FormData();
@@ -90,7 +107,14 @@ export const filesService = {
   },
 
   /**
-   * Get file metadata
+   * Obtiene los metadatos de un archivo por su ID.
+   * 
+   * @param fileId - UUID del archivo
+   * @param token - Token JWT de autenticación
+   * @returns Metadatos completos del archivo
+   * 
+   * @example
+   * const metadata = await filesService.getMetadata('file-uuid', token);
    */
   async getMetadata(fileId: string, token: string): Promise<FileMetadata> {
     const response = await axios.get<FileMetadata>(
@@ -106,7 +130,20 @@ export const filesService = {
   },
 
   /**
-   * List files with filters
+   * Lista archivos con filtros opcionales.
+   * 
+   * @param filters - Filtros de búsqueda
+   * @param filters.category - Filtrar por categoría
+   * @param filters.entityType - Filtrar por tipo de entidad
+   * @param filters.entityId - Filtrar por ID de entidad específica
+   * @param token - Token JWT de autenticación
+   * @returns Array de metadatos de archivos
+   * 
+   * @example
+   * const files = await filesService.list({
+   *   entityType: EntityType.APPLICATION,
+   *   entityId: 'app-uuid'
+   * }, token);
    */
   async list(
     filters: {
@@ -135,7 +172,13 @@ export const filesService = {
   },
 
   /**
-   * Delete a file
+   * Elimina un archivo del storage y base de datos.
+   * 
+   * @param fileId - UUID del archivo
+   * @param token - Token JWT de autenticación
+   * 
+   * @example
+   * await filesService.delete('file-uuid', token);
    */
   async delete(fileId: string, token: string): Promise<void> {
     await axios.delete(
@@ -149,21 +192,39 @@ export const filesService = {
   },
 
   /**
-   * Get download URL for a file
+   * Obtiene la URL de descarga de un archivo (como attachment).
+   * 
+   * @param fileId - UUID del archivo
+   * @returns URL completa para descargar el archivo
+   * 
+   * @example
+   * const url = filesService.getDownloadUrl('file-uuid');
    */
   getDownloadUrl(fileId: string): string {
     return `${API_URL}/files/${fileId}/download`;
   },
 
   /**
-   * Get view URL for a file (inline)
+   * Obtiene la URL de visualización de un archivo (inline en navegador).
+   * 
+   * @param fileId - UUID del archivo
+   * @returns URL completa para ver el archivo en el navegador
+   * 
+   * @example
+   * const url = filesService.getViewUrl('file-uuid');
    */
   getViewUrl(fileId: string): string {
     return `${API_URL}/files/${fileId}/view`;
   },
 
   /**
-   * Get thumbnail URL for an image
+   * Obtiene la URL del thumbnail de una imagen.
+   * 
+   * @param fileId - UUID del archivo imagen
+   * @returns URL completa del thumbnail (si existe)
+   * 
+   * @example
+   * const thumbUrl = filesService.getThumbnailUrl('file-uuid');
    */
   getThumbnailUrl(fileId: string): string {
     return `${API_URL}/files/${fileId}/thumbnail`;
