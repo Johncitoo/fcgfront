@@ -507,22 +507,22 @@ export default function LoginPage() {
             ) : (
               <form onSubmit={handleForgotPassword}>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Recuperar contraseña</h3>
+                  <h3 className="text-lg font-bold text-gray-900">Recuperar contraseña</h3>
                   <button
                     type="button"
                     onClick={() => setShowForgotModal(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-600 hover:text-gray-900"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-800 mb-4 font-medium">
                   Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
                 </p>
                 <div className="mb-4">
-                  <Label htmlFor="forgotEmail">Email</Label>
+                  <Label htmlFor="forgotEmail" className="text-gray-900 font-semibold">Email</Label>
                   <Input
                     id="forgotEmail"
                     type="email"
