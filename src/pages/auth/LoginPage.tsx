@@ -33,6 +33,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const fromSetPassword = searchParams.get('fromSetPassword') === 'true'
 
+  // Estado modal recuperar contraseña
+  const [showForgotModal, setShowForgotModal] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [forgotSuccess, setForgotSuccess] = useState(false)
+
   // =========================
   // Login con código de invitación - validación directa
   // =========================
@@ -185,6 +191,29 @@ export default function LoginPage() {
       console.error('❌ Error al obtener hitos:', error)
       // En caso de error, redirigir al dashboard
       navigate('/applicant', { replace: true })
+    }
+  }
+
+  // =========================
+  // Recuperar contraseña
+  // =========================
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!forgotEmail.trim()) {
+      toast.error('Por favor ingresa tu email')
+      return
+    }
+
+    setForgotLoading(true)
+    try {
+      await api.post('/auth/forgot-password', { email: forgotEmail.trim() })
+      setForgotSuccess(true)
+      toast.success('Email enviado. Revisa tu bandeja de entrada.')
+    } catch (error: any) {
+      toast.error(error?.message || 'Error al enviar el email')
+    } finally {
+      setForgotLoading(false)
     }
   }
 
@@ -400,9 +429,10 @@ export default function LoginPage() {
                       <button
                         type="button"
                         className="text-sm text-sky-700 hover:text-sky-800 hover:underline font-medium transition-colors"
-                        onClick={() =>
-                          toast.info('Funcionalidad próximamente disponible')
-                        }
+                        onClick={() => {
+                          setForgotEmail(email)
+                          setShowForgotModal(true)
+                        }}
                       >
                         <span className="flex items-center gap-1">
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -445,6 +475,87 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal Recuperar Contraseña */}
+      {showForgotModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => !forgotLoading && setShowForgotModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            {forgotSuccess ? (
+              <div className="text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="bg-green-100 rounded-full p-3">
+                    <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Email enviado</h3>
+                <p className="text-gray-600 mb-6">
+                  Si el email existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña.
+                </p>
+                <Button
+                  onClick={() => {
+                    setShowForgotModal(false)
+                    setForgotSuccess(false)
+                    setForgotEmail('')
+                  }}
+                  className="w-full"
+                >
+                  Cerrar
+                </Button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Recuperar contraseña</h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
+                </p>
+                <div className="mb-4">
+                  <Label htmlFor="forgotEmail">Email</Label>
+                  <Input
+                    id="forgotEmail"
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="tu@email.com"
+                    required
+                    disabled={forgotLoading}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowForgotModal(false)}
+                    disabled={forgotLoading}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={forgotLoading || !forgotEmail.trim()}
+                    className="flex-1"
+                  >
+                    {forgotLoading ? 'Enviando...' : 'Enviar enlace'}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
