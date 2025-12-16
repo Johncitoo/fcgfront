@@ -16,6 +16,17 @@ interface ConfirmContextType {
 
 const ConfirmContext = createContext<ConfirmContextType | undefined>(undefined)
 
+/**
+ * Provider de diálogos de confirmación modales.
+ * Muestra modal con overlay que requiere confirmación del usuario.
+ * Soporta 3 estilos: danger (rojo), warning (amarillo), info (azul).
+ * Retorna Promise<boolean> que resuelve true si confirma, false si cancela.
+ * 
+ * @example
+ * <ConfirmProvider>
+ *   <App />
+ * </ConfirmProvider>
+ */
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
   const [options, setOptions] = useState<ConfirmOptions | null>(null)
@@ -123,6 +134,23 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   )
 }
 
+/**
+ * Hook para mostrar diálogos de confirmación.
+ * Debe usarse dentro de ConfirmProvider.
+ * 
+ * @returns Objeto con función confirm que retorna Promise<boolean>
+ * @throws Error si se usa fuera de ConfirmProvider
+ * 
+ * @example
+ * const { confirm } = useConfirm();
+ * const confirmed = await confirm({
+ *   title: 'Eliminar usuario',
+ *   message: '¿Estás seguro? Esta acción no se puede deshacer.',
+ *   type: 'danger',
+ *   confirmText: 'Eliminar'
+ * });
+ * if (confirmed) deleteUser();
+ */
 export function useConfirm() {
   const context = useContext(ConfirmContext)
   if (!context) {

@@ -34,10 +34,36 @@ const REFRESH_KEY = 'fcg.refresh_token';
 const USER_KEY = 'fcg.user_data';
 const ROLE_KEY = 'fcg.role';
 
+/**
+ * Servicio de autenticación con múltiples métodos de login.
+ * Gestiona tokens JWT en localStorage y rutas por rol.
+ * Soporta 3 flujos: login con invite code (APPLICANT), login staff (ADMIN/REVIEWER), login applicant.
+ * 
+ * @example
+ * // Login con código de invitación
+ * await authService.loginWithInviteCode('ABC123');
+ * 
+ * // Login staff
+ * await authService.loginStaff('admin@example.com', 'password');
+ * 
+ * // Verificar autenticación
+ * if (authService.isAuthenticated()) {
+ *   const user = authService.getCurrentUser();
+ * }
+ */
 export const authService = {
   /**
-   * Login con código de invitación (APPLICANT)
-   * Solo requiere el código - el email se obtiene del invite en el backend
+   * Login con código de invitación para postulantes (APPLICANT).
+   * Solo requiere el código - el email se obtiene del invite en el backend.
+   * Endpoint: POST /auth/enter-invite
+   * 
+   * @param code - Código de invitación recibido por email
+   * @returns Datos del usuario y tokens
+   * @throws Error si el código es inválido o ya fue usado
+   * 
+   * @example
+   * const response = await authService.loginWithInviteCode('ABC123XYZ');
+   * console.log('Bienvenido', response.user.fullName);
    */
   async loginWithInviteCode(code: string): Promise<EnterInviteResponse> {
     const response = await api.post<EnterInviteResponse>('/auth/enter-invite', {
@@ -53,7 +79,16 @@ export const authService = {
   },
 
   /**
-   * Login tradicional con email y contraseña (ADMIN/REVIEWER)
+   * Login tradicional con email y contraseña para staff (ADMIN/REVIEWER).
+   * Endpoint: POST /auth/login-staff
+   * 
+   * @param email - Email del usuario staff
+   * @param password - Contraseña
+   * @returns Datos del usuario y tokens
+   * @throws Error si las credenciales son inválidas
+   * 
+   * @example
+   * await authService.loginStaff('admin@fcg.cl', 'password123');
    */
   async loginStaff(email: string, password: string): Promise<LoginStaffResponse> {
     const response = await api.post<LoginStaffResponse>('/auth/login-staff', {
@@ -69,7 +104,17 @@ export const authService = {
   },
 
   /**
-   * Login para postulantes con email y contraseña (APPLICANT)
+   * Login para postulantes con email y contraseña (APPLICANT).
+   * Para postulantes que ya establecieron contraseña.
+   * Endpoint: POST /auth/login
+   * 
+   * @param email - Email del postulante
+   * @param password - Contraseña
+   * @returns Datos del usuario y tokens
+   * @throws Error si las credenciales son inválidas
+   * 
+   * @example
+   * await authService.loginApplicant('postulante@example.com', 'password123');
    */
   async loginApplicant(email: string, password: string): Promise<LoginStaffResponse> {
     const response = await api.post<LoginStaffResponse>('/auth/login', {
@@ -85,7 +130,13 @@ export const authService = {
   },
 
   /**
-   * Cierra sesión del usuario
+   * Cierra sesión del usuario.
+   * Invalida el refresh token en el backend y limpia localStorage.
+   * Endpoint: POST /auth/logout
+   * 
+   * @example
+   * await authService.logout();
+   * window.location.href = '/auth/login';
    */
   async logout(): Promise<void> {
     const refreshToken = this.getRefreshToken();
@@ -102,7 +153,10 @@ export const authService = {
   },
 
   /**
-   * Guarda los tokens en localStorage
+   * Guarda los tokens JWT en localStorage.
+   * 
+   * @param accessToken - Token de acceso JWT
+   * @param refreshToken - Token de refresco JWT
    */
   setTokens(accessToken: string, refreshToken: string): void {
     localStorage.setItem(TOKEN_KEY, accessToken);
@@ -110,7 +164,9 @@ export const authService = {
   },
 
   /**
-   * Guarda los datos del usuario en localStorage
+   * Guarda los datos del usuario en localStorage como JSON.
+   * 
+   * @param user - Datos del usuario autenticado
    */
   setUser(user: User): void {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
@@ -118,21 +174,27 @@ export const authService = {
   },
 
   /**
-   * Obtiene el access token
+   * Obtiene el access token de localStorage.
+   * 
+   * @returns Access token JWT o null si no existe
    */
   getAccessToken(): string | null {
     return localStorage.getItem(TOKEN_KEY);
   },
 
   /**
-   * Obtiene el refresh token
+   * Obtiene el refresh token de localStorage.
+   * 
+   * @returns Refresh token JWT o null si no existe
    */
   getRefreshToken(): string | null {
     return localStorage.getItem(REFRESH_KEY);
   },
 
   /**
-   * Obtiene los datos del usuario actual
+   * Obtiene los datos del usuario actual desde localStorage.
+   * 
+   * @returns Objeto User o null si no hay usuario o JSON es inválido
    */
   getCurrentUser(): User | null {
     const userData = localStorage.getItem(USER_KEY);
@@ -146,21 +208,27 @@ export const authService = {
   },
 
   /**
-   * Obtiene el rol del usuario
+   * Obtiene el rol del usuario actual.
+   * 
+   * @returns Rol del usuario o null si no está autenticado
    */
   getUserRole(): 'ADMIN' | 'REVIEWER' | 'APPLICANT' | null {
     return localStorage.getItem(ROLE_KEY) as 'ADMIN' | 'REVIEWER' | 'APPLICANT' | null;
   },
 
   /**
-   * Verifica si el usuario está autenticado
+   * Verifica si el usuario está autenticado.
+   * Comprueba existencia de access token y datos de usuario.
+   * 
+   * @returns true si hay token y usuario, false en caso contrario
    */
   isAuthenticated(): boolean {
     return !!this.getAccessToken() && !!this.getCurrentUser();
   },
 
   /**
-   * Limpia todos los datos de autenticación
+   * Limpia todos los datos de autenticación de localStorage.
+   * Remueve tokens, datos de usuario y rol.
    */
   clearAuth(): void {
     localStorage.removeItem(TOKEN_KEY);
@@ -170,7 +238,14 @@ export const authService = {
   },
 
   /**
-   * Obtiene la ruta de inicio según el rol del usuario
+   * Obtiene la ruta de inicio apropiada según el rol del usuario.
+   * 
+   * @param role - Rol del usuario
+   * @returns Ruta de inicio (/admin, /reviewer, /applicant, o /)
+   * 
+   * @example
+   * const route = authService.getHomeRouteByRole('ADMIN');
+   * navigate(route);
    */
   getHomeRouteByRole(role: 'ADMIN' | 'REVIEWER' | 'APPLICANT'): string {
     switch (role) {

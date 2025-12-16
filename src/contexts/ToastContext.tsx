@@ -20,6 +20,21 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined)
 
+/**
+ * Provider de sistema de notificaciones toast.
+ * Muestra mensajes temporales en la esquina superior derecha con auto-dismiss a los 5 segundos.
+ * Soporta 4 tipos: success (verde), error (rojo), warning (amarillo), info (azul).
+ * 
+ * @example
+ * // En App.tsx
+ * <ToastProvider>
+ *   <App />
+ * </ToastProvider>
+ * 
+ * // En cualquier componente
+ * const { showSuccess } = useToast();
+ * showSuccess('¡Guardado exitosamente!');
+ */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
 
@@ -96,6 +111,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   )
 }
 
+/**
+ * Hook para mostrar notificaciones toast.
+ * Debe usarse dentro de ToastProvider.
+ * 
+ * @returns Funciones para mostrar diferentes tipos de toast
+ * @throws Error si se usa fuera de ToastProvider
+ * 
+ * @example
+ * const { showSuccess, showError } = useToast();
+ * showSuccess('Operación exitosa');
+ * showError('Ocurrió un error');
+ */
 export function useToast() {
   const context = useContext(ToastContext)
   if (!context) {

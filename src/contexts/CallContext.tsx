@@ -20,6 +20,18 @@ interface CallContextType {
 
 const CallContext = createContext<CallContextType | undefined>(undefined)
 
+/**
+ * Provider de contexto de convocatorias para administradores y revisores.
+ * Carga todas las convocatorias y mantiene una convocatoria seleccionada en estado global.
+ * Prioriza convocatorias OPEN al seleccionar automáticamente.
+ * No carga convocatorias para usuarios APPLICANT (no las necesitan).
+ * Persiste selección en localStorage.
+ * 
+ * @example
+ * <CallProvider>
+ *   <AdminApp />
+ * </CallProvider>
+ */
 export function CallProvider({ children }: { children: ReactNode }) {
   const [selectedCall, setSelectedCall] = useState<Call | null>(null)
   const [calls, setCalls] = useState<Call[]>([])
@@ -41,6 +53,11 @@ export function CallProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  /**
+   * Recarga la lista de convocatorias desde el backend.
+   * Si no hay convocatoria seleccionada, auto-selecciona la más reciente (prioridad OPEN).
+   * No hace nada si no hay token o el usuario es APPLICANT.
+   */
   async function refreshCalls() {
     try {
       setLoading(true)
@@ -168,6 +185,17 @@ export function CallProvider({ children }: { children: ReactNode }) {
   )
 }
 
+/**
+ * Hook para acceder al contexto de convocatorias.
+ * Debe usarse dentro de CallProvider.
+ * 
+ * @returns Contexto con convocatoria seleccionada y funciones de gestión
+ * @throws Error si se usa fuera de CallProvider
+ * 
+ * @example
+ * const { selectedCall, refreshCalls } = useCall();
+ * console.log('Convocatoria actual:', selectedCall?.name);
+ */
 export function useCall() {
   const context = useContext(CallContext)
   if (context === undefined) {
