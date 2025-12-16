@@ -72,12 +72,14 @@ export default function SendAnnouncementsPage() {
   const loadApplicants = async () => {
     if (!selectedCall) return;
     try {
-      const response = await apiGet<any>(`/applicants`);
+      console.log('Cargando postulantes para call:', selectedCall.id);
+      const response = await apiGet<any>(`/announcements/applicants/${selectedCall.id}`);
+      console.log('Postulantes recibidos:', response);
       const list = Array.isArray(response) ? response : response.data || [];
       setAllApplicants(list.map((a: any) => ({
         id: a.id,
         email: a.email,
-        name: `${a.first_name} ${a.last_name}`,
+        name: a.first_name && a.last_name ? `${a.first_name} ${a.last_name}` : a.email,
       })));
     } catch (error) {
       console.error('Error loading applicants:', error);
@@ -101,11 +103,15 @@ export default function SendAnnouncementsPage() {
   const loadInstitutions = async () => {
     setLoadingInstitutions(true);
     try {
+      console.log('Cargando instituciones...');
       const data = await apiGet<Institution[]>(`/institutions`);
-      console.log('Institutions loaded:', data);
-      setInstitutions(Array.isArray(data) ? data : []);
+      console.log('Instituciones recibidas:', data);
+      const list = Array.isArray(data) ? data : (data as any).data || [];
+      console.log('Instituciones procesadas:', list);
+      setInstitutions(list);
     } catch (error) {
       console.error('Error loading institutions:', error);
+      setInstitutions([]);
     } finally {
       setLoadingInstitutions(false);
     }
