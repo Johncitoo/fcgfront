@@ -158,8 +158,3 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     </ConfirmContext.Provider>
   )
 }
-
-/**
- * Hook para mostrar diálogos de confirmación.
- * Debe usarse dentro de ConfirmProvider.
-
