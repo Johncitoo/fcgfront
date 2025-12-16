@@ -244,8 +244,17 @@ export default function InvitesPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => setBulkSendOpen(true)} className="btn bg-emerald-600 text-white hover:bg-emerald-700">
-                📧 Envío masivo
+              <button 
+                onClick={() => {
+                  if (!callId) {
+                    alert('Selecciona una convocatoria en los filtros para enviar invitaciones masivas')
+                    return
+                  }
+                  setBulkSendOpen(true)
+                }} 
+                className="btn bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                Envío masivo
               </button>
               <button onClick={() => setBulkOpen(true)} className="btn">
                 Carga masiva
