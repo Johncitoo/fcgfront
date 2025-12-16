@@ -129,23 +129,3 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     </ToastContext.Provider>
   )
 }
-
-/**
- * Hook para mostrar notificaciones toast.
- * Debe usarse dentro de ToastProvider.
- * 
- * @returns Funciones para mostrar diferentes tipos de toast
- * @throws Error si se usa fuera de ToastProvider
- * 
- * @example
- * const { showSuccess, showError } = useToast();
- * showSuccess('Operación exitosa');
- * showError('Ocurrió un error');
- */
-export function useToast() {
-  const context = useContext(ToastContext)
-  if (!context) {
-    throw new Error('useToast debe usarse dentro de ToastProvider')
-  }
-  return context
-}

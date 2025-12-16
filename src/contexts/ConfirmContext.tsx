@@ -162,24 +162,4 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 /**
  * Hook para mostrar diálogos de confirmación.
  * Debe usarse dentro de ConfirmProvider.
- * 
- * @returns Objeto con función confirm que retorna Promise<boolean>
- * @throws Error si se usa fuera de ConfirmProvider
- * 
- * @example
- * const { confirm } = useConfirm();
- * const confirmed = await confirm({
- *   title: 'Eliminar usuario',
- *   message: '¿Estás seguro? Esta acción no se puede deshacer.',
- *   type: 'danger',
- *   confirmText: 'Eliminar'
- * });
- * if (confirmed) deleteUser();
- */
-export function useConfirm() {
-  const context = useContext(ConfirmContext)
-  if (!context) {
-    throw new Error('useConfirm debe usarse dentro de ConfirmProvider')
-  }
-  return context
-}
+
