@@ -35,6 +35,7 @@ export default function SideNav() {
 
         {isAdmin && (
           <Section title="Comunicaciones">
+            <Item to="/admin/email/announcements" label="Enviar Avisos" />
             <Item to="/admin/email/templates" label="Plantillas" />
             <Item to={`${baseRoute}/email/logs`} label="Historial" />
           </Section>

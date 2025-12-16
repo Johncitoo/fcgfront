@@ -29,6 +29,7 @@ import InvitesPage from "./pages/admin/InvitesPage";
 import FormsBuilderPage from "./pages/admin/FormsBuilderPage";
 import EmailTemplatesPage from "./pages/admin/EmailTemplatesPage";
 import EmailLogsPage from "./pages/admin/EmailLogsPage";
+import SendAnnouncementsPage from "./pages/admin/SendAnnouncementsPage";
 import ApplicationsListPage from "./pages/admin/ApplicationsListPage";
 import ApplicationDetailPage from "./pages/admin/ApplicationDetailPage";
 import AuditPage from "./pages/admin/AuditPage";
@@ -108,6 +109,7 @@ export default function App() {
         />
         <Route path="email/templates" element={<EmailTemplatesPage />} />
         <Route path="email/logs" element={<EmailLogsPage />} />
+        <Route path="email/announcements" element={<SendAnnouncementsPage />} />
         <Route path="audit" element={<AuditPage />} />
         <Route path="institutions" element={<InstitutionsPage />} />
         <Route path="hitos" element={<MilestoneCreator />} />
