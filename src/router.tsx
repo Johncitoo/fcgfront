@@ -25,6 +25,7 @@ const CallDetailPage = lazy(() => import('./pages/admin/CallDetailPage'))
 const InvitesPage = lazy(() => import('./pages/admin/InvitesPage'))
 const EmailTemplatesPage = lazy(() => import('./pages/admin/EmailTemplatesPage'))
 const EmailLogsPage = lazy(() => import('./pages/admin/EmailLogsPage'))
+const SendAnnouncementsPage = lazy(() => import('./pages/admin/SendAnnouncementsPage'))
 const ApplicationsListPage = lazy(() => import('./pages/admin/ApplicationsListPage'))
 const ApplicationDetailPage = lazy(() => import('./pages/admin/ApplicationDetailPage'))
 const AuditPage = lazy(() => import('./pages/admin/AuditPage'))
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
     { path: 'forms/:formId/sections/:sectionId', element: <FormSectionEditorPage /> },
     { path: 'email/templates', element: <EmailTemplatesPage /> },
     { path: 'email/logs', element: <EmailLogsPage /> },
+    { path: 'email/announcements', element: <SendAnnouncementsPage /> },
     { path: 'audit', element: <AuditPage /> },
     { path: 'calls/:callId/milestones', element: <MilestoneManagement /> }, // Configuración de hitos
     { path: 'demo/files', element: <FileUploadDemo /> }, // Demo de file upload
