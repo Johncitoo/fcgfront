@@ -31,7 +31,15 @@ const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:300
 export default function BulkInviteModal({ callId, callName, onClose, onSuccess }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<{ sent: number; failed: number; errors?: string[] } | null>(null)
+  const [result, setResult] = useState<{ 
+    sent: number; 
+    failed: number; 
+    pending: number;
+    total: number;
+    errors?: string[];
+    message?: string;
+  } | null>(null)
+  const [maxEmails, setMaxEmails] = useState<number>(50) // Límite por defecto
 
   const headers = {
     'Content-Type': 'application/json',
@@ -39,8 +47,8 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
   }
 
   /**
-   * Envía invitaciones masivas a todos los postulantes de la convocatoria.
-   * Llama a /invites/bulk-send con sendToAll: true.
+   * Envía invitaciones masivas con límite configurable.
+   * Llama a /invites/bulk-send con sendToAll: true y maxEmails.
    */
   async function handleSend() {
     setLoading(true)
@@ -54,6 +62,7 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
         body: JSON.stringify({
           callId,
           sendToAll: true,
+          maxEmails: maxEmails > 0 ? maxEmails : undefined,
         }),
       })
 
@@ -68,7 +77,10 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
       if (data.sent > 0) {
         setTimeout(() => {
           onSuccess()
-          onClose()
+          if (data.pending === 0) {
+            // Solo cerrar si no quedan pendientes
+            onClose()
+          }
         }, 3000)
       }
     } catch (err: any) {
@@ -108,19 +120,58 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
               <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4">
                 <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-green-900">Envío completado</p>
+                  <p className="text-sm font-medium text-green-900">
+                    {result.message || 'Envío completado'}
+                  </p>
                   <div className="text-sm text-green-700 mt-2 space-y-1">
-                    <p>Invitaciones enviadas: <strong>{result.sent}</strong></p>
-                    <p>Fallidas: <strong>{result.failed}</strong></p>
+                    <p>✅ Enviadas exitosamente: <strong>{result.sent}</strong></p>
+                    {result.failed > 0 && (
+                      <p className="text-rose-700">❌ Fallidas: <strong>{result.failed}</strong></p>
+                    )}
+                    {result.pending > 0 && (
+                      <p className="text-amber-700">⏳ Pendientes: <strong>{result.pending}</strong></p>
+                    )}
+                    <p className="text-slate-600">Total procesadas: <strong>{result.total}</strong></p>
                   </div>
+                  {result.pending > 0 && (
+                    <div className="mt-3 rounded-md bg-amber-50 border border-amber-200 p-2">
+                      <p className="text-xs text-amber-900">
+                        💡 <strong>Continúa mañana:</strong> Quedan {result.pending} invitaciones pendientes de envío. 
+                        Puedes ejecutar este proceso nuevamente para enviar el resto.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {result.errors && result.errors.length > 0 && (
                 <div className="border rounded-lg p-3 max-h-40 overflow-y-auto">
-                  <p className="text-xs font-medium text-slate-700 mb-2">Errores:</p>
+                  <p className="text-xs font-medium text-slate-700 mb-2">Errores detallados:</p>
                   {result.errors.map((err, idx) => (
-                    <p key={idx} className="text-xs text-slate-600 font-mono mb-1">
+                    <p key={idx} className="text-xs text-slate-600 fpostulantes que <strong>NO han recibido email</strong> todavía.
+                </p>
+                <p className="text-xs text-amber-600 mt-2">
+                  ℹ️ El sistema detecta automáticamente qué invitaciones ya fueron enviadas y solo procesa las pendientes.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Límite de emails a enviar (opcional)
+                </label>
+                <input
+                  type="number"
+                  value={maxEmails}
+                  onChange={(e) => setMaxEmails(parseInt(e.target.value) || 0)}
+                  min="1"
+                  max="300"
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  placeholder="Ejemplo: 50"
+                />
+                <p className="text-xs text-slate-500">
+                  Si tu cuota diaria es limitada, puedes especificar cuántos emails enviar. 
+                  Los pendientes quedarán marcados para enviarlos otro día.
+                  Deja en 0 para enviar todos sin límite
                       • {err}
                     </p>
                   ))}

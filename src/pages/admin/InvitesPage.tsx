@@ -19,6 +19,18 @@ interface InviteRow {
   used: boolean
   used_at?: string | null
   created_at: string
+  emailSent?: boolean
+  sentAt?: string | null
+  firstName?: string
+  lastName?: string
+}
+
+interface InviteStats {
+  total: number
+  sent: number
+  pending: number
+  used: number
+  lastSentAt?: string | null
 }
 
 interface ListResponse<T> {
@@ -52,6 +64,7 @@ export default function InvitesPage() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [stats, setStats] = useState<InviteStats | null>(null)
 
   // crear (uno) y carga masiva
   const [createOpen, setCreateOpen] = useState(false)
@@ -90,7 +103,17 @@ export default function InvitesPage() {
 
   useEffect(() => {
     load()
+    // eslin
+
+  useEffect(() => {
+    // Cargar estadísticas cuando cambia la convocatoria seleccionada
+    if (callId) {
+      loadStats()
+    } else {
+      setStats(null)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [callId])t-disable-next-line react-hooks/exhaustive-deps
   }, [deps])
 
   async function load() {
@@ -109,7 +132,19 @@ export default function InvitesPage() {
 
       if (Array.isArray(res)) {
         setRows(res)
-        setTotal(res.length)
+   
+
+  async function loadStats() {
+    if (!callId) return
+    
+    try {
+      const res = await apiGet<InviteStats>(`/invites/stats/${callId}`)
+      setStats(res)
+    } catch (e: any) {
+      console.error('Error cargando estadísticas:', e)
+      setStats(null)
+    }
+  }     setTotal(res.length)
       } else {
         setRows(res.data ?? [])
         setTotal(res.meta?.total ?? (res.data ?? []).length)
@@ -215,6 +250,28 @@ export default function InvitesPage() {
               </button>
             </div>
           </div>
+
+          {/* Panel de estadísticas (solo si hay convocatoria seleccionada) */}
+          {stats && callId && (
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="rounded-lg border border-slate-200 bg-white p-3">
+                <div className="text-xs text-slate-600 font-medium">Total creadas</div>
+                <div className="text-2xl font-bold text-slate-900 mt-1">{stats.total}</div>
+              </div>
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                <div className="text-xs text-emerald-700 font-medium">Emails enviados</div>
+                <div className="text-2xl font-bold text-emerald-900 mt-1">{stats.sent}</div>
+              </div>
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <div className="text-xs text-amber-700 font-medium">Pendientes envío</div>
+                <div className="text-2xl font-bold text-amber-900 mt-1">{stats.pending}</div>
+              </div>
+              <div className="rounded-lg border border-sky-200 bg-sky-50 p-3">
+                <div className="text-xs text-sky-700 font-medium">Códigos usados</div>
+                <div className="text-2xl font-bold text-sky-900 mt-1">{stats.used}</div>
+              </div>
+            </div>
+          )}
         </header>
 
         {/* Filtros responsive */}
@@ -259,29 +316,49 @@ export default function InvitesPage() {
                   <table className="w-full text-sm">
                     <thead className="text-left text-slate-600">
                       <tr className="border-b">
-                        <th className="py-2 pr-3">Correo</th>
+                        <th className="py-2 pr-3">Postulante</th>
+                        <th className="py-2 pr-3">Email</th>
                         <th className="py-2 pr-3">Convocatoria</th>
-                        <th className="py-2 pr-3">Estado</th>
-                        <th className="py-2 pr-3">Usada en</th>
+                        <th className="py-2 pr-3">Email enviado</th>
+                        <th className="py-2 pr-3">Código usado</th>
                         <th className="py-2">Creada</th>
                       </tr>
                     </thead>
                     <tbody>
                       {rows.map((r) => (
                         <tr key={r.id} className="border-b last:border-0">
-                          <td className="py-2 pr-3 !text-slate-900">{r.email}</td>
+                          <td className="py-2 pr-3 !text-slate-900">
+                            {r.firstName || r.lastName 
+                              ? `${r.firstName || ''} ${r.lastName || ''}`.trim()
+                              : '—'}
+                          </td>
+                          <td className="py-2 pr-3 !text-slate-700">{r.email}</td>
                           <td className="py-2 pr-3 !text-slate-700">
                             {calls.find((c) => c.id === r.call_id)?.name ?? '—'}
                           </td>
                           <td className="py-2 pr-3 !text-slate-700">
                             <span
-                              className={'badge ' + (r.used ? 'badge-success' : 'badge-neutral')}
+                              className={'badge ' + (r.emailSent ? 'badge-success' : 'badge-warning')}
                             >
-                              {r.used ? 'Usada' : 'No usada'}
+                              {r.emailSent ? 'Enviado' : 'Pendiente'}
                             </span>
+                            {r.sentAt && (
+                              <div className="text-xs text-slate-500 mt-1">
+                                {new Date(r.sentAt).toLocaleString()}
+                              </div>
+                            )}
                           </td>
                           <td className="py-2 pr-3 !text-slate-700">
-                            {r.used_at ? new Date(r.used_at).toLocaleString() : '—'}
+                            <span
+                              className={'badge ' + (r.used ? 'badge-info' : 'badge-neutral')}
+                            >
+                              {r.used ? 'Usado' : 'No usado'}
+                            </span>
+                            {r.used_at && (
+                              <div className="text-xs text-slate-500 mt-1">
+                                {new Date(r.used_at).toLocaleString()}
+                              </div>
+                            )}
                           </td>
                           <td className="py-2 !text-slate-700">
                             {new Date(r.created_at).toLocaleString()}
