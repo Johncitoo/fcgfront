@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Eye, EyeOff } from 'lucide-react';
 import clsx from 'clsx';
 
-type Props = React.ComponentProps<'input'> & {
+type Props = Omit<React.ComponentProps<'input'>, 'onChange'> & {
   value: string;
   onChange: (val: string) => void;
   error?: boolean;

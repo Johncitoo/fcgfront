@@ -83,7 +83,7 @@ export default function PortalLoginPage() {
                   <PasswordInput
                     id="password"
                     value={password}
-                    onChange={(e) => setPassword(typeof e === 'string' ? e : e.target.value)}
+                    onChange={setPassword}
                     required
                     disabled={isLoading}
                   />

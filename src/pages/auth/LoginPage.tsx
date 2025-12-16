@@ -393,7 +393,7 @@ export default function LoginPage() {
                       </Label>
                       <PasswordInput
                         value={password}
-                        onChange={(e) => setPassword(typeof e === 'string' ? e : e.target.value)}
+                        onChange={setPassword}
                         disabled={isLoading}
                         error={!!loginError}
                       />

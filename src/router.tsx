@@ -10,7 +10,7 @@ const RequireAuth = lazy(() => import('./components/RequireAuth'))
 // Auth
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
 const SetPasswordPage = lazy(() => import('./pages/auth/SetPasswordPage'))
-const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'))
+const ResetPasswordWithTokenPage = lazy(() => import('./pages/auth/ResetPasswordWithTokenPage'))
 
 // Sistema
 const ForbiddenPage = lazy(() => import('./pages/system/ForbiddenPage'))
@@ -63,7 +63,7 @@ export const router = createBrowserRouter([
   // Auth
   { path: '/auth/login', element: <LoginPage /> },
   { path: '/auth/set-password', element: <SetPasswordPage /> },
-  { path: '/auth/reset-password', element: <ResetPasswordPage /> },
+  { path: '/auth/reset-password', element: <ResetPasswordWithTokenPage /> },
 
   // Public - Vista previa de formulario de convocatoria activa
   { path: '/form', element: <PublicFormPage /> },
