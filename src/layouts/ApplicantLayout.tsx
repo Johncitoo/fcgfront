@@ -9,7 +9,7 @@ export default function ApplicantLayout() {
 
   const handleLogout = () => {
     authService.logout()
-    navigate('/login', { replace: true })
+    navigate('/auth/login', { replace: true })
   }
 
   return (
