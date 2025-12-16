@@ -75,7 +75,11 @@ export const router = createBrowserRouter([
   // Admin (protegido)
   {
   path: '/admin',
-  element: <AdminLayout />, // ⚠️ sin RequireAuth temporalmente
+  element: (
+    <RequireAuth roles={['ADMIN']}>
+      <AdminLayout />
+    </RequireAuth>
+  ),
   children: [
     { index: true, element: <AdminHome /> },
     { path: 'applicants', element: <ApplicantsListPage /> },
