@@ -21,6 +21,25 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined)
 
 /**
+ * Hook para usar el sistema de notificaciones toast.
+ * 
+ * @returns Métodos para mostrar notificaciones: showToast, showSuccess, showError, showInfo, showWarning
+ * @throws Error si se usa fuera de ToastProvider
+ * 
+ * @example
+ * const { showSuccess, showError } = useToast();
+ * showSuccess('¡Guardado!');
+ * showError('Error al guardar');
+ */
+export function useToast() {
+  const context = useContext(ToastContext)
+  if (!context) {
+    throw new Error('useToast debe usarse dentro de ToastProvider')
+  }
+  return context
+}
+
+/**
  * Provider de sistema de notificaciones toast.
  * Muestra mensajes temporales en la esquina superior derecha con auto-dismiss a los 5 segundos.
  * Soporta 4 tipos: success (verde), error (rojo), warning (amarillo), info (azul).

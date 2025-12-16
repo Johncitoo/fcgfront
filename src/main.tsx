@@ -1,3 +1,23 @@
+/**
+ * Punto de entrada principal de la aplicación React.
+ * 
+ * Configura:
+ * - React 18 con createRoot
+ * - ErrorBoundary para captura de errores
+ * - Contextos globales (Toast, Confirm, Call)
+ * - React Router con RouterProvider
+ * - Manejo de errores de lazy loading y chunk loading
+ * 
+ * Providers anidados (orden de adentro hacia afuera):
+ * 1. RouterProvider - Enrutamiento
+ * 2. CallProvider - Estado de convocatorias
+ * 3. ConfirmProvider - Diálogos de confirmación
+ * 4. ToastProvider - Notificaciones toast
+ * 5. ErrorBoundary - Captura de errores React
+ * 
+ * @module main
+ */
+
 // src/main.tsx
 import React from "react";
 import ReactDOM from "react-dom/client";

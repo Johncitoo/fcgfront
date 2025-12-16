@@ -17,6 +17,31 @@ interface ConfirmContextType {
 const ConfirmContext = createContext<ConfirmContextType | undefined>(undefined)
 
 /**
+ * Hook para usar el sistema de diálogos de confirmación.
+ * 
+ * @returns Método confirm que retorna Promise<boolean>
+ * @throws Error si se usa fuera de ConfirmProvider
+ * 
+ * @example
+ * const { confirm } = useConfirm();
+ * const isConfirmed = await confirm({
+ *   title: 'Eliminar usuario',
+ *   message: '¿Está seguro? Esta acción no se puede deshacer.',
+ *   type: 'danger'
+ * });
+ * if (isConfirmed) {
+ *   // Proceder con eliminación
+ * }
+ */
+export function useConfirm() {
+  const context = useContext(ConfirmContext)
+  if (!context) {
+    throw new Error('useConfirm debe usarse dentro de ConfirmProvider')
+  }
+  return context
+}
+
+/**
  * Provider de diálogos de confirmación modales.
  * Muestra modal con overlay que requiere confirmación del usuario.
  * Soporta 3 estilos: danger (rojo), warning (amarillo), info (azul).
