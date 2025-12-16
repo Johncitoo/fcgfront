@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { TemplateEditor } from '../../components/TemplateEditor'
 import { EmailPreview } from '../../components/EmailPreview'
 import { Save, RotateCcw, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -233,21 +232,28 @@ export default function EmailTemplatesPage() {
                     Contenido del email
                   </label>
                   {selectedTemplate.isEditable ? (
-                    <TemplateEditor
-                      value={editedBody}
-                      onChange={(html) => {
-                        setEditedBody(html)
-                        setHasChanges(true)
-                      }}
-                      availableVariables={selectedTemplate.availableVariables || []}
-                      placeholder="Escribe el contenido del email aquí..."
-                    />
+                    <div>
+                      <textarea
+                        value={editedBody}
+                        onChange={(e) => {
+                          setEditedBody(e.target.value)
+                          setHasChanges(true)
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                        placeholder="Escribe el contenido del email aquí..."
+                        rows={15}
+                        style={{ resize: 'vertical', minHeight: '300px' }}
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        El diseño visual (colores, logos, estilos) se aplicará automáticamente al enviar el email.
+                        Puedes usar variables como <code className="bg-gray-100 px-1 rounded">{'{{applicant_name}}'}</code>
+                      </p>
+                    </div>
                   ) : (
                     <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
-                      <div 
-                        className="prose max-w-none opacity-60"
-                        dangerouslySetInnerHTML={{ __html: editedBody }}
-                      />
+                      <pre className="whitespace-pre-wrap text-sm text-gray-600 opacity-60 font-sans">
+                        {editedBody}
+                      </pre>
                       <p className="text-sm text-gray-500 mt-4 text-center">
                         🔒 Este contenido no puede ser modificado
                       </p>
