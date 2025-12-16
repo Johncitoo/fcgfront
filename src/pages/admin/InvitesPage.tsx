@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { apiGet, apiPost } from '../../lib/api'
+import BulkInviteModal from '../../components/admin/BulkInviteModal'
 
 interface CallOption {
   id: string
@@ -69,6 +70,7 @@ export default function InvitesPage() {
   // crear (uno) y carga masiva
   const [createOpen, setCreateOpen] = useState(false)
   const [bulkOpen, setBulkOpen] = useState(false)
+  const [bulkSendOpen, setBulkSendOpen] = useState(false)
 
   const [createSaving, setCreateSaving] = useState(false)
   const [createErr, setCreateErr] = useState<string | null>(null)
@@ -242,6 +244,9 @@ export default function InvitesPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
+              <button onClick={() => setBulkSendOpen(true)} className="btn bg-emerald-600 text-white hover:bg-emerald-700">
+                📧 Envío masivo
+              </button>
               <button onClick={() => setBulkOpen(true)} className="btn">
                 Carga masiva
               </button>
@@ -589,6 +594,19 @@ ejemplo2@dominio.cl, ejemplo3@dominio.cl`}
             </form>
           </div>
         </div>
+      )}
+
+      {/* Modal — envío masivo de emails */}
+      {bulkSendOpen && callId && (
+        <BulkInviteModal
+          callId={callId}
+          callName={calls.find((c) => c.id === callId)?.name || 'Convocatoria seleccionada'}
+          onClose={() => setBulkSendOpen(false)}
+          onSuccess={() => {
+            load()
+            loadStats()
+          }}
+        />
       )}
     </div>
   )
