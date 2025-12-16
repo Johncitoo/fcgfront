@@ -1,3 +1,20 @@
+/**
+ * Layout para portal de postulantes.
+ * 
+ * Componentes:
+ * - Header: Barra superior con logo, título y botón de logout
+ * - Outlet: Contenido enrutado de páginas del postulante
+ * 
+ * Características:
+ * - Header sticky con backdrop blur
+ * - Responsive: Logo/título adaptan su tamaño en mobile
+ * - Información de usuario: Muestra nombre o email
+ * - Contenedor centrado: Máximo 5xl de ancho
+ * - Background con gradiente sutil
+ * 
+ * @component
+ */
+
 import { Outlet, Link } from 'react-router-dom'
 import { authService } from '../lib/auth'
 import { useNavigate } from 'react-router-dom'

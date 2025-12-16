@@ -1,3 +1,21 @@
+/**
+ * Layout principal para panel de administración.
+ * 
+ * Componentes:
+ * - TopNav: Barra superior global con logo y usuario
+ * - Selector de convocatoria: Dropdown para cambiar convocatoria activa
+ * - SideNav: Menú lateral con navegación (fijo en desktop, drawer en mobile)
+ * - Outlet: Contenido enrutado de las páginas admin
+ * 
+ * Características:
+ * - Responsive: Menú lateral se convierte en drawer móvil
+ * - Selector de convocatoria global: Sincronizado con CallContext
+ * - Grid layout: 2 columnas en desktop (sidebar + contenido)
+ * - Estados visuales para convocatorias: OPEN (verde), CLOSED (gris), DRAFT (amarillo)
+ * 
+ * @component
+ */
+
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import TopNav from '../components/TopNav'

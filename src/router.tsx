@@ -1,3 +1,24 @@
+/**
+ * Configuración de rutas de la aplicación usando React Router v6.
+ * 
+ * Estructura de rutas:
+ * - /auth/* - Autenticación (login, set-password, reset-password)
+ * - /admin/* - Panel de administración (protegido con RequireAuth ADMIN)
+ * - /reviewer/* - Panel de revisores (protegido con RequireAuth REVIEWER)
+ * - /applicant/* - Portal de postulantes (protegido con RequireAuth APPLICANT)
+ * - /system/* - Páginas de sistema (403, 404)
+ * - /demo/* - Páginas de prueba
+ * 
+ * Lazy loading:
+ * Todos los componentes usan React.lazy() para code splitting.
+ * Reduce bundle size inicial y mejora tiempo de carga.
+ * 
+ * Protección:
+ * Rutas protegidas con componente RequireAuth que valida JWT y rol.
+ * 
+ * @module router
+ */
+
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { lazy } from 'react'
 
