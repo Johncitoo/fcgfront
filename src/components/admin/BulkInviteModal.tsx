@@ -10,6 +10,24 @@ interface Props {
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
+/**
+ * Modal para envío masivo de invitaciones a postulantes.
+ * Envía correos a todos los postulantes elegibles de una convocatoria específica.
+ * Muestra resultado con contador de exitosos/fallidos y detalle de errores.
+ * 
+ * @param callId - UUID de la convocatoria
+ * @param callName - Nombre de la convocatoria (para mostrar)
+ * @param onClose - Callback al cerrar el modal
+ * @param onSuccess - Callback al enviar exitosamente
+ * 
+ * @example
+ * <BulkInviteModal
+ *   callId="call-uuid"
+ *   callName="Convocatoria 2025"
+ *   onClose={() => setOpen(false)}
+ *   onSuccess={() => refetch()}
+ * />
+ */
 export default function BulkInviteModal({ callId, callName, onClose, onSuccess }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -20,6 +38,10 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
     Authorization: `Bearer ${localStorage.getItem('fcg.access_token') ?? ''}`,
   }
 
+  /**
+   * Envía invitaciones masivas a todos los postulantes de la convocatoria.
+   * Llama a /invites/bulk-send con sendToAll: true.
+   */
   async function handleSend() {
     setLoading(true)
     setError(null)

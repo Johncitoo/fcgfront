@@ -7,6 +7,16 @@ interface ProgressTrackerProps {
   applicationId: string;
 }
 
+/**
+ * Componente de seguimiento visual de progreso de hitos de una aplicación.
+ * Muestra timeline vertical con estado de cada hito, porcentaje completado y hito actual destacado.
+ * Incluye animaciones, iconos de estado y barra de progreso general.
+ * 
+ * @param applicationId - UUID de la aplicación a trackear
+ * 
+ * @example
+ * <ProgressTracker applicationId="app-uuid-123" />
+ */
 export default function ProgressTracker({ applicationId }: ProgressTrackerProps) {
   const token = localStorage.getItem('accessToken');
   const [progress, setProgress] = useState<MilestoneProgress[]>([]);
@@ -31,6 +41,10 @@ export default function ProgressTracker({ applicationId }: ProgressTrackerProps)
     }
   }
 
+  /**
+   * Retorna el icono apropiado según el estado del hito.
+   * @param status - Estado: COMPLETED, IN_PROGRESS, PENDING, BLOCKED
+   */
   function getStatusIcon(status: string) {
     switch (status) {
       case 'COMPLETED':
@@ -46,6 +60,10 @@ export default function ProgressTracker({ applicationId }: ProgressTrackerProps)
     }
   }
 
+  /**
+   * Convierte código de estado a texto legible en español.
+   * @param status - Código del estado
+   */
   function getStatusText(status: string) {
     switch (status) {
       case 'COMPLETED':
@@ -61,6 +79,10 @@ export default function ProgressTracker({ applicationId }: ProgressTrackerProps)
     }
   }
 
+  /**
+   * Retorna clases CSS para colorear la card según estado.
+   * @param status - Estado del hito
+   */
   function getStatusColor(status: string) {
     switch (status) {
       case 'COMPLETED':

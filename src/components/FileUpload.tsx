@@ -3,6 +3,20 @@ import { Upload, X, File, Image, FileText, AlertCircle, Loader2 } from 'lucide-r
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 
+/**
+ * Componente de carga de archivos con drag & drop.
+ * Valida tamaño, tipo de archivo, muestra progreso de carga y previsualización.
+ * Soporta arrastrar y soltar además del selector clásico.
+ * 
+ * @example
+ * <FileUpload
+ *   onFileSelect={(file) => uploadFile(file)}
+ *   accept=".pdf,.docx"
+ *   maxSize={5 * 1024 * 1024}
+ *   progress={uploadProgress}
+ *   isUploading={uploading}
+ * />
+ */
 export interface FileUploadProps {
   /**
    * Called when file is selected/dropped
@@ -95,6 +109,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     e.stopPropagation();
   }, []);
 
+  /**
+   * Valida tamaño y tipo de archivo según props.
+   * 
+   * @param selectedFile - Archivo a validar
+   * @returns Mensaje de error si hay problema, null si es válido
+   */
   const validateFile = (selectedFile: File): string | null => {
     if (maxSize && selectedFile.size > maxSize) {
       return `El archivo es demasiado grande. Máximo: ${(maxSize / 1024 / 1024).toFixed(1)}MB`;
@@ -173,6 +193,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     }
   };
 
+  /**
+   * Retorna el icono apropiado según la extensión del archivo.
+   * 
+   * @param fileName - Nombre del archivo con extensión
+   * @returns Componente icono de Lucide
+   */
   const getFileIcon = (fileName: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase();
     if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '')) {

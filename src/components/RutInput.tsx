@@ -14,6 +14,29 @@ interface RutInputProps {
   helpText?: string
 }
 
+/**
+ * Campo de entrada especializado para RUT chileno con validación y formato automático.
+ * Formatea mientras se escribe (12.345.678-9) y valida dígito verificador.
+ * Muestra indicadores visuales de validación (checkmark verde / cruz roja).
+ * 
+ * @param value - Valor actual del RUT
+ * @param onChange - Callback al cambiar el valor
+ * @param label - Etiqueta del campo (default: 'RUT')
+ * @param required - Si el campo es obligatorio
+ * @param disabled - Si el campo está deshabilitado
+ * @param placeholder - Placeholder (default: '12.345.678-9')
+ * @param name - Nombre del input (default: 'rut')
+ * @param showValidation - Mostrar iconos de validación (default: true)
+ * @param helpText - Texto de ayuda opcional
+ * 
+ * @example
+ * <RutInput
+ *   value={rut}
+ *   onChange={setRut}
+ *   required
+ *   helpText="Ingresa tu RUT sin puntos ni guión"
+ * />
+ */
 export default function RutInput({
   value,
   onChange,

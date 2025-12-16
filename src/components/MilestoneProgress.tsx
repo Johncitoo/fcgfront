@@ -36,6 +36,16 @@ interface Props {
   applicationId: string
 }
 
+/**
+ * Componente de progreso de hitos con vista detallada por aplicación.
+ * Muestra resumen de porcentaje, barra de progreso y cards individuales por hito.
+ * Diferencia entre tareas de APPLICANT vs REVIEWER con colores distintivos.
+ * 
+ * @param applicationId - UUID de la aplicación
+ * 
+ * @example
+ * <MilestoneProgress applicationId="app-uuid-123" />
+ */
 export default function MilestoneProgress({ applicationId }: Props) {
   const [data, setData] = useState<MilestoneProgressData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -173,6 +183,14 @@ export default function MilestoneProgress({ applicationId }: Props) {
   )
 }
 
+/**
+ * Card individual para un hito con estado, icono, botones de acción y formulario embebido.
+ * Diferencia visualmente entre tareas de postulante (azul) y revisor (morado).
+ * Muestra estados: completado, en progreso, pendiente, rechazado, bloqueado.
+ * 
+ * @param milestone - Datos del hito
+ * @param applicationId - UUID de la aplicación
+ */
 function MilestoneCard({ milestone, applicationId }: { milestone: Milestone; applicationId: string }) {
   const isCompleted = milestone.status === 'COMPLETED'
   const isInProgress = milestone.status === 'IN_PROGRESS'

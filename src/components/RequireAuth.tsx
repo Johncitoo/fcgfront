@@ -9,6 +9,19 @@ interface Props {
   children: ReactNode
 }
 
+/**
+ * Componente de protección de rutas que valida autenticación y roles con el backend.
+ * Verifica token JWT, consulta /auth/me y redirige a login si es inválido.
+ * Actualiza rol en localStorage desde el backend para mantener sincronización.
+ * 
+ * @param roles - Roles permitidos para acceder (opcional). Si no se especifica, cualquier usuario autenticado puede acceder.
+ * @param children - Componentes a renderizar si la autenticación es válida.
+ * 
+ * @example
+ * <RequireAuth roles={['ADMIN', 'REVIEWER']}>
+ *   <AdminPanel />
+ * </RequireAuth>
+ */
 export default function RequireAuth({ roles, children }: Props) {
   const [ok, setOk] = useState<boolean | null>(null)
 
