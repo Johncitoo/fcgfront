@@ -103,7 +103,8 @@ export default function InvitesPage() {
 
   useEffect(() => {
     load()
-    // eslin
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deps])
 
   useEffect(() => {
     // Cargar estadísticas cuando cambia la convocatoria seleccionada
@@ -131,7 +132,17 @@ export default function InvitesPage() {
 
       if (Array.isArray(res)) {
         setRows(res)
-   
+        setTotal(res.length)
+      } else {
+        setRows(res.data ?? [])
+        setTotal(res.meta?.total ?? (res.data ?? []).length)
+      }
+    } catch (e: any) {
+      setError(e.message ?? 'No se pudo cargar el listado de invitaciones')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function loadStats() {
     if (!callId) return
@@ -142,16 +153,6 @@ export default function InvitesPage() {
     } catch (e: any) {
       console.error('Error cargando estadísticas:', e)
       setStats(null)
-    }
-  }     setTotal(res.length)
-      } else {
-        setRows(res.data ?? [])
-        setTotal(res.meta?.total ?? (res.data ?? []).length)
-      }
-    } catch (e: any) {
-      setError(e.message ?? 'No se pudo cargar el listado de invitaciones')
-    } finally {
-      setLoading(false)
     }
   }
 
