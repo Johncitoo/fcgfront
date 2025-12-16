@@ -16,14 +16,36 @@ export default function ResetPasswordWithTokenPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isValidating, setIsValidating] = useState(true)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!token) {
-      toast.error('Token inválido o faltante')
-      navigate('/auth/login')
+    const validateToken = async () => {
+      if (!token) {
+        toast.error('Token inválido o faltante')
+        navigate('/auth/login')
+        return
+      }
+
+      // Validar el token con el backend
+      try {
+        setIsValidating(true)
+        const response = await api.post('/auth/validate-reset-token', { token })
+        
+        if (!response.data.valid) {
+          toast.error('Este enlace ya fue utilizado o ha expirado')
+          setTimeout(() => navigate('/auth/login'), 2000)
+        }
+      } catch (err: any) {
+        toast.error('Este enlace no es válido. Solicita uno nuevo.')
+        setTimeout(() => navigate('/auth/login'), 2000)
+      } finally {
+        setIsValidating(false)
+      }
     }
+
+    validateToken()
   }, [token, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,6 +90,24 @@ export default function ResetPasswordWithTokenPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Mostrar pantalla de carga mientras valida el token
+  if (isValidating) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-xl">
+          <CardContent className="pt-6 pb-6">
+            <div className="text-center">
+              <div className="mb-4 flex justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600"></div>
+              </div>
+              <p className="text-gray-600">Validando enlace...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (success) {
