@@ -215,10 +215,7 @@ export default function EmailTemplatesPage() {
                     placeholder="Asunto del email..."
                   />
                   <p className="text-xs text-gray-500 mt-2">
-                    Puedes usar variables como <code className="bg-gray-100 px-1 rounded">{{`{call_name}`}}</code>
-                  </p>
-                </div>
-
+                  Puedes usar variables como <code className="bg-gray-100 px-1 rounded">{'{{call_name}}'}</code>
                 {/* Editor de cuerpo */}
                 <div className="bg-white rounded-lg shadow-sm p-6">
                   <label className="block text-sm font-medium text-gray-700 mb-4">
