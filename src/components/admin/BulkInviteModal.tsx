@@ -39,7 +39,6 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
     errors?: string[];
     message?: string;
   } | null>(null)
-  const [maxEmails, setMaxEmails] = useState<number>(50)
 
   const headers = {
     'Content-Type': 'application/json',
@@ -47,8 +46,8 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
   }
 
   /**
-   * Envía invitaciones masivas con límite configurable.
-   * Llama a /invites/bulk-send con sendToAll: true y maxEmails.
+   * Envía invitaciones a TODOS los postulantes que aún no tienen invitación.
+   * Llama a /invites/bulk-send con sendToAll: true (sin límite).
    */
   async function handleSend() {
     setLoading(true)
@@ -62,7 +61,6 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
         body: JSON.stringify({
           callId,
           sendToAll: true,
-          maxEmails: maxEmails > 0 ? maxEmails : undefined,
         }),
       })
 
@@ -167,26 +165,6 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
                 </p>
                 <p className="text-xs text-amber-600 mt-2">
                   El sistema detecta automáticamente qué invitaciones ya fueron enviadas y solo procesa las pendientes.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Límite de emails a enviar (opcional)
-                </label>
-                <input
-                  type="number"
-                  value={maxEmails}
-                  onChange={(e) => setMaxEmails(parseInt(e.target.value) || 0)}
-                  min="1"
-                  max="300"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                  placeholder="Ejemplo: 50"
-                />
-                <p className="text-xs text-slate-500">
-                  Si tu cuota diaria es limitada, puedes especificar cuántos emails enviar. 
-                  Los pendientes quedarán marcados para enviarlos otro día.
-                  Deja en 0 para enviar todos sin límite.
                 </p>
               </div>
 
