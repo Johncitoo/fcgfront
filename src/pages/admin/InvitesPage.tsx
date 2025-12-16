@@ -113,8 +113,7 @@ export default function InvitesPage() {
       setStats(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [callId])t-disable-next-line react-hooks/exhaustive-deps
-  }, [deps])
+  }, [callId])
 
   async function load() {
     try {

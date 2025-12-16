@@ -39,7 +39,7 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
     errors?: string[];
     message?: string;
   } | null>(null)
-  const [maxEmails, setMaxEmails] = useState<number>(50) // Límite por defecto
+  const [maxEmails, setMaxEmails] = useState<number>(50)
 
   const headers = {
     'Content-Type': 'application/json',
@@ -78,7 +78,6 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
         setTimeout(() => {
           onSuccess()
           if (data.pending === 0) {
-            // Solo cerrar si no quedan pendientes
             onClose()
           }
         }, 3000)
@@ -124,19 +123,19 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
                     {result.message || 'Envío completado'}
                   </p>
                   <div className="text-sm text-green-700 mt-2 space-y-1">
-                    <p>✅ Enviadas exitosamente: <strong>{result.sent}</strong></p>
+                    <p>Enviadas exitosamente: <strong>{result.sent}</strong></p>
                     {result.failed > 0 && (
-                      <p className="text-rose-700">❌ Fallidas: <strong>{result.failed}</strong></p>
+                      <p className="text-rose-700">Fallidas: <strong>{result.failed}</strong></p>
                     )}
                     {result.pending > 0 && (
-                      <p className="text-amber-700">⏳ Pendientes: <strong>{result.pending}</strong></p>
+                      <p className="text-amber-700">Pendientes: <strong>{result.pending}</strong></p>
                     )}
                     <p className="text-slate-600">Total procesadas: <strong>{result.total}</strong></p>
                   </div>
                   {result.pending > 0 && (
                     <div className="mt-3 rounded-md bg-amber-50 border border-amber-200 p-2">
                       <p className="text-xs text-amber-900">
-                        💡 <strong>Continúa mañana:</strong> Quedan {result.pending} invitaciones pendientes de envío. 
+                        Quedan {result.pending} invitaciones pendientes de envío. 
                         Puedes ejecutar este proceso nuevamente para enviar el resto.
                       </p>
                     </div>
@@ -148,10 +147,26 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
                 <div className="border rounded-lg p-3 max-h-40 overflow-y-auto">
                   <p className="text-xs font-medium text-slate-700 mb-2">Errores detallados:</p>
                   {result.errors.map((err, idx) => (
-                    <p key={idx} className="text-xs text-slate-600 fpostulantes que <strong>NO han recibido email</strong> todavía.
+                    <p key={idx} className="text-xs text-slate-600 font-mono mb-1">
+                      {err}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!result && (
+            <>
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
+                <p className="text-sm text-amber-900">
+                  <strong>Convocatoria:</strong> {callName}
+                </p>
+                <p className="text-sm text-amber-700 mt-2">
+                  Se enviarán invitaciones automáticas por correo a postulantes que NO han recibido email todavía.
                 </p>
                 <p className="text-xs text-amber-600 mt-2">
-                  ℹ️ El sistema detecta automáticamente qué invitaciones ya fueron enviadas y solo procesa las pendientes.
+                  El sistema detecta automáticamente qué invitaciones ya fueron enviadas y solo procesa las pendientes.
                 </p>
               </div>
 
@@ -171,21 +186,55 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
                 <p className="text-xs text-slate-500">
                   Si tu cuota diaria es limitada, puedes especificar cuántos emails enviar. 
                   Los pendientes quedarán marcados para enviarlos otro día.
-                  Deja en 0 para enviar todos sin límite
-                      • {err}
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {!result && (
-            <>
-              <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
-                <p className="text-sm text-amber-900">
-                  <strong>Convocatoria:</strong> {callName}
+                  Deja en 0 para enviar todos sin límite.
                 </p>
+              </div>
+
+              <div className="rounded-lg bg-sky-50 border border-sky-200 p-4">
+                <p className="text-xs font-medium text-sky-900 mb-2">Cada invitación incluirá:</p>
+                <ul className="text-xs text-sky-700 space-y-1 list-disc list-inside">
+                  <li>Código de invitación único</li>
+                  <li>Saludo personalizado con el nombre del postulante</li>
+                  <li>Instrucciones para acceder al sistema</li>
+                  <li>Enlace directo al formulario</li>
+                </ul>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 border-t p-4">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-md"
+          >
+            {result ? 'Cerrar' : 'Cancelar'}
+          </button>
+          {!result && (
+            <button
+              onClick={handleSend}
+              disabled={loading}
+              className="px-4 py-2 text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-md flex items-center gap-2 disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Enviar Invitaciones
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
                 <p className="text-sm text-amber-700 mt-2">
                   Se enviarán invitaciones automáticas por correo a <strong>todos los postulantes ingresados</strong> que aún no han recibido una invitación para esta convocatoria.
                 </p>
