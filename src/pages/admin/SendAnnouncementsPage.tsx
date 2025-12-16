@@ -13,8 +13,9 @@ interface Applicant {
 
 interface MilestoneOption {
   id: string;
-  title: string;
+  name: string;
   description: string;
+  order_index: number;
   whoCanFill: string[];
 }
 
@@ -443,7 +444,7 @@ export default function SendAnnouncementsPage() {
                     >
                       <option value="">-- Selecciona un hito --</option>
                       {milestones.map(m => (
-                        <option key={m.id} value={m.id}>{m.title}</option>
+                        <option key={m.id} value={m.id}>{m.name}</option>
                       ))}
                     </select>
                   )}
