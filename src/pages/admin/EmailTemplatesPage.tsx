@@ -1,47 +1,29 @@
 import { useEffect, useMemo, useState } from 'react'
+import { TemplateEditor } from '../../components/TemplateEditor'
+import { EmailPreview } from '../../components/EmailPreview'
+import { Save, RotateCcw, AlertCircle } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 interface EmailTemplate {
   id: string
-  code: string        // p.ej. INVITE_APPLICANT, APPLICATION_SUBMITTED, REQUEST_FIX, APPROVED, REJECTED
-  subject: string
-  body_html: string
-  created_at?: string
-  updated_at?: string
+  key: string
+  name: string
+  subjectTemplate: string
+  bodyTemplate: string
+  availableVariables?: Array<{name: string; description: string; required: boolean}>
+  createdAt?: string
 }
 
-interface PageMeta {
-  total: number
-  limit: number
-  offset: number
-}
-interface ListResponse<T> {
-  data: T[]
-  meta?: PageMeta
-}
-
-const API_BASE =
-  (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
+const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
 export default function EmailTemplatesPage() {
-  const [rows, setRows] = useState<EmailTemplate[]>([])
+  const [templates, setTemplates] = useState<EmailTemplate[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  // filtros / paginación
-  const [q, setQ] = useState('')
-  const [limit, setLimit] = useState(20)
-  const [offset, setOffset] = useState(0)
-  const [meta, setMeta] = useState<PageMeta | null>(null)
-
-  // modal crear/editar
-  const [modal, setModal] = useState<null | { mode: 'create' | 'edit'; base?: EmailTemplate }>(null)
-  const [form, setForm] = useState({ code: '', subject: '', body_html: '' })
-  const [formErr, setFormErr] = useState<string | null>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null)
+  const [editedSubject, setEditedSubject] = useState('')
+  const [editedBody, setEditedBody] = useState('')
+  const [hasChanges, setHasChanges] = useState(false)
   const [saving, setSaving] = useState(false)
-
-  // modal preview
-  const [previewOpen, setPreviewOpen] = useState(false)
-  const [previewHtml, setPreviewHtml] = useState('')
 
   const headers = useMemo(() => {
     const token = localStorage.getItem('fcg.access_token') ?? ''
@@ -51,361 +33,254 @@ export default function EmailTemplatesPage() {
     }
   }, [])
 
-  async function load() {
+  useEffect(() => {
+    loadTemplates()
+    // eslint-disable-next-line
+  }, [])
+
+  async function loadTemplates() {
     try {
       setLoading(true)
-      setError(null)
-      const params = new URLSearchParams()
-      params.set('limit', String(limit))
-      params.set('offset', String(offset))
-      if (q.trim()) params.set('q', q.trim())
-
-      const res = await fetch(`${API_BASE}/email/templates?${params.toString()}`, {
-        headers,
-      })
-      if (!res.ok) throw new Error(await safeError(res))
-      const json = (await res.json()) as ListResponse<EmailTemplate> | EmailTemplate[]
-
-      if (Array.isArray(json)) {
-        setRows(json)
-        setMeta({ total: json.length, limit, offset })
-      } else {
-        setRows(json.data ?? [])
-        setMeta(json.meta ?? { total: (json.data ?? []).length, limit, offset })
+      const res = await fetch(`${API_BASE}/email/templates?limit=100`, { headers })
+      if (!res.ok) throw new Error('Error cargando plantillas')
+      const json = await res.json()
+      setTemplates(json.data ?? [])
+      
+      // Seleccionar primera plantilla por defecto
+      if (json.data?.length > 0) {
+        loadTemplate(json.data[0].id)
       }
     } catch (e: any) {
-      setError(e.message ?? 'No se pudieron cargar las plantillas')
+      toast.error('Error cargando plantillas')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limit, offset])
-
-  function openCreate() {
-    setForm({ code: '', subject: '', body_html: '' })
-    setFormErr(null)
-    setModal({ mode: 'create' })
-  }
-
-  function openEdit(t: EmailTemplate) {
-    setForm({ code: t.code, subject: t.subject, body_html: t.body_html })
-    setFormErr(null)
-    setModal({ mode: 'edit', base: t })
-  }
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!modal) return
-
-    setSaving(true)
-    setFormErr(null)
+  async function loadTemplate(id: string) {
     try {
-      const payload = {
-        code: form.code.trim(),
-        subject: form.subject.trim(),
-        body_html: form.body_html,
-      }
+      const res = await fetch(`${API_BASE}/email/templates/${id}`, { headers })
+      if (!res.ok) throw new Error('Error cargando plantilla')
+      const template = await res.json()
 
-      let res: Response
-      if (modal.mode === 'create') {
-        res = await fetch(`${API_BASE}/email/templates`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(payload),
-        })
-      } else {
-        res = await fetch(`${API_BASE}/email/templates/${modal.base!.id}`, {
-          method: 'PATCH',
-          headers,
-          body: JSON.stringify(payload),
-        })
-      }
-      if (!res.ok) throw new Error(await safeError(res))
-
-      setModal(null)
-      setOffset(0)
-      await load()
+      setSelectedTemplate(template)
+      setEditedSubject(template.subjectTemplate)
+      setEditedBody(template.bodyTemplate)
+      setHasChanges(false)
     } catch (e: any) {
-      setFormErr(e.message ?? 'No se pudo guardar la plantilla')
+      toast.error('Error cargando plantilla')
+    }
+  }
+
+  async function saveTemplate() {
+    if (!selectedTemplate) return
+
+    try {
+      setSaving(true)
+      const res = await fetch(`${API_BASE}/email/templates/${selectedTemplate.id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({
+          subjectTemplate: editedSubject,
+          bodyTemplate: editedBody,
+        }),
+      })
+
+      if (!res.ok) throw new Error('Error guardando plantilla')
+
+      toast.success('Plantilla guardada correctamente')
+      setHasChanges(false)
+      
+      // Recargar para actualizar la lista
+      await loadTemplates()
+      await loadTemplate(selectedTemplate.id)
+    } catch (e: any) {
+      toast.error('Error guardando plantilla')
     } finally {
       setSaving(false)
     }
   }
 
-  function openPreview(html: string) {
-    setPreviewHtml(html)
-    setPreviewOpen(true)
+  function restoreOriginal() {
+    if (!selectedTemplate) return
+    setEditedSubject(selectedTemplate.subjectTemplate)
+    setEditedBody(selectedTemplate.bodyTemplate)
+    setHasChanges(false)
+    toast.success('Cambios descartados')
+  }
+
+  async function handlePreview(subject: string, body: string) {
+    if (!selectedTemplate) return { subject: '', body: '' }
+
+    try {
+      const res = await fetch(`${API_BASE}/email/templates/${selectedTemplate.id}/preview`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          subjectTemplate: subject,
+          bodyTemplate: body,
+        }),
+      })
+
+      if (!res.ok) throw new Error('Error generando preview')
+      return await res.json()
+    } catch (e) {
+      toast.error('Error generando preview')
+      return { subject: '', body: '' }
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando plantillas...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="mx-auto w-full max-w-7xl">
-        <header className="mb-6">
-          <h1 className="text-2xl font-semibold">Plantillas de correo</h1>
-          <p className="text-slate-600">
-            Define asunto y contenido HTML. Puedes usar variables como <code>{'{{name}}'}</code>,{' '}
-            <code>{'{{code}}'}</code>, <code>{'{{call_title}}'}</code>, etc., que el backend
-            reemplazará al enviar.
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Plantillas de Email</h1>
+          <p className="text-gray-600 mt-2">
+            Personaliza los mensajes que se envían automáticamente a los postulantes
           </p>
-        </header>
-
-        {/* Filtros + acciones */}
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <input
-            type="text"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar por código o asunto…"
-            className="rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-          />
-          <button
-            onClick={() => {
-              setOffset(0)
-              load()
-            }}
-            className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-slate-50"
-          >
-            Buscar
-          </button>
-
-          <div className="ml-auto">
-            <button
-              onClick={openCreate}
-              className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700"
-            >
-              Nueva plantilla
-            </button>
-          </div>
         </div>
 
-        {/* Tabla */}
-        <div className="card">
-          <div className="card-body overflow-x-auto">
-            {loading ? (
-              <p className="text-slate-600">Cargando…</p>
-            ) : error ? (
-              <p className="text-sm text-rose-700">{error}</p>
-            ) : (
-              <table className="w-full text-sm">
-                <thead className="text-left text-slate-600">
-                  <tr className="border-b">
-                    <th className="py-2 pr-3">Código</th>
-                    <th className="py-2 pr-3">Asunto</th>
-                    <th className="py-2 pr-3">Actualizada</th>
-                    <th className="py-2">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="py-6 text-center text-slate-500">
-                        No hay plantillas.
-                      </td>
-                    </tr>
-                  ) : (
-                    rows.map((t) => (
-                      <tr key={t.id} className="border-b last:border-0">
-                        <td className="py-2 pr-3 font-medium">{t.code}</td>
-                        <td className="py-2 pr-3">{t.subject}</td>
-                        <td className="py-2 pr-3">
-                          {t.updated_at ? new Date(t.updated_at).toLocaleString() : '—'}
-                        </td>
-                        <td className="py-2">
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              onClick={() => openEdit(t)}
-                              className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-slate-50"
-                            >
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => openPreview(t.body_html)}
-                              className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-slate-50"
-                            >
-                              Previsualizar
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
-        {/* Paginación */}
-        <div className="mt-4 flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-600">Filas por página:</span>
-            <select
-              value={limit}
-              onChange={(e) => {
-                setLimit(Number(e.target.value))
-                setOffset(0)
-              }}
-              className="rounded-md border px-2 py-1"
-            >
-              {[10, 20, 50, 100].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setOffset(Math.max(0, offset - limit))}
-              disabled={offset === 0}
-              className="rounded-md border px-3 py-1.5 disabled:opacity-50"
-            >
-              Anterior
-            </button>
-            <button
-              onClick={() => setOffset(offset + limit)}
-              disabled={meta ? offset + limit >= meta.total : undefined}
-              className="rounded-md border px-3 py-1.5 disabled:opacity-50"
-            >
-              Siguiente
-            </button>
-            <span className="text-slate-600">
-              {meta
-                ? `${Math.min(meta.total, offset + 1)}–${Math.min(
-                    meta.total,
-                    offset + rows.length,
-                  )} de ${meta.total}`
-                : ''}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Modal crear/editar */}
-      {modal && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4">
-          <div className="w-full max-w-3xl rounded-lg border bg-white shadow-lg">
-            <div className="border-b px-5 py-3">
-              <div className="text-base font-semibold">
-                {modal.mode === 'create' ? 'Nueva plantilla' : `Editar: ${modal.base?.code}`}
+        <div className="grid grid-cols-12 gap-6">
+          {/* Sidebar - Lista de plantillas */}
+          <div className="col-span-3">
+            <div className="bg-white rounded-lg shadow-sm p-4">
+              <h3 className="font-semibold text-gray-900 mb-4">Tipos de Email</h3>
+              <div className="space-y-1">
+                {templates.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => {
+                      if (hasChanges && !confirm('¿Descartar cambios no guardados?')) return
+                      loadTemplate(template.id)
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                      selectedTemplate?.id === template.id
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'hover:bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {template.name}
+                  </button>
+                ))}
               </div>
             </div>
+          </div>
 
-            <form onSubmit={submit} className="px-5 py-4 space-y-3">
-              {formErr && (
-                <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                  {formErr}
+          {/* Editor principal */}
+          <div className="col-span-9">
+            {selectedTemplate ? (
+              <div className="space-y-6">
+                {/* Información del template */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-blue-900">Plantilla: {selectedTemplate.name}</p>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Código: <code className="bg-blue-100 px-2 py-0.5 rounded">{selectedTemplate.key}</code>
+                      </p>
+                      <p className="text-sm text-blue-600 mt-2">
+                        Esta plantilla NO puede ser eliminada. Los tipos de email están predefinidos por seguridad.
+                        Solo puedes editar el contenido y asunto.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              )}
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Código *</label>
+                {/* Editor de asunto */}
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Asunto del correo
+                  </label>
                   <input
                     type="text"
-                    required
-                    value={form.code}
-                    onChange={(e) => setForm((s) => ({ ...s, code: e.target.value }))}
-                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                    placeholder="INVITE_APPLICANT"
+                    value={editedSubject}
+                    onChange={(e) => {
+                      setEditedSubject(e.target.value)
+                      setHasChanges(true)
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Asunto del email..."
                   />
-                  <p className="text-xs text-slate-500">
-                    Usa MAYÚSCULAS y guiones bajos. Ej: <code>REQUEST_FIX</code>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Puedes usar variables como <code className="bg-gray-100 px-1 rounded">{{`{call_name}`}}</code>
                   </p>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Asunto *</label>
-                  <input
-                    type="text"
-                    required
-                    value={form.subject}
-                    onChange={(e) => setForm((s) => ({ ...s, subject: e.target.value }))}
-                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                    placeholder="Tu código de invitación — Fundación Carmen Goudie"
+                {/* Editor de cuerpo */}
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                    Contenido del email
+                  </label>
+                  <TemplateEditor
+                    value={editedBody}
+                    onChange={(html) => {
+                      setEditedBody(html)
+                      setHasChanges(true)
+                    }}
+                    availableVariables={selectedTemplate.availableVariables || []}
+                    placeholder="Escribe el contenido del email aquí..."
                   />
                 </div>
-              </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium">HTML *</label>
-                <textarea
-                  required
-                  rows={14}
-                  value={form.body_html}
-                  onChange={(e) => setForm((s) => ({ ...s, body_html: e.target.value }))}
-                  className="w-full font-mono text-xs rounded-md border px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-                  placeholder={`<p>Hola {{name}},</p>\n<p>Tu código es <b>{{code}}</b> para la convocatoria {{call_title}}.</p>`}
-                />
-                <div className="mt-2 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => openPreview(form.body_html)}
-                    className="rounded-md border px-3 py-1.5 text-sm hover:bg-slate-50"
-                  >
-                    Previsualizar
-                  </button>
+                {/* Acciones */}
+                <div className="bg-white rounded-lg shadow-sm p-6 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <EmailPreview
+                      subject={editedSubject}
+                      bodyHtml={editedBody}
+                      onPreview={handlePreview}
+                    />
+                    
+                    {hasChanges && (
+                      <span className="text-sm text-orange-600 font-medium">
+                        Tienes cambios sin guardar
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {hasChanges && (
+                      <button
+                        onClick={restoreOriginal}
+                        className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                        Descartar cambios
+                      </button>
+                    )}
+
+                    <button
+                      onClick={saveTemplate}
+                      disabled={!hasChanges || saving}
+                      className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Save className="h-4 w-4" />
+                      {saving ? 'Guardando...' : 'Guardar Cambios'}
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              <div className="mt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setModal(null)}
-                  className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-slate-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-60"
-                >
-                  {saving ? 'Guardando…' : 'Guardar'}
-                </button>
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                <p className="text-gray-500">Selecciona una plantilla para editar</p>
               </div>
-            </form>
+            )}
           </div>
         </div>
-      )}
-
-      {/* Modal preview */}
-      {previewOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4">
-          <div className="w-full max-w-4xl rounded-lg border bg-white shadow-lg">
-            <div className="border-b px-5 py-3 flex items-center justify-between">
-              <div className="text-base font-semibold">Previsualización</div>
-              <button
-                onClick={() => setPreviewOpen(false)}
-                className="rounded-md border px-3 py-1.5 text-sm hover:bg-slate-50"
-              >
-                Cerrar
-              </button>
-            </div>
-            <div className="px-5 py-4">
-              <iframe
-                title="email-preview"
-                className="h-[60vh] w-full rounded-md border"
-                srcDoc={previewHtml}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   )
-}
-
-async function safeError(res: Response) {
-  try {
-    const data = await res.json()
-    return data?.message || data?.error || res.statusText
-  } catch {
-    return res.statusText
-  }
 }
