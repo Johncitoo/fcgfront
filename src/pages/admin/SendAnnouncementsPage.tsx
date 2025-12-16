@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useCallContext } from '../../contexts/CallContext';
 import { apiGet, apiPost } from '../../lib/api';
-import { Send, Users, User, Milestone, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Send, Users, User, Milestone, AlertCircle, CheckCircle2, Loader2, Building2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -18,6 +18,11 @@ interface MilestoneOption {
   whoCanFill: string[];
 }
 
+interface Institution {
+  id: string;
+  name: string;
+}
+
 interface SendResult {
   total: number;
   sent: number;
@@ -28,7 +33,7 @@ interface SendResult {
 export default function SendAnnouncementsPage() {
   const { selectedCall } = useCallContext();
   
-  const [recipientType, setRecipientType] = useState<'all' | 'specific' | 'milestone' | 'single'>('all');
+  const [recipientType, setRecipientType] = useState<'all' | 'milestone' | 'applicant-list' | 'applicant-email' | 'institutions-all' | 'institution-single'>('all');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   
@@ -40,9 +45,15 @@ export default function SendAnnouncementsPage() {
   // Para hitos
   const [milestones, setMilestones] = useState<MilestoneOption[]>([]);
   const [selectedMilestone, setSelectedMilestone] = useState('');
+  const [loadingMilestones, setLoadingMilestones] = useState(false);
   
-  // Para envío individual
-  const [singleEmail, setSingleEmail] = useState('');
+  // Para instituciones
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [selectedInstitution, setSelectedInstitution] = useState('');
+  const [loadingInstitutions, setLoadingInstitutions] = useState(false);
+  
+  // Para envío por email directo
+  const [directEmail, setDirectEmail] = useState('');
   
   // Preview y envío
   const [previewRecipients, setPreviewRecipients] = useState<Applicant[]>([]);
@@ -54,13 +65,14 @@ export default function SendAnnouncementsPage() {
     if (selectedCall) {
       loadApplicants();
       loadMilestones();
+      loadInstitutions();
     }
   }, [selectedCall]);
 
   const loadApplicants = async () => {
     if (!selectedCall) return;
     try {
-      const response = await apiGet<any>(`/applicants?callId=${selectedCall.id}`);
+      const response = await apiGet<any>(`/applicants`);
       const list = Array.isArray(response) ? response : response.data || [];
       setAllApplicants(list.map((a: any) => ({
         id: a.id,
@@ -74,11 +86,28 @@ export default function SendAnnouncementsPage() {
 
   const loadMilestones = async () => {
     if (!selectedCall) return;
+    setLoadingMilestones(true);
     try {
       const data = await apiGet<MilestoneOption[]>(`/announcements/milestones/${selectedCall.id}`);
+      console.log('Milestones loaded:', data);
       setMilestones(data);
     } catch (error) {
       console.error('Error loading milestones:', error);
+    } finally {
+      setLoadingMilestones(false);
+    }
+  };
+
+  const loadInstitutions = async () => {
+    setLoadingInstitutions(true);
+    try {
+      const data = await apiGet<Institution[]>(`/institutions`);
+      console.log('Institutions loaded:', data);
+      setInstitutions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error loading institutions:', error);
+    } finally {
+      setLoadingInstitutions(false);
     }
   };
 
@@ -86,6 +115,17 @@ export default function SendAnnouncementsPage() {
     if (!selectedCall) return;
     
     try {
+      // Para email directo de postulante
+      if (recipientType === 'applicant-email') {
+        if (!directEmail) {
+          alert('Ingresa un email');
+          return;
+        }
+        setPreviewRecipients([{ id: '', email: directEmail, name: directEmail }]);
+        setShowPreview(true);
+        return;
+      }
+      
       let dto: any = { recipientType, callId: selectedCall.id };
       
       if (recipientType === 'milestone') {
@@ -94,23 +134,25 @@ export default function SendAnnouncementsPage() {
           return;
         }
         dto.milestoneId = selectedMilestone;
-      } else if (recipientType === 'specific') {
+      } else if (recipientType === 'applicant-list') {
         if (selectedApplicants.length === 0) {
           alert('Selecciona al menos un postulante');
           return;
         }
+        dto.recipientType = 'specific';
         dto.applicantIds = selectedApplicants;
-      }
-      
-      if (recipientType === 'single') {
-        if (!singleEmail) {
-          alert('Ingresa un email');
+      } else if (recipientType === 'institution-single') {
+        // Si hay email directo para institución
+        if (directEmail) {
+          setPreviewRecipients([{ id: '', email: directEmail, name: directEmail }]);
+          setShowPreview(true);
           return;
         }
-        // Para single, solo mostramos el email ingresado
-        setPreviewRecipients([{ id: '', email: singleEmail, name: singleEmail }]);
-        setShowPreview(true);
-        return;
+        if (!selectedInstitution) {
+          alert('Selecciona una institución o ingresa un email');
+          return;
+        }
+        dto.institutionId = selectedInstitution;
       }
       
       const result = await apiPost<{ count: number; recipients: Applicant[] }>(
@@ -141,18 +183,33 @@ export default function SendAnnouncementsPage() {
     
     try {
       let dto: any = {
-        recipientType,
         subject: subject.trim(),
         message: message.trim(),
         callId: selectedCall.id,
       };
       
-      if (recipientType === 'milestone') {
-        dto.milestoneId = selectedMilestone;
-      } else if (recipientType === 'specific') {
+      if (recipientType === 'applicant-email') {
+        dto.recipientType = 'single';
+        dto.singleEmail = directEmail;
+      } else if (recipientType === 'applicant-list') {
+        dto.recipientType = 'specific';
         dto.applicantIds = selectedApplicants;
-      } else if (recipientType === 'single') {
-        dto.singleEmail = singleEmail;
+      } else if (recipientType === 'milestone') {
+        dto.recipientType = 'milestone';
+        dto.milestoneId = selectedMilestone;
+      } else if (recipientType === 'institutions-all' || recipientType === 'institution-single') {
+        dto.recipientType = recipientType;
+        if (recipientType === 'institution-single') {
+          if (directEmail) {
+            // Si hay email directo, se usa como single
+            dto.recipientType = 'single';
+            dto.singleEmail = directEmail;
+          } else {
+            dto.institutionId = selectedInstitution;
+          }
+        }
+      } else {
+        dto.recipientType = recipientType; // 'all'
       }
       
       const result = await apiPost<SendResult>('/announcements/send', dto);
@@ -164,7 +221,7 @@ export default function SendAnnouncementsPage() {
           setSubject('');
           setMessage('');
           setSelectedApplicants([]);
-          setSingleEmail('');
+          setDirectEmail('');
           setShowPreview(false);
         }
       }
@@ -303,26 +360,52 @@ export default function SendAnnouncementsPage() {
                     <input
                       type="radio"
                       name="recipientType"
-                      value="specific"
-                      checked={recipientType === 'specific'}
+                      value="applicant-list"
+                      checked={recipientType === 'applicant-list'}
                       onChange={(e) => setRecipientType(e.target.value as any)}
                       className="w-4 h-4 text-sky-600"
                     />
                     <Users className="h-4 w-4 text-slate-500" />
-                    <span className="font-medium">Lista específica</span>
+                    <span className="font-medium">Postulante de la lista</span>
                   </label>
                   
                   <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition">
                     <input
                       type="radio"
                       name="recipientType"
-                      value="single"
-                      checked={recipientType === 'single'}
+                      value="applicant-email"
+                      checked={recipientType === 'applicant-email'}
                       onChange={(e) => setRecipientType(e.target.value as any)}
                       className="w-4 h-4 text-sky-600"
                     />
                     <User className="h-4 w-4 text-slate-500" />
-                    <span className="font-medium">Una persona</span>
+                    <span className="font-medium">Postulante por email</span>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                    <input
+                      type="radio"
+                      name="recipientType"
+                      value="institutions-all"
+                      checked={recipientType === 'institutions-all'}
+                      onChange={(e) => setRecipientType(e.target.value as any)}
+                      className="w-4 h-4 text-sky-600"
+                    />
+                    <Building2 className="h-4 w-4 text-slate-500" />
+                    <span className="font-medium">Todas las instituciones</span>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                    <input
+                      type="radio"
+                      name="recipientType"
+                      value="institution-single"
+                      checked={recipientType === 'institution-single'}
+                      onChange={(e) => setRecipientType(e.target.value as any)}
+                      className="w-4 h-4 text-sky-600"
+                    />
+                    <Building2 className="h-4 w-4 text-slate-500" />
+                    <span className="font-medium">Institución específica</span>
                   </label>
                 </div>
               </div>
@@ -333,32 +416,59 @@ export default function SendAnnouncementsPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Seleccionar Hito
                   </label>
-                  <select
-                    value={selectedMilestone}
-                    onChange={(e) => setSelectedMilestone(e.target.value)}
-                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                  >
-                    <option value="">-- Selecciona un hito --</option>
-                    {milestones.map(m => (
-                      <option key={m.id} value={m.id}>{m.title}</option>
-                    ))}
-                  </select>
+                  {loadingMilestones ? (
+                    <div className="text-sm text-slate-500">Cargando hitos...</div>
+                  ) : (
+                    <select
+                      value={selectedMilestone}
+                      onChange={(e) => setSelectedMilestone(e.target.value)}
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    >
+                      <option value="">-- Selecciona un hito --</option>
+                      {milestones.map(m => (
+                        <option key={m.id} value={m.id}>{m.title}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               )}
 
-              {/* Email individual */}
-              {recipientType === 'single' && (
+              {/* Email directo (postulante o institución) */}
+              {(recipientType === 'applicant-email' || recipientType === 'institution-single') && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Email del destinatario
                   </label>
                   <input
                     type="email"
-                    value={singleEmail}
-                    onChange={(e) => setSingleEmail(e.target.value)}
-                    placeholder="estudiante@example.com"
+                    value={directEmail}
+                    onChange={(e) => setDirectEmail(e.target.value)}
+                    placeholder={recipientType === 'applicant-email' ? 'postulante@example.com' : 'institucion@example.com'}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                   />
+                </div>
+              )}
+
+              {/* Selector de institución */}
+              {recipientType === 'institution-single' && !directEmail && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    O seleccionar de la lista
+                  </label>
+                  {loadingInstitutions ? (
+                    <div className="text-sm text-slate-500">Cargando instituciones...</div>
+                  ) : (
+                    <select
+                      value={selectedInstitution}
+                      onChange={(e) => setSelectedInstitution(e.target.value)}
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    >
+                      <option value="">-- Selecciona una institución --</option>
+                      {institutions.map(inst => (
+                        <option key={inst.id} value={inst.id}>{inst.name}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               )}
 
@@ -401,7 +511,7 @@ export default function SendAnnouncementsPage() {
 
           {/* Panel derecho - Selección específica o Preview */}
           <div className="space-y-6">
-            {recipientType === 'specific' && !showPreview && (
+            {recipientType === 'applicant-list' && !showPreview && (
               <Card>
                 <CardHeader className="border-b bg-slate-50/50">
                   <CardTitle className="flex items-center gap-2">
