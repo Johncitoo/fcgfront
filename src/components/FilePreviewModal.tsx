@@ -139,7 +139,29 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
               className="text-2xl text-slate-400 hover:text-slate-700 transition-colors px-2"
             >
               ✕
-            </isPDF ? (
+            </button>
+          </div>
+        </div>
+
+        {/* Preview Content */}
+        <div className="flex-1 overflow-auto p-6 bg-slate-100">
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-slate-600">Cargando vista previa...</p>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-red-600 font-medium">{error}</p>
+              </div>
+            </div>
+          ) : isPDF ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center max-w-md">
                 <svg className="w-20 h-20 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,29 +216,7 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                 alt={file.originalFilename}
                 className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
               />
-            </div     className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Descargar archivo
-                </button>
-              </div>
             </div>
-          ) : isImage && previewUrl ? (
-            <div className="flex items-center justify-center h-full">
-              <img
-                src={previewUrl}
-                alt={file.originalFilename}
-                className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
-              />
-            </div>
-          ) : isPDF && previewUrl ? (
-            <iframe
-              src={previewUrl}
-              className="w-full h-full rounded-lg shadow-lg bg-white"
-              title={file.originalFilename}
-            />
           ) : null}
         </div>
       </div>
