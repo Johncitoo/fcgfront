@@ -1,56 +1,30 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Lock, CheckCircle, XCircle, Loader } from 'lucide-react';
-import { apiGet, apiPost } from '../lib/api';
+import { apiPost } from '../lib/api';
 
 export default function ChangePasswordPage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true);
-  const [validating, setValidating] = useState(true);
-  const [tokenValid, setTokenValid] = useState(false);
-  const [validationMessage, setValidationMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
     if (!token) {
-      setValidating(false);
-      setTokenValid(false);
-      setValidationMessage('Token no encontrado');
-      return;
+      setError('Token no encontrado en la URL');
     }
-
-    validateToken();
   }, [token]);
-
-  const validateToken = async () => {
-    try {
-      const response = await apiGet<{ valid: boolean; message?: string }>(
-        `/auth/password-change/validate/${token}`
-      );
-
-      setTokenValid(response.valid);
-      setValidationMessage(response.message || '');
-    } catch (err: any) {
-      setTokenValid(false);
-      setValidationMessage(err.message || 'Error al validar el token');
-    } finally {
-      setValidating(false);
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
 
-    if (!newPassword || !confirmPassword) {
+    if (!newPassword.trim() || !confirmPassword.trim()) {
       setError('Todos los campos son obligatorios');
       return;
     }
@@ -65,22 +39,24 @@ export default function ChangePasswordPage() {
       return;
     }
 
+    if (!token) {
+      setError('Token no válido');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await apiPost<{ message: string }>(
-        '/auth/password-change/change',
-        {
-          token,
-          newPassword,
-        }
-      );
+      await apiPost('/password-change/reset', {
+        token,
+        newPassword,
+      });
 
-      setSuccess(response.message);
+      setSuccess(true);
 
       // Redirigir al login después de 3 segundos
       setTimeout(() => {
-        navigate('/auth/login');
+        navigate('/auth/login', { replace: true });
       }, 3000);
     } catch (err: any) {
       setError(err.message || 'Error al cambiar la contraseña');
@@ -88,137 +64,121 @@ export default function ChangePasswordPage() {
     }
   };
 
-  if (validating) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
-          <Loader className="h-12 w-12 text-purple-600 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">Validando enlace...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!tokenValid) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
-          <div className="text-center mb-6">
-            <XCircle className="h-16 w-16 text-rose-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Enlace no válido
-            </h1>
-            <p className="text-gray-600">{validationMessage}</p>
-          </div>
-
-          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6">
-            <p className="text-sm text-amber-800">
-              <strong>Posibles razones:</strong>
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>El enlace ya fue utilizado</li>
-                <li>El enlace ha expirado (válido por 1 hora)</li>
-                <li>El enlace no es válido</li>
-              </ul>
-            </p>
-          </div>
-
-          <button
-            onClick={() => navigate('/auth/login')}
-            className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors font-medium"
-          >
-            Ir al inicio de sesión
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Lock className="h-8 w-8 text-purple-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Cambiar Contraseña
-          </h1>
-          <p className="text-gray-600">Ingresa tu nueva contraseña</p>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-lg text-rose-700">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 flex items-start gap-3">
-            <CheckCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium">{success}</p>
-              <p className="text-sm mt-1">Redirigiendo al inicio de sesión...</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 text-slate-50 relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"></div>
+      
+      <div className="flex min-h-screen items-center justify-center px-4 py-12 relative z-10">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-sky-400 to-sky-600 shadow-lg shadow-sky-600/50 mb-6">
+              <Lock className="w-10 h-10 text-white" />
             </div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nueva contraseña
-            </label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              placeholder="Mínimo 8 caracteres"
-              minLength={8}
-              required
-              disabled={loading || !!success}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirmar nueva contraseña
-            </label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              placeholder="Confirma tu contraseña"
-              minLength={8}
-              required
-              disabled={loading || !!success}
-            />
-          </div>
-
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
-            <p className="text-sm text-blue-800">
-              <strong>Recomendación:</strong> Usa una contraseña segura con al
-              menos 8 caracteres, combinando letras mayúsculas, minúsculas,
-              números y símbolos.
+            <h1 className="text-3xl font-bold tracking-tight">
+              Cambiar Contraseña
+            </h1>
+            <p className="text-base text-slate-300 mt-2">
+              Ingresa tu nueva contraseña
             </p>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading || !!success}
-            className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-          >
-            {loading ? 'Cambiando contraseña...' : 'Cambiar Contraseña'}
-          </button>
-        </form>
+          <div className="bg-white/95 backdrop-blur-sm text-slate-900 shadow-2xl border border-slate-200/50 rounded-lg p-6">
+            {success ? (
+              <div className="text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="bg-green-100 rounded-full p-3">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">¡Contraseña cambiada!</h3>
+                <p className="text-gray-600 mb-6">
+                  Tu contraseña se ha actualizado correctamente. Redirigiendo al inicio de sesión...
+                </p>
+                <div className="flex justify-center">
+                  <Loader className="w-6 h-6 text-sky-600 animate-spin" />
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit}>
+                <p className="text-sm text-gray-800 mb-4 font-medium">
+                  Por tu seguridad, elige una contraseña fuerte que incluya letras, números y símbolos.
+                </p>
+                
+                {error && (
+                  <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                    <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-red-800">{error}</p>
+                  </div>
+                )}
 
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => navigate('/auth/login')}
-            className="text-purple-600 hover:text-purple-700 text-sm font-medium"
-          >
-            Volver al inicio de sesión
-          </button>
+                <div className="mb-4">
+                  <label htmlFor="newPassword" className="text-gray-900 font-semibold text-sm block mb-1">
+                    Nueva contraseña
+                  </label>
+                  <input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 8 caracteres"
+                    required
+                    disabled={loading}
+                    className="mt-1 text-gray-900 placeholder:text-gray-400 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    minLength={8}
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="confirmPassword" className="text-gray-900 font-semibold text-sm block mb-1">
+                    Confirmar contraseña
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirma tu contraseña"
+                    required
+                    disabled={loading}
+                    className="mt-1 text-gray-900 placeholder:text-gray-400 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    minLength={8}
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/auth/login')}
+                    disabled={loading}
+                    className="flex-1 text-gray-900 font-semibold hover:bg-gray-100 py-2 px-4 rounded-lg border border-gray-300 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || !newPassword.trim() || !confirmPassword.trim()}
+                    className="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Cambiando...
+                      </span>
+                    ) : (
+                      'Cambiar contraseña'
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="text-center mt-6 text-xs text-slate-400">
+            © 2025 Fundación Carmen Goudie
+          </div>
         </div>
       </div>
     </div>
