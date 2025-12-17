@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
 import { apiGet, apiPost, apiPatch } from '../../lib/api'
 
-type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
+type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED' | 'NOT_SELECTED' | 'PRESELECTED' | 'FINALIST' | 'SELECTED' | 'NOT_ELIGIBLE' | 'INTERVIEW_SCHEDULED' | 'WITHDRAWN'
 
 interface ApplicationDTO {
   id: string
@@ -551,8 +551,15 @@ function labelStatus(s?: AppStatus | null) {
     NEEDS_FIX: 'Correcciones',
     APPROVED: 'Aprobada',
     REJECTED: 'Rechazada',
+    NOT_SELECTED: 'No Seleccionada',
+    PRESELECTED: 'Preseleccionada',
+    FINALIST: 'Finalista',
+    SELECTED: 'Seleccionada',
+    NOT_ELIGIBLE: 'No Elegible',
+    INTERVIEW_SCHEDULED: 'Entrevista',
+    WITHDRAWN: 'Retirada',
   }
-  return map[s]
+  return map[s] || s
 }
 
 function StatusBadge({ status }: { status: AppStatus }) {
@@ -563,8 +570,15 @@ function StatusBadge({ status }: { status: AppStatus }) {
     NEEDS_FIX: 'badge-amber',
     APPROVED: 'badge-success',
     REJECTED: 'badge-danger',
+    NOT_SELECTED: 'badge-danger',
+    PRESELECTED: 'badge-purple',
+    FINALIST: 'badge-success',
+    SELECTED: 'badge-success',
+    NOT_ELIGIBLE: 'badge-neutral',
+    INTERVIEW_SCHEDULED: 'badge-info',
+    WITHDRAWN: 'badge-neutral',
   }
-  return <span className={`badge ${map[status]}`}>{labelStatus(status)}</span>
+  return <span className={`badge ${map[status] || 'badge-neutral'}`}>{labelStatus(status)}</span>
 }
 
 function buildTransitions(current?: AppStatus | null) {

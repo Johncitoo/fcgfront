@@ -8,6 +8,13 @@ type ApplicationStatus =
   | 'NEEDS_FIX'
   | 'APPROVED'
   | 'REJECTED'
+  | 'NOT_SELECTED'
+  | 'PRESELECTED'
+  | 'FINALIST'
+  | 'SELECTED'
+  | 'NOT_ELIGIBLE'
+  | 'INTERVIEW_SCHEDULED'
+  | 'WITHDRAWN'
 
 interface ApplicantLite {
   id: string
@@ -284,19 +291,28 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
     NEEDS_FIX: 'Requiere ajustes',
     APPROVED: 'Aprobada',
     REJECTED: 'Rechazada',
+    NOT_SELECTED: 'No Seleccionada',
+    PRESELECTED: 'Preseleccionada',
+    FINALIST: 'Finalista',
+    SELECTED: 'Seleccionada',
+    NOT_ELIGIBLE: 'No Elegible',
+    INTERVIEW_SCHEDULED: 'Entrevista Agendada',
+    WITHDRAWN: 'Retirada',
   }
-  const label = map[status]
+  const label = map[status] || status
   const cls =
-    status === 'APPROVED'
+    status === 'APPROVED' || status === 'SELECTED'
       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-      : status === 'REJECTED'
+      : status === 'REJECTED' || status === 'NOT_SELECTED'
       ? 'bg-rose-50 text-rose-700 border-rose-200'
       : status === 'NEEDS_FIX'
       ? 'bg-amber-50 text-amber-700 border-amber-200'
-      : status === 'IN_REVIEW'
+      : status === 'IN_REVIEW' || status === 'PRESELECTED'
       ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-      : status === 'SUBMITTED'
+      : status === 'SUBMITTED' || status === 'INTERVIEW_SCHEDULED'
       ? 'bg-sky-50 text-sky-700 border-sky-200'
+      : status === 'FINALIST'
+      ? 'bg-purple-50 text-purple-700 border-purple-200'
       : 'bg-slate-50 text-slate-700 border-slate-200'
 
   return (

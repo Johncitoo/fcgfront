@@ -3,7 +3,7 @@ import { Link, useSearchParams, useLocation } from 'react-router-dom'
 import { apiGet } from '../../lib/api'
 import { useCallContext } from '../../contexts/CallContext'
 
-type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
+type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED' | 'NOT_SELECTED' | 'PRESELECTED' | 'FINALIST' | 'SELECTED' | 'NOT_ELIGIBLE' | 'INTERVIEW_SCHEDULED' | 'WITHDRAWN'
 type OverallStatus = 'IN_PROGRESS' | 'IN_REVIEW' | 'NEEDS_CHANGES' | 'APPROVED' | 'REJECTED'
 
 interface Milestone {
@@ -373,6 +373,13 @@ function StatusBadge({ status }: { status: AppStatus }) {
     NEEDS_FIX: 'badge-amber',
     APPROVED: 'badge-success',
     REJECTED: 'badge-danger',
+    NOT_SELECTED: 'badge-danger',
+    PRESELECTED: 'badge-purple',
+    FINALIST: 'badge-success',
+    SELECTED: 'badge-success',
+    NOT_ELIGIBLE: 'badge-neutral',
+    INTERVIEW_SCHEDULED: 'badge-info',
+    WITHDRAWN: 'badge-neutral',
   }
   const label: Record<AppStatus, string> = {
     DRAFT: 'Borrador',
@@ -381,8 +388,15 @@ function StatusBadge({ status }: { status: AppStatus }) {
     NEEDS_FIX: 'Correcciones',
     APPROVED: 'Aprobada',
     REJECTED: 'Rechazada',
+    NOT_SELECTED: 'No Seleccionada',
+    PRESELECTED: 'Preseleccionada',
+    FINALIST: 'Finalista',
+    SELECTED: 'Seleccionada',
+    NOT_ELIGIBLE: 'No Elegible',
+    INTERVIEW_SCHEDULED: 'Entrevista',
+    WITHDRAWN: 'Retirada',
   }
-  return <span className={`badge ${map[status]}`}>{label[status]}</span>
+  return <span className={`badge ${map[status] || 'badge-neutral'}`}>{label[status] || status}</span>
 }
 
 function shortId(id: string) {
