@@ -11,6 +11,7 @@ export interface Milestone {
   orderIndex: number;
   required: boolean;
   whoCanFill: string[];
+  startDate?: string;
   dueDate?: string;
   status: string;
   createdAt: string;

@@ -18,6 +18,7 @@ interface MilestoneForm {
   orderIndex: number;
   required: boolean;
   whoCanFill: string[];
+  startDate?: string;
   dueDate?: string;
   status: string;
 }
@@ -135,6 +136,7 @@ export default function MilestoneManagement() {
       orderIndex: milestone.orderIndex,
       required: milestone.required,
       whoCanFill: milestone.whoCanFill,
+      startDate: milestone.startDate,
       dueDate: milestone.dueDate,
       status: milestone.status,
     });
@@ -301,6 +303,27 @@ export default function MilestoneManagement() {
                     </Label>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="startDate">Fecha de Inicio (opcional)</Label>
+                <Input
+                  id="startDate"
+                  type="datetime-local"
+                  value={currentMilestone.startDate ? new Date(currentMilestone.startDate).toISOString().slice(0, 16) : ''}
+                  onChange={(e) => setCurrentMilestone({ ...currentMilestone, startDate: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="dueDate">Fecha Límite (opcional)</Label>
+                <Input
+                  id="dueDate"
+                  type="datetime-local"
+                  value={currentMilestone.dueDate ? new Date(currentMilestone.dueDate).toISOString().slice(0, 16) : ''}
+                  onChange={(e) => setCurrentMilestone({ ...currentMilestone, dueDate: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+                />
               </div>
             </div>
 
