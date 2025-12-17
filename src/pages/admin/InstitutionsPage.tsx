@@ -546,165 +546,272 @@ export default function InstitutionsPage() {
         </div>
       )}
 
-      {/* Modal de Detalles */}
+      {/* Modal de Detalles - Diseño Mejorado */}
       {viewingDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b p-4 sticky top-0 bg-white">
-              <h2 className="text-lg font-semibold">Detalles de la Institución</h2>
-              <button
-                onClick={() => setViewingDetail(null)}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="p-6 space-y-6">
-              {/* Información Principal */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                  <div className="w-1 h-5 bg-sky-600 rounded"></div>
-                  Información Principal
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs text-slate-500">Nombre</label>
-                    <p className="text-sm font-medium">{viewingDetail.name}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header con Gradiente */}
+            <div className="bg-gradient-to-r from-sky-600 to-blue-600 p-6 text-white">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold">{viewingDetail.name}</h2>
+                      <p className="text-sky-100 text-sm mt-0.5">
+                        {viewingDetail.type} • {viewingDetail.code ? `RBD: ${viewingDetail.code}` : 'Sin código'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-xs text-slate-500">Código RBD</label>
-                    <p className="text-sm font-medium">{viewingDetail.code || '—'}</p>
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-500">Tipo</label>
-                    <p className="text-sm font-medium">{viewingDetail.type}</p>
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-500">Estado</label>
-                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${viewingDetail.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                      {viewingDetail.active ? 'Activo' : 'Inactivo'}
+                  <div className="flex items-center gap-2 mt-3">
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
+                      viewingDetail.active 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-slate-700 text-slate-200'
+                    }`}>
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 8 8">
+                        <circle cx="4" cy="4" r="3" />
+                      </svg>
+                      {viewingDetail.active ? 'Institución Activa' : 'Institución Inactiva'}
                     </span>
                   </div>
                 </div>
+                <button
+                  onClick={() => setViewingDetail(null)}
+                  className="text-white/80 hover:text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
               </div>
+            </div>
 
+            {/* Body con Scroll */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Ubicación */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                  <div className="w-1 h-5 bg-sky-600 rounded"></div>
-                  Ubicación
+              <div className="bg-slate-50 rounded-lg p-5 border border-slate-200">
+                <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Ubicación Geográfica
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs text-slate-500">Comuna</label>
-                    <p className="text-sm font-medium">{viewingDetail.commune || '—'}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white rounded-lg p-3 border border-slate-200">
+                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Comuna</label>
+                    <p className="text-base font-semibold text-slate-900 mt-1">{viewingDetail.commune || '—'}</p>
                   </div>
-                  <div>
-                    <label className="text-xs text-slate-500">Provincia</label>
-                    <p className="text-sm font-medium">{viewingDetail.province || '—'}</p>
+                  <div className="bg-white rounded-lg p-3 border border-slate-200">
+                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Provincia</label>
+                    <p className="text-base font-semibold text-slate-900 mt-1">{viewingDetail.province || '—'}</p>
                   </div>
-                  <div className="col-span-2">
-                    <label className="text-xs text-slate-500">Región</label>
-                    <p className="text-sm font-medium">{viewingDetail.region || '—'}</p>
+                  <div className="bg-white rounded-lg p-3 border border-slate-200 md:col-span-2">
+                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Región</label>
+                    <p className="text-base font-semibold text-slate-900 mt-1">{viewingDetail.region || '—'}</p>
                   </div>
-                  <div className="col-span-2">
-                    <label className="text-xs text-slate-500">Dirección</label>
-                    <p className="text-sm font-medium">{viewingDetail.address || '—'}</p>
-                  </div>
+                  {viewingDetail.address && (
+                    <div className="bg-white rounded-lg p-3 border border-slate-200 md:col-span-2">
+                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Dirección</label>
+                      <p className="text-base font-semibold text-slate-900 mt-1">{viewingDetail.address}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Contacto */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                  <div className="w-1 h-5 bg-sky-600 rounded"></div>
+              <div className="bg-blue-50 rounded-lg p-5 border border-blue-200">
+                <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
                   Información de Contacto
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs text-slate-500">Email</label>
-                    <p className="text-sm font-medium">{viewingDetail.email || '—'}</p>
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-500">Teléfono</label>
-                    <p className="text-sm font-medium">{viewingDetail.phone || '—'}</p>
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-500">Nombre del Director</label>
-                    <p className="text-sm font-medium">{viewingDetail.directorName || '—'}</p>
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-500">Sitio Web</label>
-                    {viewingDetail.website ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {viewingDetail.email && (
+                    <div className="bg-white rounded-lg p-3 border border-blue-200">
+                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                        </svg>
+                        Email
+                      </label>
+                      <a href={`mailto:${viewingDetail.email}`} className="text-base font-semibold text-blue-600 hover:text-blue-700 mt-1 block break-all">
+                        {viewingDetail.email}
+                      </a>
+                    </div>
+                  )}
+                  {viewingDetail.phone && (
+                    <div className="bg-white rounded-lg p-3 border border-blue-200">
+                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        Teléfono
+                      </label>
+                      <a href={`tel:${viewingDetail.phone}`} className="text-base font-semibold text-blue-600 hover:text-blue-700 mt-1 block">
+                        {viewingDetail.phone}
+                      </a>
+                    </div>
+                  )}
+                  {viewingDetail.directorName && (
+                    <div className="bg-white rounded-lg p-3 border border-blue-200">
+                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        Director(a)
+                      </label>
+                      <p className="text-base font-semibold text-slate-900 mt-1">{viewingDetail.directorName}</p>
+                    </div>
+                  )}
+                  {viewingDetail.website && (
+                    <div className="bg-white rounded-lg p-3 border border-blue-200">
+                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                        </svg>
+                        Sitio Web
+                      </label>
                       <a 
-                        href={viewingDetail.website} 
+                        href={viewingDetail.website.startsWith('http') ? viewingDetail.website : `https://${viewingDetail.website}`}
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-sm font-medium text-sky-600 hover:underline"
+                        className="text-base font-semibold text-blue-600 hover:text-blue-700 mt-1 block break-all flex items-center gap-1.5"
                       >
                         {viewingDetail.website}
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
                       </a>
-                    ) : (
-                      <p className="text-sm font-medium">—</p>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                  {!viewingDetail.email && !viewingDetail.phone && !viewingDetail.directorName && !viewingDetail.website && (
+                    <div className="md:col-span-2 text-center py-6">
+                      <p className="text-sm text-slate-500">No hay información de contacto registrada</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Notas */}
               {viewingDetail.notes && (
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                    <div className="w-1 h-5 bg-sky-600 rounded"></div>
-                    Notas
+                <div className="bg-amber-50 rounded-lg p-5 border border-amber-200">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    Notas Adicionales
                   </h3>
-                  <p className="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg">
-                    {viewingDetail.notes}
-                  </p>
+                  <div className="bg-white rounded-lg p-4 border border-amber-200">
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{viewingDetail.notes}</p>
+                  </div>
                 </div>
               )}
 
-              {/* Fechas */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                  <div className="w-1 h-5 bg-sky-600 rounded"></div>
-                  Registro
+              {/* Fechas del Sistema */}
+              <div className="bg-slate-50 rounded-lg p-5 border border-slate-200">
+                <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Información del Registro
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs text-slate-500">Fecha de Creación</label>
-                    <p className="text-sm font-medium">
-                      {new Date(viewingDetail.createdAt).toLocaleString('es-CL')}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white rounded-lg p-3 border border-slate-200">
+                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Fecha de Creación</label>
+                    <p className="text-base font-semibold text-slate-900 mt-1">
+                      {new Date(viewingDetail.createdAt).toLocaleDateString('es-CL', { 
+                        day: '2-digit', 
+                        month: 'long', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </p>
                   </div>
-                  <div>
-                    <label className="text-xs text-slate-500">Última Actualización</label>
-                    <p className="text-sm font-medium">
-                      {new Date(viewingDetail.updatedAt).toLocaleString('es-CL')}
+                  <div className="bg-white rounded-lg p-3 border border-slate-200">
+                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Última Modificación</label>
+                    <p className="text-base font-semibold text-slate-900 mt-1">
+                      {new Date(viewingDetail.updatedAt).toLocaleDateString('es-CL', { 
+                        day: '2-digit', 
+                        month: 'long', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="border-t p-4 flex justify-end gap-2 sticky bottom-0 bg-white">
-              <button
-                onClick={() => {
-                  setViewingDetail(null)
-                  openEdit(viewingDetail)
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-medium"
-              >
-                <Edit className="w-4 h-4" />
-                Editar
-              </button>
+            {/* Footer con Botones de Acción */}
+            <div className="border-t bg-slate-50 p-4 flex justify-between items-center">
               <button
                 onClick={() => setViewingDetail(null)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg"
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Cerrar
+              </button>
+              <button
+                onClick={() => {
+                  openEdit(viewingDetail)
+                  setViewingDetail(null)
+                }}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-lg hover:from-sky-700 hover:to-blue-700 transition-all shadow-lg shadow-sky-500/25 text-sm font-medium"
+              >
+                <Edit className="w-4 h-4" />
+                Editar Institución
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación de Eliminación */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-6 h-6 text-rose-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                    Confirmar Eliminación
+                  </h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Estás por eliminar la institución <strong>"{confirmDelete.name}"</strong>.
+                    <br /><br />
+                    Esta acción <strong className="text-rose-600">no se puede deshacer</strong> y podría afectar a postulantes asociados.
+                  </p>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">
+                      Para confirmar, escribe el nombre de la institución:
+                    </label>
+                    <input
+                      type="text"
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      placeholder={confirmDelete.name}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="border-t bg-slate-50 p-4 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setConfirmDelete(null)
+                  setDeleteConfirmText('')
+                }}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
               >
                 Cerrar
               </button>
