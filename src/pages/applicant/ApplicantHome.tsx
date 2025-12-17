@@ -245,30 +245,6 @@ export default function ApplicantHome() {
                     </div>
                   </div>
                 </div>
-
-                {/* Card de ayuda */}
-                <div className="card bg-gradient-to-br from-purple-50 to-pink-50 border-purple-100 hover:shadow-lg transition-shadow duration-300">
-                  <div className="card-body">
-                    <div className="flex items-center gap-2 mb-3">
-                      <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <h3 className="font-semibold text-purple-900">¿Necesitas ayuda?</h3>
-                    </div>
-                    <p className="text-sm text-purple-800 mb-4">
-                      Si tienes dudas sobre el proceso, no dudes en contactarnos.
-                    </p>
-                    <a
-                      href="mailto:contacto@fundacioncarmes.cl"
-                      className="btn btn-sm btn-outline text-purple-700 border-purple-300 hover:bg-purple-100 w-full justify-center"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                      Enviar correo
-                    </a>
-                  </div>
-                </div>
               </aside>
             </div>
           </>
