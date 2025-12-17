@@ -504,22 +504,19 @@ Fundación Carmen Goudie`
 
       // 5. Obtener datos completos de cada postulante
       const applicantsMap = new Map()
-      for (const app of applications) {
-        if (app.applicantId && !applicantsMap.has(app.applicantId)) {
-          try {
-            const applicantRes = await authFetch(
-              `${API_BASE}/applicants/${app.applicantId}`,
-              { headers }
-            )
-            if (applicantRes.ok) {
-              const applicant = await applicantRes.json()
-              applicantsMap.set(app.applicantId, applicant)
-            }
-          } catch (err) {
-            console.warn(`No se pudo obtener datos del postulante ${app.applicantId}`)
-          }
+      const applicantIds = [...new Set(applications.map((app: any) => app.applicantId || app.applicant_id).filter(Boolean))]
+      const applicantPromises = applicantIds.map((applicantId: string) =>
+        authFetch(`${API_BASE}/admin/applicants/${applicantId}`, { headers })
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null)
+      )
+      const applicantsData = await Promise.all(applicantPromises)
+      
+      applicantsData.forEach((data, idx) => {
+        if (data) {
+          applicantsMap.set(applicantIds[idx], data)
         }
-      }
+      })
 
       // 6. Extraer campos del formulario con sus tipos
       const formFields: Array<{

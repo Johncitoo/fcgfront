@@ -85,7 +85,7 @@ export default function SideNav() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-4">
-      <div className="mb-2 px-2 text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-200 pb-1">
+      <div className="mb-2 px-2 text-xs font-bold uppercase tracking-wider text-sky-600 border-b border-sky-200 pb-1">
         {title}
       </div>
       <ul className="space-y-1">{children}</ul>

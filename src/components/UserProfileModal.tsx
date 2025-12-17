@@ -38,8 +38,8 @@ export default function UserProfileModal({ userId, onClose }: UserProfileModalPr
   }, [userId])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={onClose}>
-      <div className="w-full max-w-2xl rounded-lg bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="w-full max-w-2xl rounded-lg bg-white shadow-2xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between border-b px-6 py-4">
           <h2 className="text-xl font-semibold text-slate-800">Perfil de Usuario</h2>
@@ -94,12 +94,8 @@ export default function UserProfileModal({ userId, onClose }: UserProfileModalPr
                       {profile.isActive ? 'Activo' : 'Inactivo'}
                     </span>
                   </div>
-                  <div>
-                    <label className="mb-1 block text-xs text-slate-500">ID de Usuario</label>
-                    <p className="text-xs font-mono text-slate-600">{profile.id}</p>
-                  </div>
                   {profile.applicantId && (
-                    <div>
+                    <div className="sm:col-span-2">
                       <label className="mb-1 block text-xs text-slate-500">ID de Postulante</label>
                       <p className="text-xs font-mono text-slate-600">{profile.applicantId}</p>
                     </div>
