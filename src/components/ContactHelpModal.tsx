@@ -146,7 +146,7 @@ export default function ContactHelpModal({ isOpen, onClose }: ContactHelpModalPr
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               maxLength={100}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
               placeholder="Ej: María González"
               disabled={loading || success}
             />
@@ -162,7 +162,7 @@ export default function ContactHelpModal({ isOpen, onClose }: ContactHelpModalPr
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               maxLength={100}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
               placeholder="tu@email.com"
               disabled={loading || success}
             />
@@ -176,7 +176,7 @@ export default function ContactHelpModal({ isOpen, onClose }: ContactHelpModalPr
             <select
               value={subjectType}
               onChange={(e) => setSubjectType(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
               disabled={loading || success}
             >
               <option value="">Selecciona un motivo...</option>
@@ -199,7 +199,7 @@ export default function ContactHelpModal({ isOpen, onClose }: ContactHelpModalPr
                 value={customSubject}
                 onChange={(e) => setCustomSubject(e.target.value)}
                 maxLength={200}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
                 placeholder="Describe brevemente tu consulta"
                 disabled={loading || success}
               />
@@ -219,7 +219,7 @@ export default function ContactHelpModal({ isOpen, onClose }: ContactHelpModalPr
               onChange={(e) => setMessage(e.target.value)}
               maxLength={2000}
               rows={6}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none text-gray-900"
               placeholder="Describe tu consulta o problema con el mayor detalle posible..."
               disabled={loading || success}
             />
