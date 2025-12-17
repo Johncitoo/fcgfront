@@ -405,6 +405,20 @@ function ActionButtons({ app }: { app: MyApplication | null }) {
   }
 
   const config = statusConfig[status]
+  
+  // Fallback de seguridad si el status no está definido en el config
+  if (!config) {
+    console.warn(`⚠️ Status desconocido: "${status}". Usando fallback.`)
+    return (
+      <span className="badge badge-neutral">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {status}
+      </span>
+    )
+  }
+  
   return (
     <span className={`badge ${config.className}`}>
       {config.icon}
@@ -433,6 +447,13 @@ function InlineStatus({ status }: { status?: ApplicationStatus | null }) {
   if (!status) return <span className="text-gray-500">—</span>
   
   const config = map[status]
+  
+  // Fallback de seguridad
+  if (!config) {
+    console.warn(`⚠️ Status desconocido en InlineStatus: "${status}". Usando fallback.`)
+    return <span className="font-medium text-gray-700">{status}</span>
+  }
+  
   return <span className={`font-medium ${config.color}`}>{config.label}</span>
 }
 
