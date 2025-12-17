@@ -55,6 +55,7 @@ interface MilestoneProgress {
   milestoneStatus: string
   formId: string | null
   m_required: boolean
+  dueDate: string | null  // Fecha límite del hito
 }
 
 export default function ApplicationDetailPage() {
