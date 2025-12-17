@@ -771,12 +771,27 @@ Fundación Carmen Goudie`
       )
       const submissionsResults = await Promise.all(submissionsPromises)
 
-      const applicantPromises = applications.map((app: any) =>
-        authFetch(`${API_BASE}/applicants/${app.applicantId || app.applicant_id}`, { headers })
+      // Obtener datos de applicants directamente con query SQL personalizada
+      const applicantIds = applications.map((app: any) => app.applicantId || app.applicant_id).filter(Boolean)
+      const applicantPromises = applicantIds.map((applicantId: string) =>
+        authFetch(`${API_BASE}/admin/applicants/${applicantId}`, { headers })
           .then(r => r.ok ? r.json() : null)
           .catch(() => null)
       )
-      const applicants = await Promise.all(applicantPromises)
+      const applicantsData = await Promise.all(applicantPromises)
+      
+      // Crear un mapa de applicantId -> datos del applicant
+      const applicantsMap = new Map()
+      applicantsData.forEach((data, idx) => {
+        if (data) {
+          applicantsMap.set(applicantIds[idx], data)
+        }
+      })
+      
+      // Mapear applicants en el orden de las aplicaciones
+      const applicants = applications.map((app: any) => 
+        applicantsMap.get(app.applicantId || app.applicant_id) || null
+      )
 
       const formFields: Array<{ name: string; label: string; type: string }> = []
       for (const section of form.sections || []) {
