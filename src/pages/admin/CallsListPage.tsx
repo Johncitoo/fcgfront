@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { apiGet, apiPost } from '../../lib/api'
+import { apiGet, apiPost, apiPatch } from '../../lib/api'
 import { Calendar, Clock } from 'lucide-react'
 import { useCallContext } from '../../contexts/CallContext'
 
@@ -89,6 +89,14 @@ export default function CallsListPage() {
     end_date: '',
   })
 
+  // modales de confirmación para acciones
+  const [actionModal, setActionModal] = useState<{
+    show: boolean
+    action: 'activate' | 'close' | null
+    call: CallRow | null
+  }>({ show: false, action: null, call: null })
+  const [actionLoading, setActionLoading] = useState(false)
+
   const deps = useMemo(() => ({ q, onlyActive, limit, offset }), [q, onlyActive, limit, offset])
 
   async function load() {
@@ -173,6 +181,33 @@ export default function CallsListPage() {
       setFormErr(e.message ?? 'No se pudo crear la convocatoria')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleCallAction() {
+    if (!actionModal.call || !actionModal.action) return
+    
+    try {
+      setActionLoading(true)
+      const updates: any = {}
+      
+      if (actionModal.action === 'activate') {
+        updates.status = 'OPEN'
+        updates.isActive = true
+      } else if (actionModal.action === 'close') {
+        updates.status = 'CLOSED'
+        updates.isActive = false
+      }
+      
+      await apiPatch(`/calls/${actionModal.call.id}`, updates)
+      
+      setActionModal({ show: false, action: null, call: null })
+      await load()
+      await refreshCalls()
+    } catch (err: any) {
+      alert(err?.message || 'Error al ejecutar la acción')
+    } finally {
+      setActionLoading(false)
     }
   }
 
@@ -313,6 +348,35 @@ export default function CallsListPage() {
                                   </svg>
                                   Ver
                                 </Link>
+                                
+                                {/* Botón Iniciar (solo para draft/upcoming) */}
+                                {(status === 'draft' || status === 'upcoming') && (
+                                  <button
+                                    onClick={() => setActionModal({ show: true, action: 'activate', call: c })}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-green-600 hover:text-white hover:bg-green-600 border border-green-600 rounded-lg transition-colors"
+                                    title="Iniciar convocatoria ahora"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Iniciar
+                                  </button>
+                                )}
+                                
+                                {/* Botón Cerrar (solo para active) */}
+                                {status === 'active' && (
+                                  <button
+                                    onClick={() => setActionModal({ show: true, action: 'close', call: c })}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-600 rounded-lg transition-colors"
+                                    title="Cerrar convocatoria ahora"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Cerrar
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -354,12 +418,43 @@ export default function CallsListPage() {
                             </span>
                           </div>
                         )}
-                        <Link 
-                          to={`${baseRoute}/calls/${c.id}`} 
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors w-full justify-center"
-                        >
-                          Abrir
-                        </Link>
+                        <div className="flex gap-2">
+                          <Link 
+                            to={`${baseRoute}/calls/${c.id}`} 
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors flex-1 justify-center"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            Ver
+                          </Link>
+                          
+                          {(status === 'draft' || status === 'upcoming') && (
+                            <button
+                              onClick={() => setActionModal({ show: true, action: 'activate', call: c })}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-green-600 hover:text-white hover:bg-green-600 border border-green-600 rounded-lg transition-colors flex-1 justify-center"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              Iniciar
+                            </button>
+                          )}
+                          
+                          {status === 'active' && (
+                            <button
+                              onClick={() => setActionModal({ show: true, action: 'close', call: c })}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-600 rounded-lg transition-colors flex-1 justify-center"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              Cerrar
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )
                   })}
@@ -525,6 +620,90 @@ export default function CallsListPage() {
                 reutilizar secciones del formulario sin modificar la original.
               </p>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación de acciones */}
+      {actionModal.show && actionModal.call && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-lg border bg-white shadow-xl">
+            <div className="px-5 py-4">
+              <div className="flex items-start gap-3">
+                <div className={`rounded-full p-2 ${
+                  actionModal.action === 'activate' 
+                    ? 'bg-green-100' 
+                    : 'bg-rose-100'
+                }`}>
+                  <svg 
+                    className={`h-6 w-6 ${
+                      actionModal.action === 'activate' 
+                        ? 'text-green-600' 
+                        : 'text-rose-600'
+                    }`} 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    {actionModal.action === 'activate' ? (
+                      <>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </>
+                    ) : (
+                      <>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </>
+                    )}
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    {actionModal.action === 'activate' 
+                      ? '¿Iniciar convocatoria?' 
+                      : '¿Cerrar convocatoria?'}
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-600">
+                    {actionModal.action === 'activate' ? (
+                      <>
+                        Estás por <strong>iniciar</strong> la convocatoria <strong>"{actionModal.call.name} {actionModal.call.year}"</strong>.
+                        <br /><br />
+                        Los postulantes podrán comenzar a enviar sus formularios inmediatamente.
+                      </>
+                    ) : (
+                      <>
+                        Estás por <strong>cerrar</strong> la convocatoria <strong>"{actionModal.call.name} {actionModal.call.year}"</strong>.
+                        <br /><br />
+                        <span className="text-rose-700 font-medium">Esta acción no permitirá que se reciban más postulaciones.</span>
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t px-5 py-3 flex justify-end gap-2 bg-slate-50">
+              <button
+                onClick={() => setActionModal({ show: false, action: null, call: null })}
+                disabled={actionLoading}
+                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCallAction}
+                disabled={actionLoading}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 ${
+                  actionModal.action === 'activate'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-rose-600 hover:bg-rose-700'
+                }`}
+              >
+                {actionLoading ? 'Procesando...' : (
+                  actionModal.action === 'activate' ? 'Sí, iniciar ahora' : 'Sí, cerrar ahora'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
