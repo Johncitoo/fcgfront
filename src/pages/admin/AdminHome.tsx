@@ -143,9 +143,9 @@ export default function AdminHome() {
       const headers = { Authorization: `Bearer ${token}` }
 
       // Cargar todas las estadísticas en paralelo
-      const [overviewRes, applicantsRes, genderRes, institutionsRes, communesRes, timelineRes, recentAppsRes] = await Promise.all([
+      const [overviewRes, applicantsCountRes, genderRes, institutionsRes, communesRes, timelineRes, recentAppsRes] = await Promise.all([
         fetch(`${API_BASE}/admin/stats/${callId}/overview`, { headers }),
-        fetch(`${API_BASE}/applicants?limit=99999`, { headers }),
+        fetch(`${API_BASE}/admin/stats/${callId}/applicants-count`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/gender-distribution`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/top-institutions`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/top-communes`, { headers }),
@@ -166,10 +166,9 @@ export default function AdminHome() {
         })
       }
 
-      if (applicantsRes.ok) {
-        const applicantsData = await applicantsRes.json()
-        const list = Array.isArray(applicantsData) ? applicantsData : applicantsData.data || []
-        setApplicantCount(list.length)
+      if (applicantsCountRes.ok) {
+        const countData = await applicantsCountRes.json()
+        setApplicantCount(parseInt(countData.count) || 0)
       }
 
       if (genderRes.ok) {
