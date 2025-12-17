@@ -7,14 +7,14 @@ interface ContactHelpModalProps {
 }
 
 const PREDEFINED_SUBJECTS = [
-  { value: 'forgot-code', label: '🔑 Olvidé mi código de postulación' },
-  { value: 'login-problem', label: '🚪 No puedo iniciar sesión' },
-  { value: 'registration-issue', label: '📝 Problemas con el registro' },
-  { value: 'call-inquiry', label: '📢 Consulta sobre convocatoria' },
-  { value: 'technical-error', label: '⚠️ Error técnico en el sistema' },
-  { value: 'document-upload', label: '📎 Problema subiendo documentos' },
-  { value: 'deadline-question', label: '📅 Pregunta sobre plazos' },
-  { value: 'other', label: '💬 Otro asunto' },
+  { value: 'forgot-code', label: 'Olvidé mi código de postulación' },
+  { value: 'login-problem', label: 'No puedo iniciar sesión' },
+  { value: 'registration-issue', label: 'Problemas con el registro' },
+  { value: 'call-inquiry', label: 'Consulta sobre convocatoria' },
+  { value: 'technical-error', label: 'Error técnico en el sistema' },
+  { value: 'document-upload', label: 'Problema subiendo documentos' },
+  { value: 'deadline-question', label: 'Pregunta sobre plazos' },
+  { value: 'other', label: 'Otro asunto' },
 ];
 
 export default function ContactHelpModal({ isOpen, onClose }: ContactHelpModalProps) {
