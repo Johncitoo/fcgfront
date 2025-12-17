@@ -297,53 +297,6 @@ export default function MilestoneFormPage() {
     }
   }
 
-  async function previewFileById(fileId: string) {
-    try {
-      // Obtener metadatos del archivo
-      const response = await fetch(`${API_BASE}/files/${fileId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      
-      if (!response.ok) throw new Error('No se pudo cargar el archivo')
-      
-      const fileData = await response.json()
-      setPreviewingFile({
-        id: fileId,
-        originalFilename: fileData.originalFilename || 'Archivo',
-        mimetype: fileData.mimetype || 'application/octet-stream',
-        size: fileData.size || 0,
-        description: fileData.description,
-      })
-    } catch (err: any) {
-      alert('Error al cargar el archivo: ' + err.message)
-    }
-  }
-
-  function downloadFile(fileId: string, filename: string) {
-    const url = `${API_BASE}/files/${fileId}/download`
-    
-    fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(res => res.blob())
-      .then(blob => {
-        const blobUrl = window.URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = blobUrl
-        link.download = filename
-        link.click()
-        window.URL.revokeObjectURL(blobUrl)
-      })
-      .catch(err => {
-        console.error('Error downloading file:', err)
-        alert('Error al descargar el archivo')
-      })
-  }
-
   async function onSaveDraft() {
     if (!milestoneProgressId || !applicationId || !milestone) return
     setSaving(true)
