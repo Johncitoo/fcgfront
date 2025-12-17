@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { apiPost } from '../lib/api';
 
 interface ContactHelpModalProps {
   isOpen: boolean;
@@ -56,12 +55,24 @@ export default function ContactHelpModal({ isOpen, onClose }: ContactHelpModalPr
         ? customSubject 
         : selectedSubject?.label || subjectType;
 
-      await apiPost('/public-contact', {
-        fullName: fullName.trim(),
-        email: email.trim(),
-        subject: finalSubject,
-        message: message.trim(),
+      // Usar fetch directamente sin token de autenticación
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/public-contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          email: email.trim(),
+          subject: finalSubject,
+          message: message.trim(),
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error al enviar el mensaje');
+      }
 
       setSuccess(true);
       setTimeout(() => {
