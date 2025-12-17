@@ -5,7 +5,7 @@ import { authService } from '../../lib/auth'
 import ReviewerFormModal from '../../components/ReviewerFormModal'
 
 type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
-type MilestoneStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED' | 'NEEDS_CHANGES'
+type MilestoneStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED' | 'NEEDS_CHANGES' | 'BLOCKED' | 'SKIPPED'
 type ReviewStatus = 'APPROVED' | 'REJECTED' | 'NEEDS_CHANGES' | 'PENDING_REVIEW'
 
 interface ApplicationDTO {
