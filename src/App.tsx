@@ -39,12 +39,13 @@ import AuditPage from "./pages/admin/AuditPage";
 import FormSectionEditorPage from "./pages/admin/FormSectionEditorPage";
 import InstitutionsPage from "./pages/admin/InstitutionsPage";
 import MilestoneManagement from "./pages/admin/MilestoneManagement";
-import FinalSelection from "./pages/admin/FinalSelection";
 import SimpleFormBuilder from "./pages/admin/SimpleFormBuilder";
 import FormBuilderV2 from "./pages/admin/FormBuilderV2";
 import MilestoneCreator from "./pages/admin/MilestoneCreator";
 import CallActivationManager from "./pages/admin/CallActivationManager";
 import InviteApplicant from "./pages/admin/InviteApplicant";
+
+import FinalSelection from "./pages/admin/FinalSelection";
 
 // Applicant
 import ApplicantHome from "./pages/applicant/ApplicantHome";

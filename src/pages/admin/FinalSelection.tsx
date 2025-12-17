@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 
-export default function FinalSelection() {
+function FinalSelection() {
   const { callId } = useParams<{ callId: string }>();
   const token = localStorage.getItem('accessToken');
 
@@ -327,3 +327,5 @@ export default function FinalSelection() {
     </div>
   );
 }
+
+export default FinalSelection;
