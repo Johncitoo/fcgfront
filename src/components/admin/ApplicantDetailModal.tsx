@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { X, FileText, Download, ChevronDown, ChevronUp, User, Mail, Calendar } from 'lucide-react'
+import { X, FileText, Download, ChevronDown, ChevronUp, User, Mail, Calendar, Eye } from 'lucide-react'
+import FilePreviewModal from '../FilePreviewModal'
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
@@ -57,6 +58,12 @@ interface FormSubmission {
   createdAt: string
 }
 
+interface Milestone {
+  id: string
+  name: string
+  orderIndex: number
+}
+
 interface FormSchema {
   sections: FormSection[]
 }
@@ -101,6 +108,8 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
   const [activeTab, setActiveTab] = useState<'info' | 'forms' | 'files'>('info')
   const [expandedForm, setExpandedForm] = useState<string | null>(null)
   const [formSchemas, setFormSchemas] = useState<Record<string, FormSchema>>({})
+  const [milestones, setMilestones] = useState<Record<string, Milestone>>({})
+  const [previewingFile, setPreviewingFile] = useState<any | null>(null)
 
   const headers = {
     Authorization: `Bearer ${localStorage.getItem('fcg.access_token') ?? ''}`,
@@ -174,6 +183,24 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
         }
         
         setFormSchemas(schemas)
+
+        // Cargar milestones para obtener nombres
+        const uniqueMilestoneIds = [...new Set(allSubmissions.map(s => s.milestoneId).filter(Boolean))] as string[]
+        const milestonesMap: Record<string, Milestone> = {}
+        
+        for (const milestoneId of uniqueMilestoneIds) {
+          try {
+            const milestoneRes = await fetch(`${API_BASE}/milestones/${milestoneId}`, { headers })
+            if (milestoneRes.ok) {
+              const milestone = await milestoneRes.json()
+              milestonesMap[milestoneId] = milestone
+            }
+          } catch (err) {
+            console.error(`Error loading milestone ${milestoneId}:`, err)
+          }
+        }
+        
+        setMilestones(milestonesMap)
 
         // Cargar archivos para cada aplicación
         const allFiles: FileMetadata[] = []
@@ -510,7 +537,9 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                             <FileText className="w-5 h-5 text-gray-400" />
                             <div className="text-left">
                               <div className="font-medium text-gray-900">
-                                Formulario {submission.formId || 'Sin ID'}
+                                {submission.milestoneId && milestones[submission.milestoneId] 
+                                  ? `Formulario de ${milestones[submission.milestoneId].name}`
+                                  : `Formulario ${submission.formId || 'Sin ID'}`}
                               </div>
                               <div className="text-xs text-gray-400 font-mono">
                                 App: {submission.applicationId.substring(0, 8)}...
@@ -584,13 +613,22 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
                             )}
                           </div>
                         </div>
-                        <button
-                          onClick={() => downloadFile(file.id, file.originalFilename)}
-                          className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 hover:shadow-lg transition-all duration-200 flex-shrink-0 ml-4 active:scale-95"
-                        >
-                          <Download className="w-4 h-4" />
-                          Descargar
-                        </button>
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                          <button
+                            onClick={() => setPreviewingFile(file)}
+                            className="flex items-center gap-2 px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 hover:shadow-lg transition-all duration-200 active:scale-95"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Ver
+                          </button>
+                          <button
+                            onClick={() => downloadFile(file.id, file.originalFilename)}
+                            className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 hover:shadow-lg transition-all duration-200 active:scale-95"
+                          >
+                            <Download className="w-4 h-4" />
+                            Descargar
+                          </button>
+                        </div>
                       </div>
                     ))
                   )}
@@ -600,6 +638,14 @@ export default function ApplicantDetailModal({ applicantId, isOpen, onClose }: A
           ) : null}
         </div>
       </div>
+
+      {/* Modal de previsualización de archivos */}
+      {previewingFile && (
+        <FilePreviewModal
+          file={previewingFile}
+          onClose={() => setPreviewingFile(null)}
+        />
+      )}
     </div>
   )
 }
