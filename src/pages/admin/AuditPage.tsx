@@ -3,12 +3,12 @@ import { apiGet } from '../../lib/api'
 
 interface AuditRow {
   id: string
-  actor_id?: string | null
+  actorUserId?: string | null
   action: string
   entity: string
-  entity_id?: string | null
+  entityId?: string | null
   meta?: any
-  created_at: string
+  createdAt: string
   // decorados opcionales
   actor_email?: string | null
   actor_name?: string | null
@@ -150,7 +150,7 @@ export default function AuditPage() {
                     {rows.map((r) => (
                       <tr key={r.id} className="border-b last:border-0 align-top">
                         <td className="py-2 pr-3 whitespace-nowrap">
-                          {new Date(r.created_at).toLocaleString('es-CL', { 
+                          {new Date(r.createdAt).toLocaleString('es-CL', { 
                             day: '2-digit',
                             month: '2-digit', 
                             year: 'numeric',
@@ -160,9 +160,9 @@ export default function AuditPage() {
                         </td>
                         <td className="py-2 pr-3">
                           <code className="rounded bg-slate-50 px-1 py-0.5 text-xs">{translateAction(r.action)}</code>
-                          {r.entity_id ? (
+                          {r.entityId ? (
                             <div className="text-xs text-slate-600 mt-1">
-                              Registro: <span className="font-mono">{r.entity_id.substring(0, 8)}...</span>
+                              Registro: <span className="font-mono">{r.entityId.substring(0, 8)}...</span>
                             </div>
                           ) : null}
                         </td>
@@ -175,8 +175,8 @@ export default function AuditPage() {
                               <div className="font-medium text-slate-800">{r.actor_name || 'Usuario'}</div>
                               <div className="text-xs text-slate-600">{r.actor_email}</div>
                             </div>
-                          ) : r.actor_id ? (
-                            <div className="text-xs text-slate-600 font-mono">{r.actor_id.substring(0, 8)}...</div>
+                          ) : r.actorUserId ? (
+                            <div className="text-xs text-slate-600 font-mono">{r.actorUserId.substring(0, 8)}...</div>
                           ) : (
                             <span className="text-slate-400 italic">Sistema automático</span>
                           )}

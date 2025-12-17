@@ -3,6 +3,7 @@ import { authService } from '../lib/auth'
 import { LogOut, Key } from 'lucide-react'
 import { apiPost } from '../lib/api'
 import { useState } from 'react'
+import UserProfileModal from './UserProfileModal'
 
 /**
  * Barra superior de navegación con branding y botón de logout.
@@ -16,6 +17,7 @@ import { useState } from 'react'
 export default function TopNav() {
   const navigate = useNavigate()
   const [showPasswordChangeSuccess, setShowPasswordChangeSuccess] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
   const user = authService.getCurrentUser()
 
   /**
@@ -60,14 +62,17 @@ export default function TopNav() {
         <div className="ml-auto flex items-center gap-2 md:gap-3">
           {/* Información del usuario logeado */}
           {user && (
-            <div className="hidden md:flex flex-col items-end text-right border-r border-slate-200 pr-2 md:pr-3">
+            <button
+              onClick={() => setShowProfileModal(true)}
+              className="hidden md:flex flex-col items-end text-right border-r border-slate-200 pr-2 md:pr-3 hover:bg-slate-50 transition-colors rounded-md py-1 px-2 cursor-pointer"
+            >
               <span className="text-sm font-semibold text-slate-800 truncate max-w-[150px] lg:max-w-none">
                 {user.fullName || user.email}
               </span>
               <span className="text-xs text-slate-500 capitalize">
                 {user.role === 'ADMIN' ? 'Administrador' : user.role === 'REVIEWER' ? 'Revisor' : 'Usuario'}
               </span>
-            </div>
+            </button>
           )}
           {showPasswordChangeSuccess && (
             <div className="fixed top-20 right-4 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-fade-in max-w-xs">
@@ -97,6 +102,11 @@ export default function TopNav() {
           </button>
         </div>
       </div>
+
+      {/* Modal de perfil */}
+      {showProfileModal && user?.id && (
+        <UserProfileModal userId={user.id} onClose={() => setShowProfileModal(false)} />
+      )}
     </header>
   )
 }

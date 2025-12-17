@@ -94,7 +94,7 @@ export default function LoginPage() {
     setLoginError('')
     setIsLoading(true)
 
-    console.log('🔐 Iniciando login con:', { email })
+    // DEV: console.log('🔐 Iniciando login con:', { email })
 
     try {
       let response;
@@ -102,13 +102,13 @@ export default function LoginPage() {
       // Intentar primero como APPLICANT
       try {
         response = await authService.loginApplicant(email, password)
-        console.log('✅ Login exitoso como APPLICANT:', response)
+        // DEV: console.log('✅ Login exitoso como APPLICANT:', response)
       } catch (applicantErr: any) {
         // Si falla con 401 o 403, intentar como STAFF
         if (applicantErr.response?.status === 401 || applicantErr.response?.status === 403) {
-          console.log('⚠️ No es APPLICANT, intentando como STAFF...')
+          // DEV: console.log('⚠️ No es APPLICANT, intentando como STAFF...')
           response = await authService.loginStaff(email, password)
-          console.log('✅ Login exitoso como STAFF:', response)
+          // DEV: console.log('✅ Login exitoso como STAFF:', response)
         } else {
           throw applicantErr
         }
@@ -118,17 +118,17 @@ export default function LoginPage() {
 
       // Si es ADMIN o REVIEWER, cargar convocatorias
       if (response.user.role === 'ADMIN' || response.user.role === 'REVIEWER') {
-        console.log('🔄 Cargando convocatorias para usuario ADMIN/REVIEWER...')
+        // DEV: console.log('🔄 Cargando convocatorias para usuario ADMIN/REVIEWER...')
         await refreshCalls()
       }
 
       // Redirigir según rol
       if (response.user.role === 'APPLICANT') {
-        console.log('🚀 Usuario APPLICANT, redirigiendo al primer hito...')
+        // DEV: console.log('🚀 Usuario APPLICANT, redirigiendo al primer hito...')
         await redirectToFirstMilestone()
       } else {
         const homeRoute = authService.getHomeRouteByRole(response.user.role)
-        console.log('🚀 Redirigiendo a:', homeRoute)
+        // DEV: console.log('🚀 Redirigiendo a:', homeRoute)
         navigate(homeRoute, { replace: true })
       }
     } catch (err: any) {
@@ -180,11 +180,11 @@ export default function LoginPage() {
 
       if (firstMilestone) {
         // Redirigir al primer hito disponible
-        console.log('✅ Primer hito encontrado:', firstMilestone.mp_id)
+        // DEV: console.log('✅ Primer hito encontrado:', firstMilestone.mp_id)
         navigate(`/applicant/milestone/${firstMilestone.mp_id}?app=${applicationId}`, { replace: true })
       } else {
         // Si no hay hitos disponibles o todos están completados, ir al dashboard
-        console.log('⚠️ No hay hitos disponibles, redirigiendo al dashboard')
+        // DEV: console.log('⚠️ No hay hitos disponibles, redirigiendo al dashboard')
         navigate('/applicant', { replace: true })
       }
     } catch (error) {
