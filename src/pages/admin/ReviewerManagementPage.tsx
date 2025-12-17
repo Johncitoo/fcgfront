@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, Mail, User, Lock, Check, ArrowRight } from 'lucide-react';
+import { Shield, Mail, User, Check, ArrowRight } from 'lucide-react';
 import { apiPost } from '../../lib/api';
 
 type FormStep = 'form' | 'verification';
@@ -13,8 +13,6 @@ export default function ReviewerManagementPage() {
   // Form data
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Verification data
   const [verificationCode, setVerificationCode] = useState('');
@@ -25,20 +23,14 @@ export default function ReviewerManagementPage() {
     setSuccess('');
 
     // Validaciones
-    if (!email || !fullName || !password || !confirmPassword) {
+    if (!email || !fullName) {
       setError('Todos los campos son obligatorios');
       return;
     }
 
-    if (password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      return;
-    }
+    // Generar contraseña automática
+    const generatedPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).toUpperCase().slice(-4) + '!@#';
+    const password = generatedPassword;
 
     setLoading(true);
 
@@ -48,7 +40,7 @@ export default function ReviewerManagementPage() {
         {
           email,
           fullName,
-          password,
+          password, // Contraseña generada automáticamente
         }
       );
 
@@ -88,8 +80,6 @@ export default function ReviewerManagementPage() {
         setStep('form');
         setEmail('');
         setFullName('');
-        setPassword('');
-        setConfirmPassword('');
         setVerificationCode('');
         setSuccess('');
       }, 3000);
@@ -192,36 +182,11 @@ export default function ReviewerManagementPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Lock className="h-4 w-4 inline mr-2" />
-                Contraseña temporal (mínimo 8 caracteres)
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="••••••••"
-                minLength={8}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Lock className="h-4 w-4 inline mr-2" />
-                Confirmar contraseña
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="••••••••"
-                minLength={8}
-                required
-              />
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
+              <p className="text-sm text-blue-800">
+                <strong>Nota:</strong> Se generará automáticamente una contraseña segura para el revisor. 
+                Las credenciales completas se enviarán por email al nuevo revisor.
+              </p>
             </div>
 
             <button

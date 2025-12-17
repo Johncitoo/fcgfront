@@ -30,8 +30,6 @@ export default function UserManagementPage() {
   const [formData, setFormData] = useState({
     email: '',
     fullName: '',
-    password: '',
-    confirmPassword: '',
   })
   
   const [verificationCode, setVerificationCode] = useState('')
@@ -48,22 +46,17 @@ export default function UserManagementPage() {
 
     try {
       // Validaciones básicas
-      if (!formData.email || !formData.fullName || !formData.password) {
+      if (!formData.email || !formData.fullName) {
         throw new Error('Todos los campos son obligatorios')
       }
 
-      if (formData.password !== formData.confirmPassword) {
-        throw new Error('Las contraseñas no coinciden')
-      }
-
-      if (formData.password.length < 8) {
-        throw new Error('La contraseña debe tener al menos 8 caracteres')
-      }
+      // Generar contraseña automática
+      const generatedPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).toUpperCase().slice(-4) + '!@#';
 
       await apiPost('/admin/users/request', {
         email: formData.email,
         fullName: formData.fullName,
-        password: formData.password,
+        password: generatedPassword,
       })
 
       setStep('verify')
@@ -100,8 +93,6 @@ export default function UserManagementPage() {
         setFormData({
           email: '',
           fullName: '',
-          password: '',
-          confirmPassword: '',
         })
         setVerificationCode('')
         setStep('form')
@@ -195,31 +186,11 @@ export default function UserManagementPage() {
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700">Contraseña *</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData(s => ({ ...s, password: e.target.value }))}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  placeholder="Mínimo 8 caracteres"
-                  required
-                  minLength={8}
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700">Confirmar Contraseña *</label>
-                <input
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData(s => ({ ...s, confirmPassword: e.target.value }))}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  placeholder="Repite la contraseña"
-                  required
-                  disabled={loading}
-                />
+              <div className="rounded-md bg-blue-50 border border-blue-200 p-3">
+                <p className="text-xs font-medium text-blue-900 mb-1">ℹ️ Contraseña automática</p>
+                <p className="text-xs text-blue-700">
+                  Se generará automáticamente una contraseña segura. Las credenciales se enviarán por email al nuevo administrador.
+                </p>
               </div>
 
               <div className="rounded-md bg-amber-50 border border-amber-200 p-3">
