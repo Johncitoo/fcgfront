@@ -1053,6 +1053,8 @@ function MilestoneStatusBadge({ status }: { status: MilestoneStatus }) {
     COMPLETED: 'rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700',
     REJECTED: 'rounded-full bg-rose-100 px-2 py-1 text-xs text-rose-700',
     NEEDS_CHANGES: 'rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-700',
+    BLOCKED: 'rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600',
+    SKIPPED: 'rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500',
   }
   const labels: Record<MilestoneStatus, string> = {
     PENDING: 'Pendiente',
@@ -1060,6 +1062,8 @@ function MilestoneStatusBadge({ status }: { status: MilestoneStatus }) {
     COMPLETED: 'Completado',
     REJECTED: 'Rechazado',
     NEEDS_CHANGES: 'Requiere cambios',
+    BLOCKED: 'Bloqueado',
+    SKIPPED: 'Omitido',
   }
   return <span className={classes[status]}>{labels[status]}</span>
 }
