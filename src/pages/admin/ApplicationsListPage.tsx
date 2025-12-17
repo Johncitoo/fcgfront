@@ -243,33 +243,50 @@ export default function ApplicationsListPage() {
                 </div>
 
                 {/* Mobile cards */}
-                <div className="space-y-3 lg:hidden">
+                <div className="space-y-4 lg:hidden">
                   {rows.map((r) => (
-                    <div key={r.id} className="rounded-lg border p-3">
-                      <div className="mb-1 flex items-center justify-between">
-                        <div className="text-sm font-semibold !text-slate-900">{r.applicantName || '—'}</div>
-                        <StatusBadge status={r.status} />
+                    <div key={r.id} className="rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                      {/* Header con nombre y estado */}
+                      <div className="bg-gradient-to-r from-blue-50 to-slate-50 px-4 py-3 border-b border-slate-100">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-base font-bold text-slate-900 truncate">{r.applicantName || 'Sin nombre'}</h3>
+                            <p className="text-sm text-slate-600 truncate mt-0.5">{r.applicantEmail || '—'}</p>
+                          </div>
+                          <StatusBadge status={r.status} />
+                        </div>
                       </div>
-                      <div className="text-xs !text-slate-700">{r.applicantEmail || '—'}</div>
-                      <div className="mt-1 grid grid-cols-2 gap-2 text-xs !text-slate-700">
-                        <div>
-                          <div className="!text-slate-600">Convocatoria</div>
-                          <div className="font-mono">{r.callName || shortId(r.callId)}</div>
+                      
+                      {/* Contenido */}
+                      <div className="px-4 py-3 space-y-3">
+                        {/* Convocatoria */}
+                        <div className="flex items-start gap-2">
+                          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide min-w-[90px]">Convocatoria:</div>
+                          <div className="text-sm text-slate-900 font-medium flex-1">{r.callName || shortId(r.callId)}</div>
                         </div>
-                        <div>
-                          <div className="!text-slate-600">Puntaje</div>
-                          <div>{r.score ?? '—'}</div>
-                        </div>
-                        <div>
-                          <div className="!text-slate-600">Enviada</div>
+                        
+                        {/* Info grid */}
+                        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
                           <div>
-                            {r.submittedAt ? new Date(r.submittedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Puntaje</div>
+                            <div className="text-base font-bold text-slate-900">{r.score ?? '—'}</div>
+                          </div>
+                          <div>
+                            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Enviada</div>
+                            <div className="text-sm text-slate-700">
+                              {r.submittedAt ? new Date(r.submittedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="mt-2">
-                        <Link to={`${baseRoute}/applications/${r.id}`} className="btn text-xs">
-                          Abrir
+                      
+                      {/* Footer con botón */}
+                      <div className="px-4 py-3 bg-slate-50 border-t border-slate-100">
+                        <Link 
+                          to={`${baseRoute}/applications/${r.id}`} 
+                          className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+                        >
+                          Ver Detalles
                         </Link>
                       </div>
                     </div>
