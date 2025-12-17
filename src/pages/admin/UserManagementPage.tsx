@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { UserPlus, Shield, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { apiPost } from '../../lib/api'
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
-
 /**
  * Página de administración de usuarios admin.
  * 
@@ -37,7 +35,6 @@ export default function UserManagementPage() {
   })
   
   const [verificationCode, setVerificationCode] = useState('')
-  const [requestId, setRequestId] = useState<string | null>(null)
 
   /**
    * Envía solicitud de creación de admin.
@@ -63,13 +60,12 @@ export default function UserManagementPage() {
         throw new Error('La contraseña debe tener al menos 8 caracteres')
       }
 
-      const res = await apiPost('/admin/users/request', {
+      await apiPost('/admin/users/request', {
         email: formData.email,
         fullName: formData.fullName,
         password: formData.password,
       })
 
-      setRequestId(res.requestId)
       setStep('verify')
       setSuccess('Código de verificación enviado a tu email. Revisa tu bandeja de entrada.')
     } catch (err: any) {
@@ -95,7 +91,7 @@ export default function UserManagementPage() {
 
       const res = await apiPost('/admin/users/confirm', {
         code: verificationCode,
-      })
+      }) as { user: { email: string } }
 
       setSuccess(`Usuario admin creado exitosamente: ${res.user.email}`)
       
@@ -108,7 +104,6 @@ export default function UserManagementPage() {
           confirmPassword: '',
         })
         setVerificationCode('')
-        setRequestId(null)
         setStep('form')
         setSuccess(null)
       }, 3000)
@@ -125,7 +120,6 @@ export default function UserManagementPage() {
   function handleCancel() {
     setStep('form')
     setVerificationCode('')
-    setRequestId(null)
     setError(null)
     setSuccess(null)
   }
