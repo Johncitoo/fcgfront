@@ -5,6 +5,7 @@ import FileUpload from '../../components/FileUpload'
 import { Send, ArrowLeft, CheckCircle2, Eye } from 'lucide-react'
 import { filesService } from '../../services/files.service'
 import { authService } from '../../lib/auth'
+import FilePreviewModal from '../../components/FilePreviewModal'
 
 type FieldType =
   | 'text'
@@ -87,6 +88,7 @@ export default function MilestoneFormPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [showSuccessNotification, setShowSuccessNotification] = useState(false)
+  const [previewingFile, setPreviewingFile] = useState<any | null>(null)
 
   const token = localStorage.getItem('fcg.access_token') ?? ''
   const headers = useMemo(
@@ -293,6 +295,53 @@ export default function MilestoneFormPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function previewFileById(fileId: string) {
+    try {
+      // Obtener metadatos del archivo
+      const response = await fetch(`${API_BASE}/files/${fileId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      
+      if (!response.ok) throw new Error('No se pudo cargar el archivo')
+      
+      const fileData = await response.json()
+      setPreviewingFile({
+        id: fileId,
+        originalFilename: fileData.originalFilename || 'Archivo',
+        mimetype: fileData.mimetype || 'application/octet-stream',
+        size: fileData.size || 0,
+        description: fileData.description,
+      })
+    } catch (err: any) {
+      alert('Error al cargar el archivo: ' + err.message)
+    }
+  }
+
+  function downloadFile(fileId: string, filename: string) {
+    const url = `${API_BASE}/files/${fileId}/download`
+    
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.blob())
+      .then(blob => {
+        const blobUrl = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = filename
+        link.click()
+        window.URL.revokeObjectURL(blobUrl)
+      })
+      .catch(err => {
+        console.error('Error downloading file:', err)
+        alert('Error al descargar el archivo')
+      })
   }
 
   async function onSaveDraft() {
@@ -928,6 +977,14 @@ export default function MilestoneFormPage() {
             </div>
           </div>
         )}
+
+        {/* Modal de previsualización de archivos */}
+        {previewingFile && (
+          <FilePreviewModal
+            file={previewingFile}
+            onClose={() => setPreviewingFile(null)}
+          />
+        )}
       </div>
     </div>
   )
@@ -1260,9 +1317,7 @@ function FieldControl({
       )}
 
       {(type === 'file' || type === 'image') && readOnly && value && (
-        <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
-          <p className="text-sm text-gray-600">Archivo cargado: {value}</p>
-        </div>
+        <FileReadOnlyView fileId={value} />
       )}
 
       {helpText && <p className="text-xs text-slate-500">{helpText}</p>}
@@ -1300,4 +1355,115 @@ async function safeError(res: Response) {
   } catch {
     return res.statusText
   }
+}
+
+function FileReadOnlyView({ fileId }: { fileId: string }) {
+  const [fileData, setFileData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [previewingFile, setPreviewingFile] = useState<any>(null)
+  
+  const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
+  const token = localStorage.getItem('fcg.access_token') ?? ''
+
+  useEffect(() => {
+    if (!fileId) return
+    
+    fetch(`${API_BASE}/files/${fileId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Error al cargar archivo')
+        return res.json()
+      })
+      .then(data => {
+        setFileData(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Error loading file:', err)
+        setLoading(false)
+      })
+  }, [fileId])
+
+  const downloadFile = () => {
+    const url = `${API_BASE}/files/${fileId}/download`
+    
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.blob())
+      .then(blob => {
+        const blobUrl = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = fileData?.originalFilename || 'archivo'
+        link.click()
+        window.URL.revokeObjectURL(blobUrl)
+      })
+      .catch(err => {
+        console.error('Error downloading file:', err)
+        alert('Error al descargar el archivo')
+      })
+  }
+
+  const previewFile = () => {
+    if (!fileData) return
+    setPreviewingFile({
+      id: fileId,
+      originalFilename: fileData.originalFilename || 'Archivo',
+      mimetype: fileData.mimetype || 'application/octet-stream',
+      size: fileData.size || 0,
+      description: fileData.description,
+    })
+  }
+
+  if (loading) {
+    return (
+      <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+        <p className="text-sm text-gray-600">Cargando archivo...</p>
+      </div>
+    )
+  }
+
+  if (!fileData) {
+    return (
+      <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+        <p className="text-sm text-gray-600">Archivo no encontrado</p>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+        <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        <span className="flex-1 text-slate-700 text-sm truncate">{fileData.originalFilename}</span>
+        <button
+          onClick={previewFile}
+          className="px-3 py-1.5 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-600 transition-colors"
+        >
+          Ver
+        </button>
+        <button
+          onClick={downloadFile}
+          className="px-3 py-1.5 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+        >
+          Descargar
+        </button>
+      </div>
+      
+      {previewingFile && (
+        <FilePreviewModal
+          file={previewingFile}
+          onClose={() => setPreviewingFile(null)}
+        />
+      )}
+    </>
+  )
 }

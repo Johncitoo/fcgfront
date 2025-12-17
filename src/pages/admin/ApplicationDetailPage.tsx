@@ -263,6 +263,33 @@ export default function ApplicationDetailPage() {
       })
   }
 
+  async function previewFileById(fileId: string) {
+    const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
+    const token = localStorage.getItem('fcg.access_token') ?? ''
+    
+    try {
+      // Obtener metadatos del archivo
+      const response = await fetch(`${API_BASE}/files/${fileId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      
+      if (!response.ok) throw new Error('No se pudo cargar el archivo')
+      
+      const fileData = await response.json()
+      setPreviewingFile({
+        id: fileId,
+        originalFilename: fileData.originalFilename || 'Archivo',
+        mimetype: fileData.mimetype || 'application/octet-stream',
+        size: fileData.size || 0,
+        description: fileData.description,
+      })
+    } catch (err: any) {
+      alert('Error al cargar el archivo: ' + err.message)
+    }
+  }
+
   return (
     <div className="min-h-screen p-4 md:p-6">
       <div className="mx-auto w-full max-w-7xl">
@@ -728,28 +755,54 @@ export default function ApplicationDetailPage() {
                                           </div>
                                           <div className="text-sm text-slate-900">
                                             {field.type === 'file' && fieldValue ? (
-                                              <div className="flex flex-wrap gap-2">
+                                              <div className="flex flex-col gap-3">
                                                 {Array.isArray(fieldValue) ? (
-                                                  fieldValue.map((file: any, i: number) => (
-                                                    <a
-                                                      key={i}
-                                                      href={file.url || file}
-                                                      target="_blank"
-                                                      rel="noopener noreferrer"
-                                                      className="inline-flex items-center gap-2 px-3 py-2 bg-sky-50 text-sky-700 rounded-md hover:bg-sky-100 transition-colors"
-                                                    >
-                                                      <span>{file.name || `Archivo ${i + 1}`}</span>
-                                                    </a>
-                                                  ))
+                                                  fieldValue.map((fileId: any, i: number) => {
+                                                    const id = typeof fileId === 'string' ? fileId : fileId?.id || fileId
+                                                    const name = typeof fileId === 'object' ? fileId?.name : null
+                                                    return (
+                                                      <div key={i} className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                                        <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                        </svg>
+                                                        <span className="flex-1 text-slate-700">{name || `Archivo ${i + 1}`}</span>
+                                                        <button
+                                                          onClick={() => previewFileById(id)}
+                                                          className="px-3 py-1.5 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-600 transition-colors"
+                                                        >
+                                                          Ver
+                                                        </button>
+                                                        <button
+                                                          onClick={() => downloadFile(id, name || `archivo-${i + 1}`)}
+                                                          className="px-3 py-1.5 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                                                        >
+                                                          Descargar
+                                                        </button>
+                                                      </div>
+                                                    )
+                                                  })
                                                 ) : (
-                                                  <a
-                                                    href={fieldValue.url || fieldValue}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-2 px-3 py-2 bg-sky-50 text-sky-700 rounded-md hover:bg-sky-100 transition-colors"
-                                                  >
-                                                    <span>{fieldValue.name || 'Archivo'}</span>
-                                                  </a>
+                                                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                                    <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                    </svg>
+                                                    <span className="flex-1 text-slate-700">{typeof fieldValue === 'object' ? fieldValue?.name : 'Archivo'}</span>
+                                                    <button
+                                                      onClick={() => previewFileById(typeof fieldValue === 'string' ? fieldValue : fieldValue?.id)}
+                                                      className="px-3 py-1.5 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-600 transition-colors"
+                                                    >
+                                                      Ver
+                                                    </button>
+                                                    <button
+                                                      onClick={() => downloadFile(
+                                                        typeof fieldValue === 'string' ? fieldValue : fieldValue?.id,
+                                                        typeof fieldValue === 'object' ? fieldValue?.name || 'archivo' : 'archivo'
+                                                      )}
+                                                      className="px-3 py-1.5 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                                                    >
+                                                      Descargar
+                                                    </button>
+                                                  </div>
                                                 )}
                                               </div>
                                             ) : fieldValue !== undefined && fieldValue !== null && fieldValue !== '' ? (
