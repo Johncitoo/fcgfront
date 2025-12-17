@@ -43,7 +43,7 @@ api.interceptors.request.use(
   },
 );
 
-// Interceptor para manejar errores de autenticación
+// Interceptor para manejar errores de autenticación y extraer mensajes del backend
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -57,6 +57,12 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+    
+    // Extraer mensaje del backend para todos los errores
+    if (error.response?.data?.message) {
+      error.message = error.response.data.message;
+    }
+    
     return Promise.reject(error);
   },
 );
