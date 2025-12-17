@@ -45,8 +45,6 @@ import MilestoneCreator from "./pages/admin/MilestoneCreator";
 import CallActivationManager from "./pages/admin/CallActivationManager";
 import InviteApplicant from "./pages/admin/InviteApplicant";
 
-import FinalSelection from "./pages/admin/FinalSelection";
-
 // Applicant
 import ApplicantHome from "./pages/applicant/ApplicantHome";
 import FormPage from "./pages/applicant/FormPage";
@@ -183,7 +181,6 @@ export default function App() {
         <Route path="formularios" element={<SimpleFormBuilder />} />
         <Route path="forms-v2" element={<FormBuilderV2 />} />
         <Route path="calls/:callId/milestones" element={<MilestoneManagement />} />
-        <Route path="calls/:callId/selection" element={<FinalSelection />} />
         <Route path="activacion-convocatorias" element={<CallActivationManager />} />
         <Route path="invite-applicant" element={<InviteApplicant />} />
       </Route>
