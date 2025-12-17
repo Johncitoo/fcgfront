@@ -3,6 +3,7 @@ import { Link, useParams, useLocation } from 'react-router-dom'
 import { apiGet, apiPost, apiPatch } from '../../lib/api'
 import { authService } from '../../lib/auth'
 import ReviewerFormModal from '../../components/ReviewerFormModal'
+import FilePreviewModal from '../../components/FilePreviewModal'
 
 type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
 type MilestoneStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED' | 'NEEDS_CHANGES' | 'BLOCKED' | 'SKIPPED'
@@ -85,6 +86,7 @@ export default function ApplicationDetailPage() {
   const [files, setFiles] = useState<any[]>([])
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [completingMilestone, setCompletingMilestone] = useState<MilestoneProgress | null>(null)
+  const [previewingFile, setPreviewingFile] = useState<any | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -662,7 +664,10 @@ export default function ApplicationDetailPage() {
                         <h3 className="text-xl font-semibold text-slate-800">Respuestas del Formulario</h3>
                         {answers && (
                           <p className="text-sm text-slate-600 mt-1">
-                            {answers.formName || 'Formulario'} • Enviado: {answers.submittedAt ? new Date(answers.submittedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'No enviado'}
+                            {(() => {
+                              const milestone = milestones.find(m => m.mp_id === viewingAnswers)
+                              return milestone ? `Formulario de ${milestone.milestoneName}` : (answers.formName || 'Formulario')
+                            })()} • Enviado: {answers.submittedAt ? new Date(answers.submittedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'No enviado'}
                           </p>
                         )}
                       </div>
@@ -845,15 +850,27 @@ export default function ApplicationDetailPage() {
                                   )}
                                 </div>
                               </div>
-                              <button
-                                onClick={() => downloadFile(file.id, file.originalFilename)}
-                                className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 hover:shadow-lg transition-all duration-200 flex-shrink-0 ml-4 active:scale-95"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Descargar
-                              </button>
+                              <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                                <button
+                                  onClick={() => setPreviewingFile(file)}
+                                  className="flex items-center gap-2 px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 hover:shadow-lg transition-all duration-200 active:scale-95"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                  </svg>
+                                  Ver
+                                </button>
+                                <button
+                                  onClick={() => downloadFile(file.id, file.originalFilename)}
+                                  className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 hover:shadow-lg transition-all duration-200 active:scale-95"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                  </svg>
+                                  Descargar
+                                </button>
+                              </div>
                             </div>
                           ))
                         )}
@@ -978,6 +995,14 @@ export default function ApplicationDetailPage() {
                 .catch(console.error)
             }
           }}
+        />
+      )}
+
+      {/* Modal de previsualización de archivos */}
+      {previewingFile && (
+        <FilePreviewModal
+          file={previewingFile}
+          onClose={() => setPreviewingFile(null)}
         />
       )}
     </div>
