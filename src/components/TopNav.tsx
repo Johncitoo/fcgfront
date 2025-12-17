@@ -16,6 +16,7 @@ import { useState } from 'react'
 export default function TopNav() {
   const navigate = useNavigate()
   const [showPasswordChangeSuccess, setShowPasswordChangeSuccess] = useState(false)
+  const user = authService.getCurrentUser()
 
   /**
    * Maneja logout con confirmación.
@@ -56,10 +57,21 @@ export default function TopNav() {
           <span className="md:hidden text-sm font-bold text-slate-800">FCG</span>
         </Link>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
+          {/* Información del usuario logeado */}
+          {user && (
+            <div className="hidden lg:flex flex-col items-end text-right border-r pr-3">
+              <span className="text-sm font-semibold text-slate-800">
+                {user.fullName || user.email}
+              </span>
+              <span className="text-xs text-slate-500 capitalize">
+                {user.role === 'ADMIN' ? 'Administrador' : user.role === 'REVIEWER' ? 'Revisor' : 'Usuario'}
+              </span>
+            </div>
+          )}
           {showPasswordChangeSuccess && (
             <div className="fixed top-20 right-4 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
-              ✓ Email enviado. Revisa tu bandeja de entrada.
+              Email enviado. Revisa tu bandeja de entrada.
             </div>
           )}
 

@@ -379,8 +379,8 @@ export default function ApplicationDetailPage() {
                                   ({isApplicantFill ? 'Postulante' : isReviewerFill ? 'Revisor' : isAdminFill ? 'Admin' : 'Desconocido'})
                                 </span>
                                 {m.m_required && <span className="text-xs text-rose-600">*Obligatorio</span>}
-                                {isBlocked && <span className="text-xs text-slate-500">🔒 Bloqueado</span>}
-                                {isAdminFill && !canUserComplete && <span className="text-xs text-amber-600">👁️ Solo lectura</span>}
+                                {isBlocked && <span className="text-xs text-slate-500">[Bloqueado]</span>}
+                                {isAdminFill && !canUserComplete && <span className="text-xs text-amber-600">[Solo lectura]</span>}
                               </div>
                               <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                                 <MilestoneStatusBadge status={m.status} />
@@ -415,7 +415,6 @@ export default function ApplicationDetailPage() {
                                 disabled={loadingAnswers}
                                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-700 bg-sky-50 border border-sky-200 rounded-lg hover:bg-sky-100 hover:border-sky-300 transition-colors disabled:opacity-50"
                               >
-                                <span>👁️</span>
                                 <span>{loadingAnswers && viewingAnswers === m.mp_id ? 'Cargando...' : 'Ver respuestas'}</span>
                               </button>
                               <button
@@ -423,7 +422,6 @@ export default function ApplicationDetailPage() {
                                 disabled={loadingFiles}
                                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 hover:border-emerald-300 transition-colors disabled:opacity-50"
                               >
-                                <span>📎</span>
                                 <span>{loadingFiles ? 'Cargando...' : 'Ver archivos'}</span>
                               </button>
                             </div>
@@ -446,21 +444,21 @@ export default function ApplicationDetailPage() {
                                       disabled={saving}
                                       className="btn-primary text-xs"
                                     >
-                                      ✓ Aprobar
+                                      Aprobar
                                     </button>
                                     <button
                                       onClick={() => reviewMilestone(m.mp_id, 'REJECTED')}
                                       disabled={saving}
                                       className="btn border-rose-300 text-xs text-rose-700"
                                     >
-                                      ✗ Rechazar
+                                      Rechazar
                                     </button>
                                     <button
                                       onClick={() => reviewMilestone(m.mp_id, 'NEEDS_CHANGES')}
                                       disabled={saving}
                                       className="btn border-amber-300 text-xs text-amber-700"
                                     >
-                                      ⚠ Solicitar cambios
+                                      Solicitar cambios
                                     </button>
                                     <button
                                       onClick={() => {
@@ -479,7 +477,7 @@ export default function ApplicationDetailPage() {
                                   onClick={() => setReviewingMilestone(m.mp_id)}
                                   className="btn text-xs"
                                 >
-                                  📝 Revisar este hito
+                                  Revisar este hito
                                 </button>
                               )}
                             </div>
@@ -507,12 +505,11 @@ export default function ApplicationDetailPage() {
                                   className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                                   disabled={isBlocked}
                                 >
-                                  <span className="text-lg">✍️</span>
                                   <span>Completar entrevista</span>
                                 </button>
                               ) : (
                                 <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
-                                  ⚠️ Este hito solo puede ser completado por un administrador
+                                  [Aviso] Este hito solo puede ser completado por un administrador
                                 </div>
                               )}
                             </div>
@@ -530,12 +527,11 @@ export default function ApplicationDetailPage() {
                                   className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                                   disabled={isBlocked}
                                 >
-                                  <span className="text-lg">👨‍💼</span>
                                   <span>Completar (Admin)</span>
                                 </button>
                               ) : (
                                 <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
-                                  🔒 Este hito solo puede ser completado por un administrador. Puedes ver las respuestas cuando estén disponibles.
+                                  [Restringido] Este hito solo puede ser completado por un administrador. Puedes ver las respuestas cuando estén disponibles.
                                 </div>
                               )}
                             </div>
@@ -627,7 +623,6 @@ export default function ApplicationDetailPage() {
                                                       rel="noopener noreferrer"
                                                       className="inline-flex items-center gap-2 px-3 py-2 bg-sky-50 text-sky-700 rounded-md hover:bg-sky-100 transition-colors"
                                                     >
-                                                      <span>📎</span>
                                                       <span>{file.name || `Archivo ${i + 1}`}</span>
                                                     </a>
                                                   ))
@@ -638,7 +633,6 @@ export default function ApplicationDetailPage() {
                                                     rel="noopener noreferrer"
                                                     className="inline-flex items-center gap-2 px-3 py-2 bg-sky-50 text-sky-700 rounded-md hover:bg-sky-100 transition-colors"
                                                   >
-                                                    <span>📎</span>
                                                     <span>{fieldValue.name || 'Archivo'}</span>
                                                   </a>
                                                 )}
@@ -968,10 +962,10 @@ function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
     PENDING_REVIEW: 'rounded-full bg-sky-100 px-2 py-1 text-xs text-sky-700',
   }
   const labels: Record<ReviewStatus, string> = {
-    APPROVED: '✓ Aprobado',
-    REJECTED: '✗ Rechazado',
-    NEEDS_CHANGES: '⚠ Cambios solicitados',
-    PENDING_REVIEW: '⏳ Pendiente revisión',
+    APPROVED: 'Aprobado',
+    REJECTED: 'Rechazado',
+    NEEDS_CHANGES: 'Cambios solicitados',
+    PENDING_REVIEW: 'Pendiente revisión',
   }
   return <span className={classes[status]}>{labels[status]}</span>
 }

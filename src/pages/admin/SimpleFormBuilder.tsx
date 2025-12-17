@@ -390,7 +390,7 @@ export default function SimpleFormBuilder() {
       const updated = await res.json()
       console.log('[SimpleFormBuilder] Plantilla actualizada:', updated)
       
-      alert('✅ Plantilla actualizada correctamente')
+      alert('Plantilla actualizada correctamente')
       
       // Actualizar estado local
       const updatedSections = updated.schema?.sections || updated.sections || []
@@ -418,7 +418,7 @@ export default function SimpleFormBuilder() {
       const newTemplate = await res.json()
       console.log('[SimpleFormBuilder] Plantilla creada:', newTemplate)
       
-      alert('✅ Plantilla guardada correctamente')
+      alert('Plantilla guardada correctamente')
       
       // Redirigir a la página de plantillas
       setTimeout(() => {

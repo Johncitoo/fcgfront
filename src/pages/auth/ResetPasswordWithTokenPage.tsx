@@ -67,11 +67,11 @@ export default function ResetPasswordWithTokenPage() {
       
       // Mejorar mensajes de error específicos
       if (errorMessage.includes('ya fue utilizado')) {
-        errorMessage = '⚠️ Este enlace ya fue utilizado. Por favor, solicita un nuevo cambio de contraseña desde el menú de usuario.'
+        errorMessage = 'Este enlace ya fue utilizado. Por favor, solicita un nuevo cambio de contraseña desde el menú de usuario.'
       } else if (errorMessage.includes('expirado') || errorMessage.includes('expired')) {
-        errorMessage = '⏰ Este enlace ha expirado (válido por 1 hora). Solicita un nuevo cambio de contraseña desde el menú de usuario.'
+        errorMessage = 'Este enlace ha expirado (válido por 1 hora). Solicita un nuevo cambio de contraseña desde el menú de usuario.'
       } else if (errorMessage.includes('inválido') || errorMessage.includes('invalid')) {
-        errorMessage = '❌ Este enlace no es válido. Verifica que hayas copiado la URL completa del email.'
+        errorMessage = 'Este enlace no es válido. Verifica que hayas copiado la URL completa del email.'
       }
       
       setError(errorMessage)

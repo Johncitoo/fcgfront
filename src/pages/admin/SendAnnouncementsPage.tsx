@@ -434,7 +434,7 @@ export default function SendAnnouncementsPage() {
                     <div className="text-sm text-slate-500">Cargando hitos...</div>
                   ) : milestones.length === 0 ? (
                     <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-                      ⚠️ No hay hitos creados para esta convocatoria. Crea hitos primero en la sección de Hitos.
+                      Aviso: No hay hitos creados para esta convocatoria. Crea hitos primero en la sección de Hitos.
                     </div>
                   ) : (
                     <select

@@ -761,7 +761,8 @@ Fundación Carmen Goudie`
         { headers }
       )
       if (!appsRes.ok) throw new Error('No se pudieron obtener las postulaciones')
-      const applications = await appsRes.json()
+      const appsData = await appsRes.json()
+      const applications = Array.isArray(appsData) ? appsData : appsData.data || []
 
       const submissionsPromises = applications.map((app: any) =>
         authFetch(`${API_BASE}/form-submissions/application/${app.id}`, { headers })
