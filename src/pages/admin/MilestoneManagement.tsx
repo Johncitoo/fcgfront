@@ -148,6 +148,34 @@ export default function MilestoneManagement() {
     setCurrentMilestone(emptyMilestone);
   }
 
+  function getMilestoneStatusBadge(milestone: Milestone) {
+    const now = new Date();
+    const startDate = milestone.startDate ? new Date(milestone.startDate) : null;
+    const dueDate = milestone.dueDate ? new Date(milestone.dueDate) : null;
+
+    // Sin fechas
+    if (!startDate && !dueDate) {
+      return <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">⚪ Sin fechas</span>;
+    }
+
+    // Expirado
+    if (dueDate && now > dueDate) {
+      return <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">🔒 Cerrado</span>;
+    }
+
+    // Por comenzar
+    if (startDate && now < startDate) {
+      return <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">⏰ Por comenzar</span>;
+    }
+
+    // Activo
+    if ((!startDate || now >= startDate) && (!dueDate || now <= dueDate)) {
+      return <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">🟢 Activo</span>;
+    }
+
+    return null;
+  }
+
   if (loading) {
     return <div className="container mx-auto p-4">Cargando...</div>;
   }
@@ -170,11 +198,14 @@ export default function MilestoneManagement() {
           <Card key={milestone.id} className={editingIndex === index ? 'border-blue-500' : ''}>
             <CardHeader>
               <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">
-                    {index + 1}. {milestone.name}
-                    {milestone.required && <span className="text-red-500 ml-1">*</span>}
-                  </CardTitle>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg">
+                      {index + 1}. {milestone.name}
+                      {milestone.required && <span className="text-red-500 ml-1">*</span>}
+                    </CardTitle>
+                    {getMilestoneStatusBadge(milestone)}
+                  </div>
                   <CardDescription>{milestone.description}</CardDescription>
                 </div>
                 <div className="flex gap-2">
@@ -218,6 +249,16 @@ export default function MilestoneManagement() {
                 <div>
                   <strong>Quién puede completar:</strong> {milestone.whoCanFill.join(', ')}
                 </div>
+                {milestone.startDate && (
+                  <div>
+                    <strong>Fecha de inicio:</strong> {new Date(milestone.startDate).toLocaleString('es-CL')}
+                  </div>
+                )}
+                {milestone.dueDate && (
+                  <div>
+                    <strong>Fecha límite:</strong> {new Date(milestone.dueDate).toLocaleString('es-CL')}
+                  </div>
+                )}
                 <div>
                   <strong>Estado:</strong> {milestone.status}
                 </div>

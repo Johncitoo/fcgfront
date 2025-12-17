@@ -173,6 +173,21 @@ export default function MilestoneFormPage() {
       if (!currentMilestone) {
         throw new Error('Hito no encontrado')
       }
+
+      // Validar fechas del milestone
+      const now = new Date()
+      if (currentMilestone.dueDate) {
+        const dueDate = new Date(currentMilestone.dueDate)
+        if (now > dueDate && currentMilestone.status !== 'COMPLETED') {
+          throw new Error(`La fecha límite para este hito expiró el ${dueDate.toLocaleString('es-CL')}. Ya no puedes enviar respuestas.`)
+        }
+      }
+      if (currentMilestone.startDate) {
+        const startDate = new Date(currentMilestone.startDate)
+        if (now < startDate) {
+          throw new Error(`Este hito estará disponible desde el ${startDate.toLocaleString('es-CL')}.`)
+        }
+      }
       
       setMilestone(currentMilestone)
 

@@ -292,6 +292,37 @@ export default function ProgressTracker({ applicationId }: ProgressTrackerProps)
                       )}
                     </div>
 
+                    {/* Mensaje de hito expirado */}
+                    {milestone.isExpired && !isBlocked && (
+                      <div className="mt-3 pt-3 border-t border-orange-300">
+                        <div className="bg-orange-50 p-3 rounded-md border border-orange-200">
+                          <p className="text-xs font-semibold text-orange-900 mb-1 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            Fecha límite expirada
+                          </p>
+                          <p className="text-sm text-orange-800">
+                            Este hito cerró el {milestone.dueDate ? new Date(milestone.dueDate).toLocaleString('es-CL') : 'fecha desconocida'}. 
+                            Ya no puedes enviar respuestas.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mensaje de hito no iniciado */}
+                    {milestone.notStarted && !isBlocked && (
+                      <div className="mt-3 pt-3 border-t border-gray-300">
+                        <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                          <p className="text-xs font-semibold text-gray-900 mb-1 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            Aún no disponible
+                          </p>
+                          <p className="text-sm text-gray-700">
+                            Este hito estará disponible desde el {milestone.startDate ? new Date(milestone.startDate).toLocaleString('es-CL') : 'fecha por definir'}.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Notas de rechazo */}
                     {milestone.reviewStatus === 'REJECTED' && milestone.reviewNotes && (
                       <div className="mt-3 pt-3 border-t border-red-300">

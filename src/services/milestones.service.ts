@@ -31,6 +31,10 @@ export interface MilestoneProgress {
   reviewedAt?: string;
   startedAt?: string;
   completedAt?: string;
+  startDate?: string;
+  dueDate?: string;
+  isExpired?: boolean;
+  notStarted?: boolean;
 }
 
 export interface ProgressSummary {
