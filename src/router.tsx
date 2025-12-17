@@ -43,6 +43,7 @@ const ApplicantsListPage = lazy(() => import('./pages/admin/ApplicantsListPage')
 const ApplicantDetailPage = lazy(() => import('./pages/admin/ApplicantDetailPage'))
 const CallsListPage = lazy(() => import('./pages/admin/CallsListPage'))
 const CallDetailPage = lazy(() => import('./pages/admin/CallDetailPage'))
+const CallStatsPage = lazy(() => import('./pages/admin/CallStatsPage'))
 const InvitesPage = lazy(() => import('./pages/admin/InvitesPage'))
 const EmailTemplatesPage = lazy(() => import('./pages/admin/EmailTemplatesPage'))
 const EmailLogsPage = lazy(() => import('./pages/admin/EmailLogsPage'))
@@ -111,6 +112,7 @@ export const router = createBrowserRouter([
     { path: 'applicants/:id', element: <ApplicantDetailPage /> },
     { path: 'calls', element: <CallsListPage /> },
     { path: 'calls/:id', element: <CallDetailPage /> },
+    { path: 'calls/:id/stats', element: <CallStatsPage /> },
     { path: 'invites', element: <InvitesPage /> },
     { path: 'institutions', element: <InstitutionsPage /> },
     { path: 'user-management', element: <UserManagementPage /> },
@@ -164,6 +166,7 @@ export const router = createBrowserRouter([
       { path: 'applicants/:id', element: <ApplicantDetailPage /> },
       { path: 'calls', element: <CallsListPage /> },
       { path: 'calls/:id', element: <CallDetailPage /> },
+      { path: 'calls/:id/stats', element: <CallStatsPage /> },
       { path: 'invites', element: <InvitesPage /> },
       { path: 'institutions', element: <InstitutionsPage /> },
       { path: 'applications', element: <ApplicationsListPage /> },

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom'
 import { apiGet, apiPatch, apiPost } from '../../lib/api'
-import { Calendar, Clock, AlertCircle, XCircle } from 'lucide-react'
+import { Calendar, Clock, AlertCircle, XCircle, BarChart3 } from 'lucide-react'
 
 interface CallRow {
   id: string
@@ -176,6 +176,14 @@ export default function CallDetailPage() {
             ← Volver a convocatorias
           </Link>
           <div className="ml-auto flex flex-wrap gap-2">
+            <Link
+              to={`${baseRoute}/calls/${id}/stats`}
+              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-sky-600 hover:text-white hover:bg-sky-600 border border-sky-600 rounded-lg transition-colors"
+              title="Ver estadísticas detalladas"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Estadísticas
+            </Link>
             {callStatus === 'active' && (
               <button
                 onClick={onCloseManually}
