@@ -152,12 +152,12 @@ export default function EmailTemplatesPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Sidebar - Lista de plantillas */}
-          <div className="col-span-3">
+          <div className="lg:col-span-3">
             <div className="bg-white rounded-lg shadow-sm p-4">
               <h3 className="font-semibold text-gray-900 mb-4">Tipos de Email</h3>
-              <div className="space-y-1">
+              <div className="space-y-1 flex lg:flex-col overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 gap-2 lg:gap-0">
                 {templates.map((template) => (
                   <button
                     key={template.id}
@@ -165,7 +165,7 @@ export default function EmailTemplatesPage() {
                       if (hasChanges && !confirm('¿Descartar cambios no guardados?')) return
                       loadTemplate(template.id)
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                    className={`text-left px-3 py-2 rounded-lg transition-colors whitespace-nowrap lg:whitespace-normal flex-shrink-0 lg:flex-shrink lg:w-full ${
                       selectedTemplate?.id === template.id
                         ? 'bg-blue-50 text-blue-700 font-medium'
                         : 'hover:bg-gray-100 text-gray-700'
@@ -179,7 +179,7 @@ export default function EmailTemplatesPage() {
           </div>
 
           {/* Editor principal */}
-          <div className="col-span-9">
+          <div className="lg:col-span-9">
             {selectedTemplate ? (
               <div className="space-y-6">
                 {/* Información del template */}

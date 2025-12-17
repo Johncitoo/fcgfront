@@ -243,26 +243,6 @@ export default function InvitesPage() {
                 Genera códigos y gestiona invitaciones por convocatoria.
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button 
-                onClick={() => {
-                  if (!callId) {
-                    alert('Selecciona una convocatoria en los filtros para enviar invitaciones masivas')
-                    return
-                  }
-                  setBulkSendOpen(true)
-                }} 
-                className="btn bg-emerald-600 text-white hover:bg-emerald-700"
-              >
-                Envío masivo
-              </button>
-              <button onClick={() => setBulkOpen(true)} className="btn">
-                Carga masiva
-              </button>
-              <button onClick={() => setCreateOpen(true)} className="btn-primary">
-                Nueva invitación
-              </button>
-            </div>
           </div>
 
           {/* Panel de estadísticas (solo si hay convocatoria seleccionada) */}

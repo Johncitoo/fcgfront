@@ -86,13 +86,6 @@ export default function AuditPage() {
         <header className="mb-6">
           <h1 className="text-2xl font-semibold">Auditoría del Sistema</h1>
           <p className="text-slate-600">Registro inmutable de todas las acciones realizadas en el sistema.</p>
-          <div className="mt-3 rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm">
-            <p className="font-medium text-blue-900 mb-1">¿Qué es "Actor"?</p>
-            <p className="text-blue-700">
-              El <strong>Actor</strong> es la persona que realizó la acción. Puede ser un administrador, revisor o postulante. 
-              Si aparece "—", significa que fue una acción automática del sistema.
-            </p>
-          </div>
         </header>
 
         {/* Filtros */}

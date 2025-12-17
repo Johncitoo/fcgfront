@@ -57,11 +57,11 @@ export default function TopNav() {
           <span className="md:hidden text-sm font-bold text-slate-800">FCG</span>
         </Link>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-2 md:gap-3">
           {/* Información del usuario logeado */}
           {user && (
-            <div className="hidden lg:flex flex-col items-end text-right border-r pr-3">
-              <span className="text-sm font-semibold text-slate-800">
+            <div className="hidden md:flex flex-col items-end text-right border-r border-slate-200 pr-2 md:pr-3">
+              <span className="text-sm font-semibold text-slate-800 truncate max-w-[150px] lg:max-w-none">
                 {user.fullName || user.email}
               </span>
               <span className="text-xs text-slate-500 capitalize">
@@ -70,29 +70,30 @@ export default function TopNav() {
             </div>
           )}
           {showPasswordChangeSuccess && (
-            <div className="fixed top-20 right-4 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
-              Email enviado. Revisa tu bandeja de entrada.
+            <div className="fixed top-20 right-4 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-fade-in max-w-xs">
+              <p className="text-sm font-medium">Email enviado</p>
+              <p className="text-xs mt-1 opacity-90">Revisa tu bandeja de entrada</p>
             </div>
           )}
 
           {/* Botón cambiar contraseña */}
           <button
             onClick={handleRequestPasswordChange}
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg px-2 md:px-3 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 transition-colors"
             title="Cambiar contraseña"
           >
-            <Key className="h-4 w-4" />
-            <span className="hidden lg:inline">Cambiar contraseña</span>
+            <Key className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Cambiar contraseña</span>
           </button>
 
           {/* Botón cerrar sesión */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg px-2 md:px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors"
             title="Cerrar sesión"
           >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden lg:inline">Salir</span>
+            <LogOut className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Salir</span>
           </button>
         </div>
       </div>
