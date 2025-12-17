@@ -16,36 +16,15 @@ export default function ResetPasswordWithTokenPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isValidating, setIsValidating] = useState(true)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const validateToken = async () => {
-      if (!token) {
-        toast.error('Token inválido o faltante')
-        navigate('/auth/login')
-        return
-      }
-
-      // Validar el token con el backend
-      try {
-        setIsValidating(true)
-        const response = await api.post('/auth/validate-reset-token', { token })
-        
-        if (!response.data.valid) {
-          toast.error('Este enlace ya fue utilizado o ha expirado')
-          setTimeout(() => navigate('/auth/login'), 2000)
-        }
-      } catch (err: any) {
-        toast.error('Este enlace no es válido. Solicita uno nuevo.')
-        setTimeout(() => navigate('/auth/login'), 2000)
-      } finally {
-        setIsValidating(false)
-      }
+    // Solo verificar que el token existe en la URL
+    if (!token) {
+      toast.error('Token inválido o faltante')
+      setTimeout(() => navigate('/auth/login'), 2000)
     }
-
-    validateToken()
   }, [token, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,30 +63,22 @@ export default function ResetPasswordWithTokenPage() {
         navigate('/auth/login')
       }, 3000)
     } catch (err: any) {
-      const errorMessage = err?.message || 'Error al restablecer la contraseña'
+      let errorMessage = err?.message || 'Error al restablecer la contraseña'
+      
+      // Mejorar mensajes de error específicos
+      if (errorMessage.includes('ya fue utilizado')) {
+        errorMessage = '⚠️ Este enlace ya fue utilizado. Por favor, solicita un nuevo cambio de contraseña desde el menú de usuario.'
+      } else if (errorMessage.includes('expirado') || errorMessage.includes('expired')) {
+        errorMessage = '⏰ Este enlace ha expirado (válido por 1 hora). Solicita un nuevo cambio de contraseña desde el menú de usuario.'
+      } else if (errorMessage.includes('inválido') || errorMessage.includes('invalid')) {
+        errorMessage = '❌ Este enlace no es válido. Verifica que hayas copiado la URL completa del email.'
+      }
+      
       setError(errorMessage)
-      toast.error(errorMessage)
+      toast.error(errorMessage, { duration: 5000 })
     } finally {
       setIsLoading(false)
     }
-  }
-
-  // Mostrar pantalla de carga mientras valida el token
-  if (isValidating) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl">
-          <CardContent className="pt-6 pb-6">
-            <div className="text-center">
-              <div className="mb-4 flex justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600"></div>
-              </div>
-              <p className="text-gray-600">Validando enlace...</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
   }
 
   if (success) {
