@@ -259,4 +259,141 @@ export const authService = {
         return '/';
     }
   },
+
+  /**
+   * Decodifica un token JWT y extrae su payload.
+   * No valida la firma - solo decodifica.
+   * 
+   * @param token - Token JWT
+   * @returns Payload del token o null si es inválido
+   */
+  decodeToken(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Obtiene el tiempo restante hasta que expire el token en milisegundos.
+   * 
+   * @returns Milisegundos hasta expiración, o 0 si ya expiró o es inválido
+   */
+  getTokenTimeToExpiry(): number {
+    const token = this.getAccessToken();
+    if (!token) return 0;
+
+    const payload = this.decodeToken(token);
+    if (!payload || !payload.exp) return 0;
+
+    const expiryTime = payload.exp * 1000; // exp está en segundos
+    const now = Date.now();
+    const timeLeft = expiryTime - now;
+
+    return timeLeft > 0 ? timeLeft : 0;
+  },
+
+  /**
+   * Verifica si el token está próximo a expirar.
+   * 
+   * @param minutesBeforeExpiry - Minutos antes de expiración para considerar "próximo"
+   * @returns true si el token expira en menos de los minutos especificados
+   */
+  isTokenExpiringSoon(minutesBeforeExpiry: number = 5): boolean {
+    const timeLeft = this.getTokenTimeToExpiry();
+    const thresholdMs = minutesBeforeExpiry * 60 * 1000;
+    return timeLeft > 0 && timeLeft < thresholdMs;
+  },
+
+  /**
+   * Refresca el access token usando el refresh token.
+   * Endpoint: POST /auth/refresh
+   * 
+   * @returns Nuevo access token
+   * @throws Error si el refresh token es inválido o expiró
+   */
+  async refreshAccessToken(): Promise<string> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    try {
+      const response = await api.post<{ accessToken: string }>('/auth/refresh', {
+        refreshToken,
+      });
+      
+      const newAccessToken = response.data.accessToken;
+      localStorage.setItem(TOKEN_KEY, newAccessToken);
+      
+      return newAccessToken;
+    } catch (error) {
+      // Si el refresh falla, cerrar sesión
+      this.clearAuth();
+      throw error;
+    }
+  },
+
+  /**
+   * Configura un temporizador para renovar el token antes de que expire.
+   * Llama al callback cuando el token está próximo a expirar.
+   * 
+   * @param onWarning - Callback a ejecutar cuando el token esté por expirar
+   * @param minutesBeforeExpiry - Minutos antes de expiración para mostrar advertencia
+   * @returns ID del timeout para cancelarlo si es necesario
+   */
+  setupTokenRenewalTimer(onWarning: () => void, minutesBeforeExpiry: number = 5): number | null {
+    const timeLeft = this.getTokenTimeToExpiry();
+    if (timeLeft === 0) return null;
+
+    const warningThreshold = minutesBeforeExpiry * 60 * 1000;
+    const timeUntilWarning = timeLeft - warningThreshold;
+
+    if (timeUntilWarning <= 0) {
+      // Ya está en el umbral de advertencia
+      onWarning();
+      return null;
+    }
+
+    // Configurar timeout para mostrar advertencia
+    const timerId = window.setTimeout(() => {
+      onWarning();
+    }, timeUntilWarning);
+
+    return timerId;
+  },
+
+  /**
+   * Intenta renovar el token silenciosamente si es necesario.
+   * Útil para verificar la sesión al montar la aplicación.
+   * 
+   * @returns true si la sesión es válida, false si necesita re-login
+   */
+  async validateAndRefreshSession(): Promise<boolean> {
+    const token = this.getAccessToken();
+    if (!token) return false;
+
+    const timeLeft = this.getTokenTimeToExpiry();
+    
+    // Si el token ya expiró o expira en menos de 1 minuto
+    if (timeLeft < 60 * 1000) {
+      try {
+        await this.refreshAccessToken();
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    return true;
+  },
 };

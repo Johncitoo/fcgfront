@@ -1,8 +1,11 @@
 // src/App.tsx
-import { Routes, Route, Navigate, Link } from "react-router-dom";
+import { Routes, Route, Navigate, Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 // Guard & context
 import RequireAuth from "./components/RequireAuth";
+import { TokenRenewalModal } from "./components/TokenRenewalModal";
+import { authService } from "./lib/auth";
 
 // Layouts
 import AdminLayout from "./layouts/AdminLayout";
@@ -69,8 +72,70 @@ function Ping() {
 }
 
 export default function App() {
+  const navigate = useNavigate();
+  const [showRenewalModal, setShowRenewalModal] = useState(false);
+  const [minutesLeft, setMinutesLeft] = useState(5);
+
+  useEffect(() => {
+    // Validar y refrescar sesión al montar la app
+    const validateSession = async () => {
+      const isValid = await authService.validateAndRefreshSession();
+      if (!isValid && authService.isAuthenticated()) {
+        // Token expiró y no se pudo refrescar
+        authService.clearAuth();
+        navigate('/login', { replace: true });
+      }
+    };
+
+    validateSession();
+
+    // Configurar temporizador de renovación de token
+    const timerId = authService.setupTokenRenewalTimer(() => {
+      const timeLeft = authService.getTokenTimeToExpiry();
+      setMinutesLeft(timeLeft / (60 * 1000)); // Convertir ms a minutos
+      setShowRenewalModal(true);
+    }, 5); // Advertir 5 minutos antes
+
+    return () => {
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
+  }, [navigate]);
+
+  const handleRenewToken = async () => {
+    try {
+      await authService.refreshAccessToken();
+      setShowRenewalModal(false);
+      
+      // Configurar nuevo temporizador
+      authService.setupTokenRenewalTimer(() => {
+        const timeLeft = authService.getTokenTimeToExpiry();
+        setMinutesLeft(timeLeft / (60 * 1000));
+        setShowRenewalModal(true);
+      }, 5);
+    } catch (error) {
+      console.error('Error al renovar token:', error);
+      await handleLogout();
+    }
+  };
+
+  const handleLogout = async () => {
+    setShowRenewalModal(false);
+    await authService.logout();
+    navigate('/login', { replace: true });
+  };
+
   return (
-    <Routes>
+    <>
+      <TokenRenewalModal
+        isOpen={showRenewalModal}
+        minutesLeft={minutesLeft}
+        onRenew={handleRenewToken}
+        onLogout={handleLogout}
+      />
+      
+      <Routes>
       {/* Redirección raíz */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
@@ -172,6 +237,7 @@ export default function App() {
       {/* Sistema */}
       <Route path="/forbidden" element={<ForbiddenPage />} />
       <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }

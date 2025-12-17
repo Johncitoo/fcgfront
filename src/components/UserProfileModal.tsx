@@ -38,8 +38,8 @@ export default function UserProfileModal({ userId, onClose }: UserProfileModalPr
   }, [userId])
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-2xl rounded-lg bg-white shadow-2xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[100] flex min-h-screen items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="w-full max-w-2xl rounded-lg bg-white shadow-2xl max-h-[90vh] overflow-auto my-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between border-b px-6 py-4">
           <h2 className="text-xl font-semibold text-slate-800">Perfil de Usuario</h2>

@@ -461,7 +461,6 @@ export default function LoginPage() {
                           Iniciar sesión
                         </>
                       )}
-                      Ingresar
                     </Button>
                   </form>
                 </TabsContent>
