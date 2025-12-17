@@ -24,6 +24,10 @@ export interface MilestoneProgress {
   orderIndex: number;
   required: boolean;
   status: string;
+  reviewStatus?: 'APPROVED' | 'REJECTED' | 'NEEDS_CHANGES';
+  reviewNotes?: string;
+  reviewerName?: string;
+  reviewedAt?: string;
   startedAt?: string;
   completedAt?: string;
 }
@@ -31,9 +35,18 @@ export interface MilestoneProgress {
 export interface ProgressSummary {
   total: number;
   completed: number;
+  blocked: number;
   pending: number;
   percentage: number;
   currentMilestone: MilestoneProgress | null;
+}
+
+export interface ProgressResponse {
+  progress: MilestoneProgress[];
+  summary: ProgressSummary;
+  applicationStatus: string;
+  isRejected: boolean;
+  rejectedMilestone: MilestoneProgress | null;
 }
 
 export const milestonesService = {
@@ -139,7 +152,7 @@ export const milestonesService = {
    * const { progress, summary } = await milestonesService.getProgress('app-uuid', token);
    * console.log(`Progreso: ${summary.percentage}%`);
    */
-  async getProgress(applicationId: string, token: string): Promise<{ progress: MilestoneProgress[]; summary: ProgressSummary }> {
+  async getProgress(applicationId: string, token: string): Promise<ProgressResponse> {
     const response = await axios.get(`${API_URL}/milestones/progress/${applicationId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
