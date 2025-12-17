@@ -47,7 +47,7 @@ export default function ChangePasswordPage() {
     setLoading(true);
 
     try {
-      await apiPost('/password-change/reset', {
+      await apiPost('/auth/password-change/change', {
         token,
         newPassword,
       });
