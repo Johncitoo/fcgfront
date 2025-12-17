@@ -184,6 +184,13 @@ export default function CallDetailPage() {
               <BarChart3 className="w-4 h-4" />
               Estadísticas
             </Link>
+            <Link
+              to={`${baseRoute}/applications?callId=${id}&showSelection=true`}
+              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-green-600 hover:text-white hover:bg-green-600 border border-green-600 rounded-lg transition-colors"
+              title="Selección final de postulantes"
+            >
+              Selección Final
+            </Link>
             {callStatus === 'active' && (
               <button
                 onClick={onCloseManually}
