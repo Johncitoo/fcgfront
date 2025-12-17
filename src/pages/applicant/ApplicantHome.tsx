@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import MilestoneProgress from '../../components/MilestoneProgress'
+import HelpButton from '../../components/HelpButton'
 
 type ApplicationStatus =
   | 'DRAFT'
@@ -169,7 +170,18 @@ export default function ApplicantHome() {
                 </div>
 
                 <div className="card-body">
-                  <Timeline status={app?.status} />
+                  {/* Info sobre hitos - el progreso detallado está arriba en MilestoneProgress */}
+                  <div className="flex items-start gap-3 p-4 bg-gradient-to-r from-sky-50 to-blue-50 rounded-lg border border-sky-200">
+                    <svg className="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-sky-900 mb-1">Progreso por hitos</h3>
+                      <p className="text-sm text-sky-800">
+                        Tu postulación avanza por diferentes etapas. Revisa el progreso detallado arriba para ver qué hitos has completado y cuáles están pendientes.
+                      </p>
+                    </div>
+                  </div>
 
                   <div className="mt-8 pt-6 border-t border-gray-100">
                     <ActionButtons app={app} />
@@ -260,6 +272,11 @@ export default function ApplicantHome() {
               </aside>
             </div>
           </>
+        )}
+        
+        {/* Botón flotante de ayuda */}
+        {!loading && !error && app?.id && me?.email && (
+          <HelpButton applicationId={app.id} applicantEmail={me.email} />
         )}
       </div>
     </div>
