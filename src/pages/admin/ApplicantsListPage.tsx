@@ -504,7 +504,7 @@ Fundación Carmen Goudie`
 
       // 5. Obtener datos completos de cada postulante
       const applicantsMap = new Map()
-      const applicantIds: string[] = [...new Set(applications.map((app: any) => app.applicantId || app.applicant_id).filter(Boolean))]
+      const applicantIds: string[] = [...new Set(applications.map((app: any) => app.applicantId || app.applicant_id).filter((id): id is string => Boolean(id)))]
       const applicantPromises = applicantIds.map((applicantId) =>
         authFetch(`${API_BASE}/admin/applicants/${applicantId}`, { headers })
           .then(r => r.ok ? r.json() : null)
