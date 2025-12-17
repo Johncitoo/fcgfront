@@ -52,11 +52,6 @@ interface CommuneData {
   count: number
 }
 
-interface ScoreData {
-  score_range: string
-  count: number
-}
-
 interface TimelineData {
   submission_date: string
   count: number
@@ -96,8 +91,8 @@ export default function AdminHome() {
   const [genderData, setGenderData] = useState<GenderData[]>([])
   const [institutionData, setInstitutionData] = useState<InstitutionData[]>([])
   const [communeData, setCommuneData] = useState<CommuneData[]>([])
-  const [scoreData, setScoreData] = useState<ScoreData[]>([])
   const [timelineData, setTimelineData] = useState<TimelineData[]>([])
+  const [recentApplications, setRecentApplications] = useState<any[]>([])
 
   useEffect(() => {
     if (selectedCall) {
@@ -148,14 +143,14 @@ export default function AdminHome() {
       const headers = { Authorization: `Bearer ${token}` }
 
       // Cargar todas las estadísticas en paralelo
-      const [overviewRes, applicantsRes, genderRes, institutionsRes, communesRes, scoresRes, timelineRes] = await Promise.all([
+      const [overviewRes, applicantsRes, genderRes, institutionsRes, communesRes, timelineRes, recentAppsRes] = await Promise.all([
         fetch(`${API_BASE}/admin/stats/${callId}/overview`, { headers }),
         fetch(`${API_BASE}/applicants?limit=99999`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/gender-distribution`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/top-institutions`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/top-communes`, { headers }),
-        fetch(`${API_BASE}/admin/stats/${callId}/score-distribution`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/submission-timeline`, { headers }),
+        fetch(`${API_BASE}/admin/applications?limit=5&sortBy=created_at&order=DESC&callId=${callId}`, { headers }),
       ])
 
       if (overviewRes.ok) {
@@ -195,17 +190,18 @@ export default function AdminHome() {
         setCommuneData(communes.map((c: any) => ({ commune: c.commune, count: parseInt(c.count) })))
       }
 
-      if (scoresRes.ok) {
-        const scores = await scoresRes.json()
-        setScoreData(scores.map((s: any) => ({ score_range: s.score_range, count: parseInt(s.count) })))
-      }
-
       if (timelineRes.ok) {
         const timeline = await timelineRes.json()
         setTimelineData(timeline.map((t: any) => ({ 
           submission_date: new Date(t.submission_date).toLocaleDateString('es-CL'), 
           count: parseInt(t.count) 
         })).reverse())
+      }
+
+      if (recentAppsRes.ok) {
+        const recentApps = await recentAppsRes.json()
+        const list = Array.isArray(recentApps) ? recentApps : recentApps.data || []
+        setRecentApplications(list)
       }
 
       setLoading(false)
@@ -215,8 +211,8 @@ export default function AdminHome() {
     }
   }
 
-  const completionRate = activeCall?.totalSeats
-    ? Math.round((appStats.approved / activeCall.totalSeats) * 100)
+  const completionRate = appStats.total > 0
+    ? Math.round((appStats.approved / appStats.total) * 100)
     : 0
 
   if (!activeCall) {
@@ -283,10 +279,6 @@ export default function AdminHome() {
               <Badge className="gap-1.5 bg-green-100 text-green-700 border-green-300">
                 <Activity className="h-3 w-3 animate-pulse" />
                 Convocatoria Activa
-              </Badge>
-              <Badge variant="outline" className="gap-1">
-                <Calendar className="h-3 w-3" />
-                {activeCall.totalSeats} cupos
               </Badge>
             </div>
           </div>
@@ -365,7 +357,7 @@ export default function AdminHome() {
                     <div className="text-3xl font-bold text-slate-900">{appStats.approved}</div>
                     <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
                       <CheckCircle2 className="h-3 w-3" />
-                      de {activeCall.totalSeats} cupos
+                      Becas otorgadas
                     </p>
                   </div>
                   <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -510,36 +502,9 @@ export default function AdminHome() {
             </Card>
           </div>
 
-          {/* Distribución por Puntaje y Timeline */}
-          <div className="grid gap-6 lg:grid-cols-2">
+          {/* Timeline de Envíos */}
+          <div className="grid gap-6 lg:grid-cols-1">
             <Card className="animate-slide-up" style={{ animationDelay: '0.9s' }}>
-              <CardHeader className="border-b bg-gradient-to-r from-amber-50 to-orange-50">
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-amber-600" />
-                  Distribución por Puntaje
-                </CardTitle>
-                <CardDescription>Rangos de puntuación</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                {scoreData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={scoreData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="score_range" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill={COLORS.amber} radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex h-[300px] items-center justify-center text-slate-500">
-                    <p>No hay datos de puntajes disponibles</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="animate-slide-up" style={{ animationDelay: '1s' }}>
               <CardHeader className="border-b bg-gradient-to-r from-sky-50 to-blue-50">
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-sky-600" />
@@ -607,8 +572,8 @@ export default function AdminHome() {
                       {completionRate}%
                     </Badge>
                   </div>
-                  <p className="text-2xl font-bold text-amber-700">{appStats.approved} / {activeCall.totalSeats}</p>
-                  <p className="text-xs text-slate-600 mt-1">Cupos asignados</p>
+                  <p className="text-2xl font-bold text-amber-700">{appStats.approved}</p>
+                  <p className="text-xs text-slate-600 mt-1">Becas otorgadas</p>
                 </div>
 
                 <div className="p-4 rounded-lg border-l-4 border-l-purple-500 bg-purple-50/50">
@@ -622,6 +587,84 @@ export default function AdminHome() {
                   <p className="text-xs text-slate-600 mt-1">Requieren atención</p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Últimas Postulaciones */}
+          <Card className="animate-slide-up" style={{ animationDelay: '1.2s' }}>
+            <CardHeader className="border-b bg-gradient-to-r from-indigo-50 to-violet-50">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-indigo-600" />
+                Últimas Postulaciones
+              </CardTitle>
+              <CardDescription>Las 5 postulaciones más recientes</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              {recentApplications.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-slate-200">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Postulante</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Estado</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Fecha</th>
+                        <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentApplications.map((app: any) => {
+                        const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+                          draft: { label: 'Borrador', variant: 'outline' },
+                          submitted: { label: 'Enviada', variant: 'default' },
+                          in_review: { label: 'En Revisión', variant: 'secondary' },
+                          needs_fix: { label: 'Requiere Correcciones', variant: 'destructive' },
+                          approved: { label: 'Aprobada', variant: 'default' },
+                          rejected: { label: 'Rechazada', variant: 'destructive' },
+                        }
+                        const status = statusMap[app.status] || { label: app.status, variant: 'outline' }
+                        const formattedDate = new Date(app.created_at).toLocaleDateString('es-CL', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
+                        
+                        return (
+                          <tr key={app.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                            <td className="py-3 px-4">
+                              <div className="font-medium text-slate-900">
+                                {app.applicant?.full_name || 'N/A'}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {app.applicant?.email || ''}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <Badge variant={status.variant} className={status.variant === 'default' && app.status === 'approved' ? 'bg-green-100 text-green-700 border-green-300' : ''}>
+                                {status.label}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-4 text-sm text-slate-600">{formattedDate}</td>
+                            <td className="py-3 px-4 text-center">
+                              <button
+                                onClick={() => window.location.href = `/admin/applications/${app.id}`}
+                                className="text-sm font-medium text-sky-600 hover:text-sky-700 hover:underline"
+                              >
+                                Ver detalles
+                              </button>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="flex h-32 items-center justify-center text-slate-500">
+                  <p>No hay postulaciones recientes</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -63,9 +63,14 @@ export function DualEmailQuotaWidget() {
   if (error || !quotaStatus) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
-        <div className="text-red-600">
-          <p className="font-semibold">⚠️ Error</p>
-          <p className="text-sm">{error || 'No se pudo cargar el estado'}</p>
+        <div className="flex items-center gap-3 text-red-600">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <p className="font-semibold">Error al cargar cuota</p>
+            <p className="text-sm">{error || 'No se pudo cargar el estado'}</p>
+          </div>
         </div>
       </div>
     );
@@ -119,8 +124,8 @@ export function DualEmailQuotaWidget() {
         </div>
         
         {account.percentage >= 80 && (
-          <div className={`text-xs ${colors.text} bg-${colors.bg.split('-')[1]}-50 border ${colors.border} rounded px-2 py-1`}>
-            {account.percentage >= 90 ? '🚨 Cuota casi agotada' : '⚠️ Cuota limitada'}
+          <div className={`text-xs ${colors.text} bg-${colors.bg.split('-')[1]}-50 border ${colors.border} rounded px-2 py-1 font-medium`}>
+            {account.percentage >= 90 ? 'CRÍTICO: Cuota casi agotada' : 'ADVERTENCIA: Cuota limitada'}
           </div>
         )}
       </div>
@@ -133,18 +138,23 @@ export function DualEmailQuotaWidget() {
       <div className="flex justify-between items-start">
         <div>
           <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            📧 Cuota de Emails
+            <svg className="h-5 w-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            Cuota de Emails
           </h3>
           <p className="text-sm text-gray-600">
-            Estado en tiempo real de envíos diarios
+            Monitoreo en tiempo real de envíos diarios
           </p>
         </div>
         <button
           onClick={fetchQuotaStatus}
-          className="text-sky-600 hover:text-sky-700 text-sm font-medium"
+          className="text-sky-600 hover:text-sky-700 text-sm font-medium flex items-center gap-1"
           title="Actualizar"
         >
-          🔄
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
         </button>
       </div>
 
@@ -190,13 +200,15 @@ export function DualEmailQuotaWidget() {
       {/* Critical Warning */}
       {quotaStatus.total.percentage >= 95 && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-          <div className="flex items-start">
-            <span className="text-2xl mr-3">🚨</span>
+          <div className="flex items-start gap-3">
+            <svg className="h-6 w-6 text-red-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
             <div>
-              <p className="font-semibold text-red-800">Cuota crítica</p>
+              <p className="font-semibold text-red-800">CRÍTICO: Cuota casi agotada</p>
               <p className="text-sm text-red-700">
                 Solo quedan {quotaStatus.total.remaining} emails disponibles. 
-                El sistema bloqueará envíos al alcanzar el límite.
+                El sistema bloqueará envíos automáticamente al alcanzar el límite.
               </p>
             </div>
           </div>
