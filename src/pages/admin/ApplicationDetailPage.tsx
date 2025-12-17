@@ -359,7 +359,11 @@ export default function ApplicationDetailPage() {
                   ) : (
                     <div className="space-y-3">
                       {milestones.map((m) => {
-                        const isBlocked = m.status === 'REJECTED' && m.reviewNotes === 'Bloqueado por rechazo de hito anterior'
+                        // Detectar si fue rechazado o bloqueado
+                        const isRejected = m.reviewStatus === 'REJECTED'
+                        const isBlocked = m.status === 'BLOCKED'
+                        const isRejectedOrBlocked = isRejected || isBlocked
+                        
                         // whoCanFill puede ser string o array - normalizar a array
                         const canFillArray = Array.isArray(m.whoCanFill) ? m.whoCanFill : [m.whoCanFill]
                         const isApplicantFill = canFillArray.includes('APPLICANT')
@@ -378,27 +382,49 @@ export default function ApplicationDetailPage() {
                         
                         return (
                         <div key={m.mp_id} className={`rounded-lg border p-4 transition-all ${
+                          isRejected ? 'bg-gradient-to-r from-red-100 to-red-50 border-red-400 opacity-80' : 
+                          isBlocked ? 'bg-slate-100 opacity-50 border-slate-400' : 
                           isCompleted ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300' : 
-                          isBlocked ? 'bg-slate-50 opacity-60 border-slate-300' : 
                           isExpired ? 'bg-rose-50 border-rose-300' :
                           'bg-white border-slate-200 hover:border-sky-300'
                         }`}>
                           <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                {isCompleted && (
+                                {isRejected ? (
+                                  <svg className="h-5 w-5 text-red-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                ) : isBlocked ? (
+                                  <svg className="h-5 w-5 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                  </svg>
+                                ) : isCompleted ? (
                                   <svg className="h-5 w-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
-                                )}
-                                <h4 className={`font-medium ${isCompleted ? 'text-green-900' : ''}`}>
+                                ) : null}
+                                <h4 className={`font-medium ${
+                                  isRejected ? 'text-red-900' : 
+                                  isBlocked ? 'text-slate-600' : 
+                                  isCompleted ? 'text-green-900' : ''
+                                }`}>
                                   {m.milestoneName}
                                 </h4>
+                                {isRejected && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold bg-red-600 text-white rounded">
+                                    ❌ RECHAZADO
+                                  </span>
+                                )}
+                                {isBlocked && !isRejected && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-slate-200 text-slate-700 rounded">
+                                    🚫 Bloqueado
+                                  </span>
+                                )}
                                 <span className="text-xs text-slate-500">
                                   ({isApplicantFill ? 'Postulante' : isReviewerFill ? 'Revisor' : isAdminFill ? 'Admin' : 'Desconocido'})
                                 </span>
                                 {m.m_required && <span className="text-xs text-rose-600">*Obligatorio</span>}
-                                {isBlocked && <span className="text-xs text-slate-500">[Bloqueado]</span>}
                                 {isAdminFill && !canUserComplete && <span className="text-xs text-amber-600">[Solo lectura]</span>}
                               </div>
                               
@@ -465,15 +491,25 @@ export default function ApplicationDetailPage() {
                               <>
                                 <button
                                   onClick={() => loadAnswers(m.mp_id)}
-                                  disabled={loadingAnswers}
-                                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-700 bg-sky-50 border border-sky-200 rounded-lg hover:bg-sky-100 hover:border-sky-300 transition-colors disabled:opacity-50"
+                                  disabled={loadingAnswers || isRejectedOrBlocked}
+                                  className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                    isRejectedOrBlocked 
+                                      ? 'text-slate-500 bg-slate-100 border border-slate-300 cursor-not-allowed opacity-60' 
+                                      : 'text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 hover:border-sky-300 disabled:opacity-50'
+                                  }`}
+                                  title={isRejectedOrBlocked ? 'No disponible - Hito rechazado/bloqueado' : ''}
                                 >
                                   <span>{loadingAnswers && viewingAnswers === m.mp_id ? 'Cargando...' : 'Ver respuestas'}</span>
                                 </button>
                                 <button
                                   onClick={loadFiles}
-                                  disabled={loadingFiles}
-                                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 hover:border-emerald-300 transition-colors disabled:opacity-50"
+                                  disabled={loadingFiles || isRejectedOrBlocked}
+                                  className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                    isRejectedOrBlocked 
+                                      ? 'text-slate-500 bg-slate-100 border border-slate-300 cursor-not-allowed opacity-60' 
+                                      : 'text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 disabled:opacity-50'
+                                  }`}
+                                  title={isRejectedOrBlocked ? 'No disponible - Hito rechazado/bloqueado' : ''}
                                 >
                                   <span>{loadingFiles ? 'Cargando...' : 'Ver archivos'}</span>
                                 </button>
@@ -481,7 +517,7 @@ export default function ApplicationDetailPage() {
                             )}
                           </div>
 
-                          {!isBlocked && m.reviewStatus !== 'APPROVED' && (
+                          {!isRejected && !isBlocked && m.reviewStatus !== 'APPROVED' && (
                             <div className="mt-3 space-y-2">
                               {reviewingMilestone === m.mp_id ? (
                                 <div className="rounded-md border border-sky-200 bg-sky-50 p-3">
@@ -529,6 +565,31 @@ export default function ApplicationDetailPage() {
                               )}
                             </div>
                           )}
+                          
+                          {/* Mostrar mensaje cuando está rechazado o bloqueado */}
+                          {(isRejected || isBlocked) && (
+                            <div className={`mt-3 p-3 rounded-lg border ${
+                              isRejected 
+                                ? 'bg-red-50 border-red-300 text-red-900' 
+                                : 'bg-slate-50 border-slate-300 text-slate-700'
+                            }`}>
+                              <div className="flex items-start gap-2 text-sm">
+                                <svg className="h-5 w-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div>
+                                  <p className="font-semibold">
+                                    {isRejected ? 'Hito Rechazado - No se puede revisar ni modificar' : 'Hito Bloqueado'}
+                                  </p>
+                                  <p className="text-xs mt-1">
+                                    {isRejected 
+                                      ? 'Este hito fue rechazado. La postulación ha finalizado y no se pueden realizar más acciones.' 
+                                      : 'Este hito fue bloqueado debido a un rechazo en una fase anterior.'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
                           {isApplicantFill && (
                             <div className="mt-2 text-xs text-slate-600">
@@ -550,7 +611,8 @@ export default function ApplicationDetailPage() {
                                 <button
                                   onClick={() => setCompletingMilestone(m)}
                                   className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                                  disabled={isBlocked}
+                                  disabled={isRejectedOrBlocked}
+                                  title={isRejectedOrBlocked ? 'No disponible - Hito rechazado/bloqueado' : ''}
                                 >
                                   <span>Completar entrevista</span>
                                 </button>
@@ -572,7 +634,8 @@ export default function ApplicationDetailPage() {
                                 <button
                                   onClick={() => setCompletingMilestone(m)}
                                   className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                                  disabled={isBlocked}
+                                  disabled={isRejectedOrBlocked}
+                                  title={isRejectedOrBlocked ? 'No disponible - Hito rechazado/bloqueado' : ''}
                                 >
                                   <span>Completar (Admin)</span>
                                 </button>
