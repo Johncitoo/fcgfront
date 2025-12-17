@@ -369,12 +369,30 @@ export default function ApplicationDetailPage() {
                         // REVIEWER e ADMIN solo pueden ser completados por ADMIN
                         const canUserComplete = (isAdminFill || isReviewerFill) ? currentUserRole === 'ADMIN' : true
                         
+                        // Calcular si la fecha límite expiró
+                        const dueDate = m.dueDate ? new Date(m.dueDate) : null
+                        const now = new Date()
+                        const isExpired = dueDate && now > dueDate
+                        const isCompleted = m.status === 'COMPLETED'
+                        
                         return (
-                        <div key={m.mp_id} className={`rounded-lg border p-4 ${isBlocked ? 'bg-slate-50 opacity-60' : ''}`}>
+                        <div key={m.mp_id} className={`rounded-lg border p-4 transition-all ${
+                          isCompleted ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300' : 
+                          isBlocked ? 'bg-slate-50 opacity-60 border-slate-300' : 
+                          isExpired ? 'bg-rose-50 border-rose-300' :
+                          'bg-white border-slate-200 hover:border-sky-300'
+                        }`}>
                           <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
                             <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-medium">{m.milestoneName}</h4>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {isCompleted && (
+                                  <svg className="h-5 w-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                )}
+                                <h4 className={`font-medium ${isCompleted ? 'text-green-900' : ''}`}>
+                                  {m.milestoneName}
+                                </h4>
                                 <span className="text-xs text-slate-500">
                                   ({isApplicantFill ? 'Postulante' : isReviewerFill ? 'Revisor' : isAdminFill ? 'Admin' : 'Desconocido'})
                                 </span>
@@ -382,6 +400,24 @@ export default function ApplicationDetailPage() {
                                 {isBlocked && <span className="text-xs text-slate-500">[Bloqueado]</span>}
                                 {isAdminFill && !canUserComplete && <span className="text-xs text-amber-600">[Solo lectura]</span>}
                               </div>
+                              
+                              {/* Fecha límite */}
+                              {dueDate && (
+                                <div className={`mt-1 flex items-center gap-1 text-xs ${
+                                  isExpired ? 'text-rose-700 font-medium' : 
+                                  isCompleted ? 'text-green-700' : 
+                                  'text-slate-600'
+                                }`}>
+                                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                  <span>
+                                    {isExpired ? 'Venció: ' : 'Límite: '}
+                                    {dueDate.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                              )}
+                              
                               <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                                 <MilestoneStatusBadge status={m.status} />
                                 {m.reviewStatus && <ReviewStatusBadge status={m.reviewStatus} />}
@@ -407,25 +443,42 @@ export default function ApplicationDetailPage() {
                             </div>
                           )}
 
-                          {/* Botón para ver respuestas si el hito tiene respuestas guardadas */}
-                          {(m.status === 'COMPLETED' || m.status === 'IN_PROGRESS') && (
-                            <div className="mt-3 flex flex-wrap gap-2">
+                          {/* Botones de acción para el hito */}
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {/* Botón para completar hitos de admin/reviewer */}
+                            {(isAdminFill || isReviewerFill) && canUserComplete && m.status === 'IN_PROGRESS' && !isExpired && (
                               <button
-                                onClick={() => loadAnswers(m.mp_id)}
-                                disabled={loadingAnswers}
-                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-700 bg-sky-50 border border-sky-200 rounded-lg hover:bg-sky-100 hover:border-sky-300 transition-colors disabled:opacity-50"
+                                onClick={() => setCompletingMilestone(m)}
+                                disabled={saving}
+                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-purple-700 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
                               >
-                                <span>{loadingAnswers && viewingAnswers === m.mp_id ? 'Cargando...' : 'Ver respuestas'}</span>
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                <span>Completar formulario</span>
                               </button>
-                              <button
-                                onClick={loadFiles}
-                                disabled={loadingFiles}
-                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 hover:border-emerald-300 transition-colors disabled:opacity-50"
-                              >
-                                <span>{loadingFiles ? 'Cargando...' : 'Ver archivos'}</span>
-                              </button>
-                            </div>
-                          )}
+                            )}
+                            
+                            {/* Botón para ver respuestas si el hito tiene respuestas guardadas */}
+                            {(m.status === 'COMPLETED' || m.status === 'IN_PROGRESS') && (
+                              <>
+                                <button
+                                  onClick={() => loadAnswers(m.mp_id)}
+                                  disabled={loadingAnswers}
+                                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-700 bg-sky-50 border border-sky-200 rounded-lg hover:bg-sky-100 hover:border-sky-300 transition-colors disabled:opacity-50"
+                                >
+                                  <span>{loadingAnswers && viewingAnswers === m.mp_id ? 'Cargando...' : 'Ver respuestas'}</span>
+                                </button>
+                                <button
+                                  onClick={loadFiles}
+                                  disabled={loadingFiles}
+                                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 hover:border-emerald-300 transition-colors disabled:opacity-50"
+                                >
+                                  <span>{loadingFiles ? 'Cargando...' : 'Ver archivos'}</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
 
                           {!isBlocked && m.reviewStatus !== 'APPROVED' && (
                             <div className="mt-3 space-y-2">
@@ -452,13 +505,6 @@ export default function ApplicationDetailPage() {
                                       className="btn border-rose-300 text-xs text-rose-700"
                                     >
                                       Rechazar
-                                    </button>
-                                    <button
-                                      onClick={() => reviewMilestone(m.mp_id, 'NEEDS_CHANGES')}
-                                      disabled={saving}
-                                      className="btn border-amber-300 text-xs text-amber-700"
-                                    >
-                                      Solicitar cambios
                                     </button>
                                     <button
                                       onClick={() => {
