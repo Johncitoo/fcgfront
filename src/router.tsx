@@ -54,6 +54,7 @@ const FormSectionEditorPage = lazy(() => import('./pages/admin/FormSectionEditor
 const InstitutionsPage = lazy(() => import('./pages/admin/InstitutionsPage'))
 const MilestoneManagement = lazy(() => import('./pages/admin/MilestoneManagement'))
 const MilestonesManagementPage = lazy(() => import('./pages/admin/MilestonesManagementPage'))
+const UserManagementPage = lazy(() => import('./pages/admin/UserManagementPage'))
 const FormBuilderV2 = lazy(() => import('./pages/admin/FormBuilderV2'))
 const SimpleFormBuilder = lazy(() => import('./pages/admin/SimpleFormBuilder'))
 const FormTemplatesPage = lazy(() => import('./pages/admin/FormTemplatesPage'))
@@ -109,6 +110,7 @@ export const router = createBrowserRouter([
     { path: 'calls/:id', element: <CallDetailPage /> },
     { path: 'invites', element: <InvitesPage /> },
     { path: 'institutions', element: <InstitutionsPage /> },
+    { path: 'user-management', element: <UserManagementPage /> },
     { path: 'applications', element: <ApplicationsListPage /> },
     { path: 'applications/:id', element: <ApplicationDetailPage /> },
     { path: 'milestones', element: <MilestonesManagementPage /> }, // Gestión de hitos/fases

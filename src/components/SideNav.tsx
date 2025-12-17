@@ -65,7 +65,7 @@ export default function SideNav() {
             </Section>
             
             <Section title="Sistema">
-              <Item to="/admin/users" label="Usuarios" disabled />
+              <Item to="/admin/user-management" label="Administradores" />
             </Section>
           </>
         )}
