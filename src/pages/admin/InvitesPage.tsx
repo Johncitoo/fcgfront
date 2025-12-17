@@ -358,7 +358,7 @@ export default function InvitesPage() {
                             </span>
                             {r.sentAt && (
                               <div className="text-xs text-slate-500 mt-1">
-                                {new Date(r.sentAt).toLocaleString()}
+                                {new Date(r.sentAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                               </div>
                             )}
                           </td>
@@ -370,12 +370,12 @@ export default function InvitesPage() {
                             </span>
                             {r.used_at && (
                               <div className="text-xs text-slate-500 mt-1">
-                                {new Date(r.used_at).toLocaleString()}
+                                {new Date(r.used_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                               </div>
                             )}
                           </td>
                           <td className="py-2 !text-slate-700">
-                            {new Date(r.created_at).toLocaleString()}
+                            {new Date(r.created_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </td>
                         </tr>
                       ))}
@@ -402,11 +402,11 @@ export default function InvitesPage() {
                       <div className="mt-1 grid grid-cols-2 gap-2 text-xs !text-slate-700">
                         <div>
                           <div className="!text-slate-600">Usada en</div>
-                          <div>{r.used_at ? new Date(r.used_at).toLocaleString() : '—'}</div>
+                          <div>{r.used_at ? new Date(r.used_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</div>
                         </div>
                         <div>
                           <div className="!text-slate-600">Creada</div>
-                          <div>{new Date(r.created_at).toLocaleString()}</div>
+                          <div>{new Date(r.created_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                         </div>
                       </div>
                     </div>

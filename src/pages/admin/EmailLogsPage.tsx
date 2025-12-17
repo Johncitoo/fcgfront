@@ -199,7 +199,7 @@ export default function EmailLogsPage() {
                     rows.map((r) => (
                       <tr key={r.id} className="border-b last:border-0 align-top">
                         <td className="py-2 pr-3 whitespace-nowrap">
-                          {new Date(r.created_at).toLocaleString()}
+                          {new Date(r.created_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </td>
                         <td className="py-2 pr-3">{r.to_email}</td>
                         <td className="py-2 pr-3">
@@ -298,7 +298,7 @@ export default function EmailLogsPage() {
 
             <div className="px-5 py-4 space-y-3">
               <div className="grid gap-2 sm:grid-cols-2">
-                <Info label="Fecha" value={new Date(detail.created_at).toLocaleString()} />
+                <Info label="Fecha" value={new Date(detail.created_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })} />
                 <Info label="Para" value={detail.to_email} />
                 <Info label="Estado" value={<StatusBadge status={detail.status} />} />
                 <Info label="Plantilla" value={detail.template_code} />

@@ -263,7 +263,7 @@ export default function ApplicationsListPage() {
                         <div>
                           <div className="!text-slate-600">Enviada</div>
                           <div>
-                            {r.submittedAt ? new Date(r.submittedAt).toLocaleString() : '—'}
+                            {r.submittedAt ? new Date(r.submittedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                           </div>
                         </div>
                       </div>

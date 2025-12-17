@@ -396,7 +396,7 @@ export default function ApplicationDetailPage() {
                                   Revisado por: {m.reviewerName || 'Sistema'}
                                 </span>
                                 <span className="text-xs text-slate-500">
-                                  {m.reviewedAt ? new Date(m.reviewedAt).toLocaleString() : '—'}
+                                  {m.reviewedAt ? new Date(m.reviewedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                                 </span>
                               </div>
                               {m.reviewNotes && (
@@ -486,7 +486,7 @@ export default function ApplicationDetailPage() {
                           {isApplicantFill && (
                             <div className="mt-2 text-xs text-slate-600">
                               {m.status === 'COMPLETED' ? (
-                                <span className="text-emerald-700">✓ Completado el {m.completedAt ? new Date(m.completedAt).toLocaleString() : '—'}</span>
+                                <span className="text-emerald-700">✓ Completado el {m.completedAt ? new Date(m.completedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</span>
                               ) : (
                                 <span>Pendiente de completar por el postulante</span>
                               )}
@@ -497,7 +497,7 @@ export default function ApplicationDetailPage() {
                             <div className="mt-3">
                               {m.status === 'COMPLETED' ? (
                                 <div className="text-xs text-emerald-700">
-                                  ✓ Entrevista completada el {m.completedAt ? new Date(m.completedAt).toLocaleString() : '—'}
+                                  ✓ Entrevista completada el {m.completedAt ? new Date(m.completedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                                 </div>
                               ) : canUserComplete ? (
                                 <button
@@ -519,7 +519,7 @@ export default function ApplicationDetailPage() {
                             <div className="mt-3">
                               {m.status === 'COMPLETED' ? (
                                 <div className="text-xs text-emerald-700">
-                                  ✓ Completado el {m.completedAt ? new Date(m.completedAt).toLocaleString() : '—'}
+                                  ✓ Completado el {m.completedAt ? new Date(m.completedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                                 </div>
                               ) : canUserComplete ? (
                                 <button
@@ -552,7 +552,7 @@ export default function ApplicationDetailPage() {
                         <h3 className="text-xl font-semibold text-slate-800">Respuestas del Formulario</h3>
                         {answers && (
                           <p className="text-sm text-slate-600 mt-1">
-                            {answers.formName || 'Formulario'} • Enviado: {answers.submittedAt ? new Date(answers.submittedAt).toLocaleString() : 'No enviado'}
+                            {answers.formName || 'Formulario'} • Enviado: {answers.submittedAt ? new Date(answers.submittedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'No enviado'}
                           </p>
                         )}
                       </div>
@@ -583,7 +583,7 @@ export default function ApplicationDetailPage() {
                             <div>
                               <span className="font-medium text-slate-700">Última actualización:</span>
                               <span className="ml-2 text-slate-900">
-                                {answers.updatedAt ? new Date(answers.updatedAt).toLocaleString() : '—'}
+                                {answers.updatedAt ? new Date(answers.updatedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                               </span>
                             </div>
                           </div>
@@ -790,7 +790,7 @@ export default function ApplicationDetailPage() {
                               <td className="py-2 pr-3"><StatusBadge status={h.toStatus} /></td>
                               <td className="py-2 pr-3">{h.reason || '—'}</td>
                               <td className="py-2 pr-3">{h.changedBy || '—'}</td>
-                              <td className="py-2">{new Date(h.changedAt).toLocaleString()}</td>
+                              <td className="py-2">{new Date(h.changedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -842,7 +842,7 @@ export default function ApplicationDetailPage() {
                   <KV label="Correo" value={app.applicantEmail || '—'} />
                   <KV label="Convocatoria" value={app.callCode || shortId(app.callId)} mono />
                   <KV label="Institución" value={app.institutionName || '—'} />
-                  <KV label="Actualizada" value={app.updatedAt ? new Date(app.updatedAt).toLocaleString() : '—'} />
+                  <KV label="Actualizada" value={app.updatedAt ? new Date(app.updatedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'} />
                 </div>
               </div>
             </aside>
