@@ -54,9 +54,9 @@ export default function ContactHelpModal({ isOpen, onClose }: ContactHelpModalPr
       const selectedSubject = PREDEFINED_SUBJECTS.find(s => s.value === subjectType);
       const finalSubject = subjectType === 'other' 
         ? customSubject 
-        : selectedSubject?.label.replace(/^.+ /, '') || subjectType; // Remover emoji
+        : selectedSubject?.label || subjectType;
 
-      await apiPost('/support-messages/contact', {
+      await apiPost('/public-contact', {
         fullName: fullName.trim(),
         email: email.trim(),
         subject: finalSubject,
