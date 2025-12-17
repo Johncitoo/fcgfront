@@ -1,6 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { authService } from '../lib/auth'
-import { LogOut } from 'lucide-react'
+import { LogOut, Key } from 'lucide-react'
+import { apiPost } from '../lib/api'
+import { useState } from 'react'
 
 /**
  * Barra superior de navegación con branding y botón de logout.
@@ -13,6 +15,7 @@ import { LogOut } from 'lucide-react'
  */
 export default function TopNav() {
   const navigate = useNavigate()
+  const [showPasswordChangeSuccess, setShowPasswordChangeSuccess] = useState(false)
 
   /**
    * Maneja logout con confirmación.
@@ -22,6 +25,17 @@ export default function TopNav() {
     if (confirm('¿Cerrar sesión?')) {
       authService.logout()
       navigate('/auth/login')
+    }
+  }
+
+  const handleRequestPasswordChange = async () => {
+    try {
+      await apiPost('/auth/password-change/request', {})
+      setShowPasswordChangeSuccess(true)
+      setTimeout(() => setShowPasswordChangeSuccess(false), 5000)
+    } catch (err) {
+      console.error('Error al solicitar cambio de contraseña:', err)
+      alert('Error al solicitar cambio de contraseña')
     }
   }
 
@@ -43,6 +57,22 @@ export default function TopNav() {
         </Link>
 
         <div className="ml-auto flex items-center gap-2">
+          {showPasswordChangeSuccess && (
+            <div className="fixed top-20 right-4 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+              ✓ Email enviado. Revisa tu bandeja de entrada.
+            </div>
+          )}
+
+          {/* Botón cambiar contraseña */}
+          <button
+            onClick={handleRequestPasswordChange}
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 transition-colors"
+            title="Cambiar contraseña"
+          >
+            <Key className="h-4 w-4" />
+            <span className="hidden lg:inline">Cambiar contraseña</span>
+          </button>
+
           {/* Botón cerrar sesión */}
           <button
             onClick={handleLogout}

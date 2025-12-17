@@ -55,6 +55,8 @@ const InstitutionsPage = lazy(() => import('./pages/admin/InstitutionsPage'))
 const MilestoneManagement = lazy(() => import('./pages/admin/MilestoneManagement'))
 const MilestonesManagementPage = lazy(() => import('./pages/admin/MilestonesManagementPage'))
 const UserManagementPage = lazy(() => import('./pages/admin/UserManagementPage'))
+const ReviewerManagementPage = lazy(() => import('./pages/admin/ReviewerManagementPage'))
+const ChangePasswordPage = lazy(() => import('./pages/ChangePasswordPage'))
 const FormBuilderV2 = lazy(() => import('./pages/admin/FormBuilderV2'))
 const SimpleFormBuilder = lazy(() => import('./pages/admin/SimpleFormBuilder'))
 const FormTemplatesPage = lazy(() => import('./pages/admin/FormTemplatesPage'))
@@ -86,6 +88,7 @@ export const router = createBrowserRouter([
   { path: '/auth/login', element: <LoginPage /> },
   { path: '/auth/set-password', element: <SetPasswordPage /> },
   { path: '/auth/reset-password', element: <ResetPasswordWithTokenPage /> },
+  { path: '/change-password/:token', element: <ChangePasswordPage /> },
 
   // Public - Vista previa de formulario de convocatoria activa
   { path: '/form', element: <PublicFormPage /> },
@@ -111,6 +114,7 @@ export const router = createBrowserRouter([
     { path: 'invites', element: <InvitesPage /> },
     { path: 'institutions', element: <InstitutionsPage /> },
     { path: 'user-management', element: <UserManagementPage /> },
+    { path: 'reviewer-management', element: <ReviewerManagementPage /> },
     { path: 'applications', element: <ApplicationsListPage /> },
     { path: 'applications/:id', element: <ApplicationDetailPage /> },
     { path: 'milestones', element: <MilestonesManagementPage /> }, // Gestión de hitos/fases

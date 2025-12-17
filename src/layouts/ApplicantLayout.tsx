@@ -18,15 +18,28 @@
 import { Outlet, Link } from 'react-router-dom'
 import { authService } from '../lib/auth'
 import { useNavigate } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
+import { LogOut, Key } from 'lucide-react'
+import { apiPost } from '../lib/api'
+import { useState } from 'react'
 
 export default function ApplicantLayout() {
   const navigate = useNavigate()
   const user = authService.getCurrentUser()
+  const [showPasswordChangeSuccess, setShowPasswordChangeSuccess] = useState(false)
 
   const handleLogout = () => {
     authService.logout()
     navigate('/auth/login', { replace: true })
+  }
+
+  const handleRequestPasswordChange = async () => {
+    try {
+      await apiPost('/auth/password-change/request', {})
+      setShowPasswordChangeSuccess(true)
+      setTimeout(() => setShowPasswordChangeSuccess(false), 5000)
+    } catch (err) {
+      console.error('Error al solicitar cambio de contraseña:', err)
+    }
   }
 
   return (
@@ -58,6 +71,22 @@ export default function ApplicantLayout() {
               </p>
               <p className="text-xs text-slate-500">Postulante</p>
             </div>
+            
+            {showPasswordChangeSuccess && (
+              <div className="fixed top-20 right-4 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+                ✓ Email enviado. Revisa tu bandeja de entrada.
+              </div>
+            )}
+
+            <button
+              onClick={handleRequestPasswordChange}
+              className="flex items-center gap-2 rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-all hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 active:scale-95"
+              title="Cambiar contraseña"
+            >
+              <Key className="h-4 w-4" />
+              <span className="hidden lg:inline">Cambiar contraseña</span>
+            </button>
+            
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 active:scale-95"

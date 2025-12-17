@@ -66,6 +66,7 @@ export default function SideNav() {
             
             <Section title="Sistema">
               <Item to="/admin/user-management" label="Administradores" />
+              <Item to="/admin/reviewer-management" label="Revisores" />
             </Section>
           </>
         )}
