@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { authService } from '../lib/auth'
+import { useCall } from '../contexts/CallContext'
 
 /**
  * Barra lateral de navegación para admin y reviewer.
@@ -14,6 +15,7 @@ import { authService } from '../lib/auth'
 export default function SideNav() {
   const location = useLocation()
   const userRole = authService.getUserRole()
+  const { selectedCall } = useCall()
   
   // Detectar si estamos en rutas de reviewer
   const isReviewerSection = location.pathname.startsWith('/reviewer')
@@ -35,6 +37,9 @@ export default function SideNav() {
           <Item to={`${baseRoute}/calls`} label="Convocatorias" />
           <Item to={`${baseRoute}/invites`} label="Invitaciones" />
           <Item to={`${baseRoute}/applications`} label="Postulaciones" />
+          {isAdmin && selectedCall && (
+            <Item to={`${baseRoute}/calls/${selectedCall.id}/selection`} label="📋 Selección Final" />
+          )}
         </Section>
 
         <Section title="Formularios">

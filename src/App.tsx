@@ -39,6 +39,7 @@ import AuditPage from "./pages/admin/AuditPage";
 import FormSectionEditorPage from "./pages/admin/FormSectionEditorPage";
 import InstitutionsPage from "./pages/admin/InstitutionsPage";
 import MilestoneManagement from "./pages/admin/MilestoneManagement";
+import FinalSelection from "./pages/admin/FinalSelection";
 import SimpleFormBuilder from "./pages/admin/SimpleFormBuilder";
 import FormBuilderV2 from "./pages/admin/FormBuilderV2";
 import MilestoneCreator from "./pages/admin/MilestoneCreator";
@@ -181,6 +182,7 @@ export default function App() {
         <Route path="formularios" element={<SimpleFormBuilder />} />
         <Route path="forms-v2" element={<FormBuilderV2 />} />
         <Route path="calls/:callId/milestones" element={<MilestoneManagement />} />
+        <Route path="calls/:callId/selection" element={<FinalSelection />} />
         <Route path="activacion-convocatorias" element={<CallActivationManager />} />
         <Route path="invite-applicant" element={<InviteApplicant />} />
       </Route>
