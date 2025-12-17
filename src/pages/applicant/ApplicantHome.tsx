@@ -9,6 +9,13 @@ type ApplicationStatus =
   | 'NEEDS_FIX'
   | 'APPROVED'
   | 'REJECTED'
+  | 'NOT_SELECTED'
+  | 'PRESELECTED'
+  | 'FINALIST'
+  | 'SELECTED'
+  | 'NOT_ELIGIBLE'
+  | 'INTERVIEW_SCHEDULED'
+  | 'WITHDRAWN'
 
 interface ApplicantMe {
   id: string
@@ -355,6 +362,41 @@ function ActionButtons({ app }: { app: MyApplication | null }) {
       label: 'Rechazada',
       className: 'badge-error',
       icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    },
+    NOT_SELECTED: {
+      label: 'No Seleccionada',
+      className: 'badge-error',
+      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    },
+    PRESELECTED: {
+      label: 'Preseleccionada',
+      className: 'badge-purple',
+      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+    },
+    FINALIST: {
+      label: 'Finalista',
+      className: 'badge-success',
+      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+    },
+    SELECTED: {
+      label: 'Seleccionada',
+      className: 'badge-success',
+      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    },
+    NOT_ELIGIBLE: {
+      label: 'No Elegible',
+      className: 'badge-neutral',
+      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+    },
+    INTERVIEW_SCHEDULED: {
+      label: 'Entrevista Agendada',
+      className: 'badge-info',
+      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+    },
+    WITHDRAWN: {
+      label: 'Retirada',
+      className: 'badge-neutral',
+      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
     }
   }
 
@@ -378,6 +420,13 @@ function InlineStatus({ status }: { status?: ApplicationStatus | null }) {
     IN_REVIEW: { label: 'En revisión', color: 'text-purple-700' },
     NEEDS_FIX: { label: 'Requiere ajustes', color: 'text-amber-700' },
     APPROVED: { label: 'Aprobada', color: 'text-emerald-700' },
+    NOT_SELECTED: { label: 'No Seleccionada', color: 'text-red-700' },
+    PRESELECTED: { label: 'Preseleccionada', color: 'text-purple-700' },
+    FINALIST: { label: 'Finalista', color: 'text-emerald-700' },
+    SELECTED: { label: 'Seleccionada', color: 'text-emerald-700' },
+    NOT_ELIGIBLE: { label: 'No Elegible', color: 'text-gray-700' },
+    INTERVIEW_SCHEDULED: { label: 'Entrevista Agendada', color: 'text-sky-700' },
+    WITHDRAWN: { label: 'Retirada', color: 'text-gray-700' },
     REJECTED: { label: 'Rechazada', color: 'text-rose-700' },
   }
   
