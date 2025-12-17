@@ -772,7 +772,7 @@ Fundación Carmen Goudie`
       const submissionsResults = await Promise.all(submissionsPromises)
 
       const applicantPromises = applications.map((app: any) =>
-        authFetch(`${API_BASE}/applicants/${app.id}`, { headers })
+        authFetch(`${API_BASE}/applicants/${app.applicantId || app.applicant_id}`, { headers })
           .then(r => r.ok ? r.json() : null)
           .catch(() => null)
       )
