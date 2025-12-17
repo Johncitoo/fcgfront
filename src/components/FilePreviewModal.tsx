@@ -18,10 +18,11 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
 
   const isImage = file.mimetype.startsWith('image/')
   const isPDF = file.mimetype === 'application/pdf'
-  const isPreviewable = isImage || isPDF
+  const isPreviewable = isImage
 
   useEffect(() => {
-    if (!isPreviewable) {
+    // Solo cargar preview para imágenes
+    if (!isImage) {
       setLoading(false)
       return
     }
@@ -54,7 +55,29 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
         URL.revokeObjectURL(previewUrl)
       }
     }
-  }, [file.id, isPreviewable])
+  }, [file.id, isImage])
+
+  const openPDFInNewTab = () => {
+    const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
+    const token = localStorage.getItem('fcg.access_token') ?? ''
+    const url = `${API_BASE}/files/${file.id}/download`
+
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.blob())
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob)
+        window.open(blobUrl, '_blank')
+        // Limpiar después de un tiempo
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
+      })
+      .catch(err => {
+        alert('Error al abrir PDF: ' + err.message)
+      })
+  }
 
   const downloadFile = () => {
     const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
@@ -116,26 +139,34 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
               className="text-2xl text-slate-400 hover:text-slate-700 transition-colors px-2"
             >
               ✕
-            </button>
-          </div>
-        </div>
-
-        {/* Preview Content */}
-        <div className="flex-1 overflow-auto p-6 bg-slate-100">
-          {loading ? (
+            </isPDF ? (
             <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                <p className="text-slate-600">Cargando vista previa...</p>
-              </div>
-            </div>
-          ) : error ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div className="text-center max-w-md">
+                <svg className="w-20 h-20 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <p className="text-red-600 font-medium">{error}</p>
+                <p className="text-slate-800 font-semibold mb-2 text-lg">Archivo PDF</p>
+                <p className="text-slate-600 mb-6">El PDF se abrirá en una nueva pestaña para una mejor visualización.</p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={openPDFInNewTab}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Abrir PDF
+                  </button>
+                  <button
+                    onClick={downloadFile}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Descargar
+                  </button>
+                </div>
               </div>
             </div>
           ) : !isPreviewable ? (
@@ -148,6 +179,22 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                 <button
                   onClick={downloadFile}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Descargar archivo
+                </button>
+              </div>
+            </div>
+          ) : isImage && previewUrl ? (
+            <div className="flex items-center justify-center h-full">
+              <img
+                src={previewUrl}
+                alt={file.originalFilename}
+                className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+              />
+            </div     className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
