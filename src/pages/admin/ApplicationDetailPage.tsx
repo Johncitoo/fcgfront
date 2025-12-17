@@ -4,8 +4,9 @@ import { apiGet, apiPost, apiPatch } from '../../lib/api'
 import { authService } from '../../lib/auth'
 import ReviewerFormModal from '../../components/ReviewerFormModal'
 import FilePreviewModal from '../../components/FilePreviewModal'
+import { selectionService } from '../../lib/selection.service'
 
-type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED'
+type AppStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_FIX' | 'APPROVED' | 'REJECTED' | 'SELECTED' | 'NOT_SELECTED'
 type MilestoneStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED' | 'NEEDS_CHANGES' | 'BLOCKED' | 'SKIPPED'
 type ReviewStatus = 'APPROVED' | 'REJECTED' | 'NEEDS_CHANGES' | 'PENDING_REVIEW'
 
@@ -181,6 +182,30 @@ export default function ApplicationDetailPage() {
       setReviewNotes('')
     } catch (e: any) {
       setActionErr(e.message ?? 'No se pudo revisar el hito')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleFinalDecision(decision: 'SELECTED' | 'NOT_SELECTED') {
+    if (!id || !app?.callId) return
+    
+    setSaving(true)
+    setActionErr(null)
+    setMsg(null)
+    
+    try {
+      await selectionService.setFinalDecision(id, decision)
+      
+      // Recargar la aplicación para ver el estado actualizado
+      const updated = await apiGet<ApplicationDTO>(`/applications/${id}`)
+      setApp(updated)
+      
+      setMsg(decision === 'SELECTED' 
+        ? '✅ Postulante seleccionado para la beca exitosamente.' 
+        : '❌ Postulante marcado como no seleccionado.')
+    } catch (e: any) {
+      setActionErr(e.message ?? 'No se pudo actualizar la decisión final')
     } finally {
       setSaving(false)
     }
@@ -1025,6 +1050,83 @@ export default function ApplicationDetailPage() {
                   <KV label="Actualizada" value={app.updatedAt ? new Date(app.updatedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'} />
                 </div>
               </div>
+
+              {/* Sección de Decisión Final */}
+              {!isReviewerMode && (
+                <div className="card border-2 border-blue-200 bg-blue-50">
+                  <div className="card-body">
+                    <h3 className="mb-3 text-base font-semibold text-blue-900">Decisión Final</h3>
+                    
+                    {app.status === 'SELECTED' && (
+                      <div className="bg-green-100 border border-green-300 rounded-lg p-4">
+                        <div className="flex items-center gap-2 text-green-800 font-semibold mb-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Seleccionado para la beca
+                        </div>
+                        <p className="text-sm text-green-700">Este postulante ha sido seleccionado.</p>
+                        <button
+                          onClick={() => handleFinalDecision('NOT_SELECTED')}
+                          disabled={saving}
+                          className="mt-3 px-4 py-2 bg-white border border-green-300 text-green-700 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors disabled:opacity-50"
+                        >
+                          Revertir decisión
+                        </button>
+                      </div>
+                    )}
+                    
+                    {app.status === 'NOT_SELECTED' && (
+                      <div className="bg-red-100 border border-red-300 rounded-lg p-4">
+                        <div className="flex items-center gap-2 text-red-800 font-semibold mb-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          No seleccionado
+                        </div>
+                        <p className="text-sm text-red-700">Este postulante no fue seleccionado para la beca.</p>
+                        <button
+                          onClick={() => handleFinalDecision('SELECTED')}
+                          disabled={saving}
+                          className="mt-3 px-4 py-2 bg-white border border-red-300 text-red-700 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
+                        >
+                          Revertir decisión
+                        </button>
+                      </div>
+                    )}
+                    
+                    {app.status !== 'SELECTED' && app.status !== 'NOT_SELECTED' && (
+                      <div className="space-y-3">
+                        <p className="text-sm text-blue-800 mb-4">
+                          Una vez revisada toda la información, puedes tomar la decisión final sobre este postulante.
+                        </p>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => handleFinalDecision('SELECTED')}
+                            disabled={saving}
+                            className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Seleccionar para la beca
+                          </button>
+                          <button
+                            onClick={() => handleFinalDecision('NOT_SELECTED')}
+                            disabled={saving}
+                            className="px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            No seleccionar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </aside>
           </div>
         )}
@@ -1108,6 +1210,8 @@ function labelStatus(s?: AppStatus | null) {
     NEEDS_FIX: 'Correcciones',
     APPROVED: 'Aprobada',
     REJECTED: 'Rechazada',
+    SELECTED: 'Seleccionado',
+    NOT_SELECTED: 'No Seleccionado',
   }
   return map[s]
 }
@@ -1120,6 +1224,8 @@ function StatusBadge({ status }: { status: AppStatus }) {
     NEEDS_FIX: 'badge',
     APPROVED: 'badge',
     REJECTED: 'badge',
+    SELECTED: 'badge',
+    NOT_SELECTED: 'badge',
   }
   return <span className={classes[status]}>{labelStatus(status)}</span>
 }

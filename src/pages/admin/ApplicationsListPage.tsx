@@ -210,6 +210,7 @@ export default function ApplicationsListPage() {
                         <th className="py-2 pr-3">Convocatoria</th>
                         <th className="py-2 pr-3">Hito Actual</th>
                         <th className="py-2 pr-3">Estado</th>
+                        <th className="py-2 pr-3">Selección</th>
                         <th className="py-2">Acciones</th>
                       </tr>
                     </thead>
@@ -230,6 +231,23 @@ export default function ApplicationsListPage() {
                           </td>
                           <td className="py-2 pr-3">
                             <OverallStatusBadge status={r.overallStatus} />
+                          </td>
+                          <td className="py-2 pr-3">
+                            {r.status === 'SELECTED' && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                ✓ Seleccionado
+                              </span>
+                            )}
+                            {r.status === 'NOT_SELECTED' && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                ✗ No Seleccionado
+                              </span>
+                            )}
+                            {r.status !== 'SELECTED' && r.status !== 'NOT_SELECTED' && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                — Pendiente
+                              </span>
+                            )}
                           </td>
                           <td className="py-2">
                             <Link to={`${baseRoute}/applications/${r.id}`} className="btn text-xs">
