@@ -4,7 +4,7 @@ import { selectionService, type ApplicantForSelection } from '@/services/selecti
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, AlertCircle, Eye, Mail, Filter } from 'lucide-react';
+import { CheckCircle, XCircle, Filter } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -292,7 +292,7 @@ export default function FinalSelection() {
               <Textarea
                 id="notes"
                 value={decisionNotes}
-                onChange={(e) => setDecisionNotes(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDecisionNotes(e.target.value)}
                 placeholder="Agrega notas para referencia interna..."
                 rows={3}
               />
