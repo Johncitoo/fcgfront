@@ -11,6 +11,7 @@ interface AuditRow {
   created_at: string
   // decorados opcionales
   actor_email?: string | null
+  actor_name?: string | null
 }
 
 interface Paginated<T> {
@@ -83,8 +84,15 @@ export default function AuditPage() {
     <div className="min-h-screen p-4 md:p-6">
       <div className="mx-auto w-full max-w-7xl">
         <header className="mb-6">
-          <h1 className="text-2xl font-semibold">Auditoría</h1>
-          <p className="text-slate-600">Registro inmutable de acciones del sistema.</p>
+          <h1 className="text-2xl font-semibold">Auditoría del Sistema</h1>
+          <p className="text-slate-600">Registro inmutable de todas las acciones realizadas en el sistema.</p>
+          <div className="mt-3 rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm">
+            <p className="font-medium text-blue-900 mb-1">¿Qué es "Actor"?</p>
+            <p className="text-blue-700">
+              El <strong>Actor</strong> es la persona que realizó la acción. Puede ser un administrador, revisor o postulante. 
+              Si aparece "—", significa que fue una acción automática del sistema.
+            </p>
+          </div>
         </header>
 
         {/* Filtros */}
@@ -149,26 +157,41 @@ export default function AuditPage() {
                     {rows.map((r) => (
                       <tr key={r.id} className="border-b last:border-0 align-top">
                         <td className="py-2 pr-3 whitespace-nowrap">
-                          {new Date(r.created_at).toLocaleString()}
+                          {new Date(r.created_at).toLocaleString('es-CL', { 
+                            day: '2-digit',
+                            month: '2-digit', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
                         </td>
                         <td className="py-2 pr-3">
-                          <code className="rounded bg-slate-50 px-1 py-0.5">{r.action}</code>
+                          <code className="rounded bg-slate-50 px-1 py-0.5 text-xs">{translateAction(r.action)}</code>
                           {r.entity_id ? (
-                            <div className="text-xs text-slate-600">
-                              ID:&nbsp;<span className="font-mono">{r.entity_id}</span>
+                            <div className="text-xs text-slate-600 mt-1">
+                              Registro: <span className="font-mono">{r.entity_id.substring(0, 8)}...</span>
                             </div>
                           ) : null}
                         </td>
                         <td className="py-2 pr-3">
-                          <span className="font-medium">{r.entity}</span>
+                          <span className="font-medium">{translateEntity(r.entity)}</span>
                         </td>
                         <td className="py-2 pr-3">
-                          {r.actor_email || r.actor_id || '—'}
+                          {r.actor_email ? (
+                            <div>
+                              <div className="font-medium text-slate-800">{r.actor_name || 'Usuario'}</div>
+                              <div className="text-xs text-slate-600">{r.actor_email}</div>
+                            </div>
+                          ) : r.actor_id ? (
+                            <div className="text-xs text-slate-600 font-mono">{r.actor_id.substring(0, 8)}...</div>
+                          ) : (
+                            <span className="text-slate-400 italic">Sistema automático</span>
+                          )}
                         </td>
                         <td className="py-2">
-                          <pre className="max-w-[38rem] overflow-auto whitespace-pre-wrap break-words rounded bg-slate-50 p-2 text-xs text-slate-700">
+                          <div className="max-w-[38rem] overflow-auto whitespace-pre-wrap break-words rounded bg-slate-50 p-2 text-xs text-slate-700">
                             {formatMeta(r.meta)}
-                          </pre>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -225,9 +248,103 @@ export default function AuditPage() {
   )
 }
 
+// Traduce el nombre de la acción a español
+function translateAction(action: string): string {
+  const actionMap: Record<string, string> = {
+    'USER_LOGIN': 'Inicio de sesión',
+    'LOGIN_SUCCESS': 'Inicio de sesión exitoso',
+    'LOGIN_FAILED': 'Intento de inicio de sesión fallido',
+    'PASSWORD_SET': 'Contraseña establecida',
+    'PASSWORD_CHANGED': 'Contraseña cambiada',
+    'FORM_SUBMITTED': 'Formulario enviado',
+    'APPLICATION_STATUS_CHANGE': 'Cambio de estado',
+    'APPLICATION_STATUS_CHANGED': 'Cambio de estado',
+    'INVITE_VALIDATED_NEW': 'Invitación validada (nuevo)',
+    'INVITE_VALIDATED_EXISTING': 'Invitación validada (existente)',
+    'INVITE_REGENERATED': 'Invitación regenerada',
+    'USER_CREATED': 'Usuario creado',
+    'USER_UPDATED': 'Usuario actualizado',
+    'USER_DELETED': 'Usuario eliminado',
+    'EMAIL_SENT': 'Email enviado',
+    'EMAIL_FAILED': 'Email fallido'
+  }
+  return actionMap[action] || action
+}
+
+// Traduce el nombre de la entidad a español
+function translateEntity(entity: string): string {
+  const entityMap: Record<string, string> = {
+    'user': 'Usuario',
+    'application': 'Postulación',
+    'invite': 'Invitación',
+    'form': 'Formulario',
+    'email': 'Correo electrónico',
+    'call': 'Convocatoria'
+  }
+  return entityMap[entity] || entity
+}
+
+// Función para formatear meta de manera legible
 function formatMeta(m: any) {
   if (!m) return '—'
+  
   try {
+    // Si es un objeto, mostrarlo de forma legible
+    if (typeof m === 'object') {
+      const entries = Object.entries(m)
+      if (entries.length === 0) return '—'
+      
+      return entries.map(([key, value]) => {
+        // Formatear claves comunes de manera amigable
+        let friendlyKey = key
+        if (key === 'from') friendlyKey = 'Estado anterior'
+        if (key === 'to') friendlyKey = 'Estado nuevo'
+        if (key === 'fromStatus') friendlyKey = 'Estado anterior'
+        if (key === 'toStatus') friendlyKey = 'Estado nuevo'
+        if (key === 'role') friendlyKey = 'Rol'
+        if (key === 'ip') friendlyKey = 'Dirección IP'
+        if (key === 'timestamp') friendlyKey = 'Fecha'
+        if (key === 'email') friendlyKey = 'Correo'
+        if (key === 'applicantId') friendlyKey = 'ID Postulante'
+        if (key === 'oldInviteId') friendlyKey = 'Invitación anterior'
+        
+        // Formatear valores
+        let friendlyValue = value
+        if (key === 'timestamp' && typeof value === 'string') {
+          try {
+            friendlyValue = new Date(value).toLocaleString('es-CL')
+          } catch {
+            friendlyValue = value
+          }
+        }
+        
+        // Formatear estados
+        if ((key === 'from' || key === 'to' || key === 'fromStatus' || key === 'toStatus') && typeof value === 'string') {
+          const statusMap: Record<string, string> = {
+            'DRAFT': 'Borrador',
+            'SUBMITTED': 'Enviado',
+            'IN_REVIEW': 'En revisión',
+            'NEEDS_FIX': 'Requiere correcciones',
+            'APPROVED': 'Aprobado',
+            'REJECTED': 'Rechazado'
+          }
+          friendlyValue = statusMap[value] || value
+        }
+        
+        // Formatear roles
+        if (key === 'role' && typeof value === 'string') {
+          const roleMap: Record<string, string> = {
+            'ADMIN': 'Administrador',
+            'REVIEWER': 'Revisor',
+            'APPLICANT': 'Postulante'
+          }
+          friendlyValue = roleMap[value] || value
+        }
+        
+        return `${friendlyKey}: ${friendlyValue}`
+      }).join('\n')
+    }
+    
     return JSON.stringify(m, null, 2)
   } catch {
     return String(m)
