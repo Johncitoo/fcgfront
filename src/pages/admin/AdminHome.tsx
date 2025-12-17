@@ -52,6 +52,26 @@ interface CommuneData {
   count: number
 }
 
+interface RegionData {
+  region: string
+  count: number
+}
+
+interface AgeData {
+  age_range: string
+  count: number
+}
+
+interface ContactCompleteness {
+  total_applicants: number
+  with_email: number
+  with_phone: number
+  with_address: number
+  with_commune: number
+  with_region: number
+  with_birth_date: number
+}
+
 interface TimelineData {
   submission_date: string
   count: number
@@ -91,6 +111,9 @@ export default function AdminHome() {
   const [genderData, setGenderData] = useState<GenderData[]>([])
   const [institutionData, setInstitutionData] = useState<InstitutionData[]>([])
   const [communeData, setCommuneData] = useState<CommuneData[]>([])
+  const [regionData, setRegionData] = useState<RegionData[]>([])
+  const [ageData, setAgeData] = useState<AgeData[]>([])
+  const [contactData, setContactData] = useState<ContactCompleteness | null>(null)
   const [timelineData, setTimelineData] = useState<TimelineData[]>([])
   const [recentApplications, setRecentApplications] = useState<any[]>([])
 
@@ -143,12 +166,15 @@ export default function AdminHome() {
       const headers = { Authorization: `Bearer ${token}` }
 
       // Cargar todas las estadísticas en paralelo
-      const [overviewRes, applicantsCountRes, genderRes, institutionsRes, communesRes, timelineRes, recentAppsRes] = await Promise.all([
+      const [overviewRes, applicantsCountRes, genderRes, institutionsRes, communesRes, regionsRes, ageRes, contactRes, timelineRes, recentAppsRes] = await Promise.all([
         fetch(`${API_BASE}/admin/stats/${callId}/overview`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/applicants-count`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/gender-distribution`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/top-institutions`, { headers }),
-        fetch(`${API_BASE}/admin/stats/${callId}/top-communes`, { headers }),
+        fetch(`${API_BASE}/admin/applicants-stats/${callId}/communes`, { headers }),
+        fetch(`${API_BASE}/admin/applicants-stats/${callId}/regions`, { headers }),
+        fetch(`${API_BASE}/admin/applicants-stats/${callId}/age-distribution`, { headers }),
+        fetch(`${API_BASE}/admin/applicants-stats/${callId}/contact-completeness`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/submission-timeline`, { headers }),
         fetch(`${API_BASE}/admin/applications?limit=5&sortBy=created_at&order=DESC&callId=${callId}`, { headers }),
       ])
@@ -187,6 +213,21 @@ export default function AdminHome() {
       if (communesRes.ok) {
         const communes = await communesRes.json()
         setCommuneData(communes.map((c: any) => ({ commune: c.commune, count: parseInt(c.count) })))
+      }
+
+      if (regionsRes.ok) {
+        const regions = await regionsRes.json()
+        setRegionData(regions.map((r: any) => ({ region: r.region, count: parseInt(r.count) })))
+      }
+
+      if (ageRes.ok) {
+        const ages = await ageRes.json()
+        setAgeData(ages.map((a: any) => ({ age_range: a.age_range, count: parseInt(a.count) })))
+      }
+
+      if (contactRes.ok) {
+        const contact = await contactRes.json()
+        setContactData(contact)
       }
 
       if (timelineRes.ok) {
@@ -466,32 +507,22 @@ export default function AdminHome() {
               <CardHeader className="border-b bg-gradient-to-r from-green-50 to-emerald-50">
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-green-600" />
-                  Top 5 Comunas
+                  Top 10 Comunas
                 </CardTitle>
-                <CardDescription>Distribución geográfica de postulantes</CardDescription>
+                <CardDescription>Distribución geográfica REAL de postulantes</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 {communeData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={communeData as any}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={(entry: any) => `${entry.commune}: ${(entry.percent * 100).toFixed(0)}%`}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="count"
-                      >
-                        {communeData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <div className="space-y-2">
+                    {communeData.map((item, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 rounded hover:bg-slate-50">
+                        <span className="text-sm font-medium text-slate-700">
+                          {index + 1}. {item.commune}
+                        </span>
+                        <span className="text-sm font-bold text-green-600">{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <div className="flex h-[300px] items-center justify-center text-slate-500">
                     <p>No hay datos disponibles</p>
@@ -500,6 +531,88 @@ export default function AdminHome() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Distribución por Edad y Regiones */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card className="animate-slide-up" style={{ animationDelay: '0.85s' }}>
+              <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  Distribución por Edad
+                </CardTitle>
+                <CardDescription>Rangos etarios de postulantes</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                {ageData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={ageData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="age_range" tick={{ fontSize: 12 }} angle={-15} textAnchor="end" height={80} />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="count" fill={COLORS.blue} radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-[300px] items-center justify-center text-slate-500">
+                    <p>No hay datos de edad disponibles</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="animate-slide-up" style={{ animationDelay: '0.9s' }}>
+              <CardHeader className="border-b bg-gradient-to-r from-purple-50 to-pink-50">
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-purple-600" />
+                  Regiones con Más Postulantes
+                </CardTitle>
+                <CardDescription>Distribución por región</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                {regionData.length > 0 ? (
+                  <div className="space-y-2">
+                    {regionData.slice(0, 8).map((item, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 rounded hover:bg-slate-50">
+                        <span className="text-sm font-medium text-slate-700">
+                          {index + 1}. {item.region}
+                        </span>
+                        <span className="text-sm font-bold text-purple-600">{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex h-[300px] items-center justify-center text-slate-500">
+                    <p>No hay datos de regiones disponibles</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Completitud de Datos de Contacto */}
+          {contactData && (
+            <Card className="animate-slide-up" style={{ animationDelay: '0.95s' }}>
+              <CardHeader className="border-b bg-gradient-to-r from-amber-50 to-orange-50">
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-amber-600" />
+                  Completitud de Datos de Contacto
+                </CardTitle>
+                <CardDescription>Porcentaje de postulantes con datos completos</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                  <CompletionCard label="Email" count={contactData.with_email} total={contactData.total_applicants} />
+                  <CompletionCard label="Teléfono" count={contactData.with_phone} total={contactData.total_applicants} />
+                  <CompletionCard label="Dirección" count={contactData.with_address} total={contactData.total_applicants} />
+                  <CompletionCard label="Comuna" count={contactData.with_commune} total={contactData.total_applicants} />
+                  <CompletionCard label="Región" count={contactData.with_region} total={contactData.total_applicants} />
+                  <CompletionCard label="F. Nacimiento" count={contactData.with_birth_date} total={contactData.total_applicants} />
+                  <CompletionCard label="Total" count={contactData.total_applicants} total={contactData.total_applicants} isTotal />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Timeline de Envíos */}
           <div className="grid gap-6 lg:grid-cols-1">
@@ -706,6 +819,34 @@ function StatusBar({ label, count, total, color, icon }: StatusBarProps) {
           <div className="h-full w-full bg-gradient-to-r from-white/30 to-transparent"></div>
         </div>
       </div>
+    </div>
+  )
+}
+
+interface CompletionCardProps {
+  label: string
+  count: number
+  total: number
+  isTotal?: boolean
+}
+
+function CompletionCard({ label, count, total, isTotal = false }: CompletionCardProps) {
+  const percentage = total > 0 ? Math.round((count / total) * 100) : 0
+  const color = isTotal 
+    ? 'text-slate-700' 
+    : percentage >= 80 
+      ? 'text-green-600' 
+      : percentage >= 50 
+        ? 'text-amber-600' 
+        : 'text-rose-600'
+  
+  return (
+    <div className="text-center p-3 rounded-lg border bg-white hover:shadow-md transition-shadow">
+      <p className="text-xs font-semibold text-slate-600 uppercase mb-2">{label}</p>
+      <p className={`text-2xl font-bold ${color}`}>{count}</p>
+      {!isTotal && (
+        <p className="text-xs text-slate-500 mt-1">{percentage}%</p>
+      )}
     </div>
   )
 }
