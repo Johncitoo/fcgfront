@@ -38,7 +38,7 @@ export default function SideNav() {
           <Item to={`${baseRoute}/invites`} label="Invitaciones" />
           <Item to={`${baseRoute}/applications`} label="Postulaciones" />
           {isAdmin && selectedCall && (
-            <Item to={`${baseRoute}/calls/${selectedCall.id}/selection`} label="📋 Selección Final" />
+            <Item to={`${baseRoute}/calls/${selectedCall.id}/selection`} label="Selección Final" />
           )}
         </Section>
 
