@@ -243,6 +243,32 @@ export default function InvitesPage() {
                 Genera códigos y gestiona invitaciones por convocatoria.
               </p>
             </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setCreateOpen(true)}
+                className="btn-secondary"
+              >
+                + Nueva invitación
+              </button>
+              <button
+                onClick={() => setBulkOpen(true)}
+                className="btn-secondary"
+              >
+                📋 Carga masiva
+              </button>
+              {callId && stats && stats.pending > 0 && (
+                <button
+                  onClick={() => setBulkSendOpen(true)}
+                  className="btn-primary flex items-center gap-2"
+                  title={`Enviar ${stats.pending} invitaciones pendientes por email`}
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Enviar invitaciones ({stats.pending})
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Panel de estadísticas (solo si hay convocatoria seleccionada) */}
