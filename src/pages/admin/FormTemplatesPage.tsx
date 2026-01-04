@@ -197,7 +197,7 @@ export default function FormTemplatesPage() {
                 Crea tu primera plantilla para reutilizar formularios comunes
               </p>
               <Link
-                to="/admin/formularios?template=true"
+                to="/admin/forms?template=true"
                 state={{ isTemplate: true }}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700"
               >
@@ -281,7 +281,7 @@ export default function FormTemplatesPage() {
                             </button>
                             
                             <Link
-                              to={`/admin/formularios?templateId=${template.id}`}
+                              to={`/admin/forms?template=true&templateId=${template.id}`}
                               state={{ templateId: template.id, isTemplate: true }}
                               className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
                               title="Editar plantilla"
@@ -394,7 +394,7 @@ export default function FormTemplatesPage() {
                 Cerrar
               </button>
               <Link
-                to={`/admin/formularios?templateId=${previewTemplate.id}`}
+                to={`/admin/forms?template=true&templateId=${previewTemplate.id}`}
                 state={{ templateId: previewTemplate.id, isTemplate: true }}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-md hover:bg-sky-700"
               >
