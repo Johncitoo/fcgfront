@@ -137,7 +137,7 @@ export default function FormTemplatesPage() {
             </div>
 
             <Link
-              to="/admin/formularios?template=true"
+              to="/admin/forms?template=true"
               state={{ isTemplate: true }}
               className="flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700 transition-colors"
             >
