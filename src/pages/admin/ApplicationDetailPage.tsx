@@ -294,7 +294,7 @@ export default function ApplicationDetailPage() {
     
     try {
       // Obtener metadatos del archivo
-      const response = await fetch(`${API_BASE}/files/${fileId}`, {
+      const response = await fetch(`${API_BASE}/files/${fileId}/metadata`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -1336,7 +1336,7 @@ function FileReadOnlyView({ fileId }: { fileId: string }) {
   useEffect(() => {
     if (!fileId) return
     
-    fetch(`${API_BASE}/files/${fileId}`, {
+    fetch(`${API_BASE}/files/${fileId}/metadata`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
