@@ -87,10 +87,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
         }
       }
       
-      // Limpiar selección previa para forzar selección de la activa
-      setSelectedCall(null)
-      localStorage.removeItem('selectedCallId')
-      console.log('[CallContext] refreshCalls - localStorage limpiado')
+      // NO limpiar selección durante refresh - solo al logout o si la convocatoria ya no existe
+      // Esto evita que el usuario vea "sin convocatoria" mientras carga
+      console.log('[CallContext] refreshCalls - cargando convocatorias...')
       
       // Cargar TODAS las convocatorias, no solo las activas
       const res = await fetch(`${API_BASE}/calls?limit=100&onlyActive=false`, {
@@ -162,7 +161,20 @@ export function CallProvider({ children }: { children: ReactNode }) {
     // Solo intentar cargar convocatorias si hay token
     const token = localStorage.getItem('fcg.access_token')
     if (token) {
-      refreshCalls()
+      // Verificar si hay una selección guardada en localStorage
+      const savedCallId = localStorage.getItem('selectedCallId')
+      console.log('[CallContext] Init - savedCallId:', savedCallId)
+      
+      refreshCalls().then(() => {
+        // Si hay un callId guardado y se cargaron convocatorias, intentar seleccionarlo
+        if (savedCallId) {
+          const savedCall = calls.find(c => c.id === savedCallId)
+          if (savedCall) {
+            setSelectedCall(savedCall)
+            console.log('[CallContext] Restaurada selección:', savedCall.name)
+          }
+        }
+      })
     } else {
       setLoading(false)
       console.log('[CallContext] Esperando autenticación para cargar convocatorias')
