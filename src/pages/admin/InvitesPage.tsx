@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { apiGet, apiPost } from '../../lib/api'
 import BulkInviteModal from '../../components/admin/BulkInviteModal'
 import { Mail, Send, Upload, UserPlus } from 'lucide-react'
+import { useCall } from '../../contexts/CallContext'
 
 interface CallOption {
   id: string
@@ -51,6 +52,7 @@ function generateInviteCode(): string {
 }
 
 export default function InvitesPage() {
+  const { selectedCallId, selectedCall, calls: ctxCalls } = useCall()
   const [sp, setSp] = useSearchParams()
   const callIdFromQuery = sp.get('callId') ?? ''
 
@@ -90,19 +92,24 @@ export default function InvitesPage() {
   const deps = useMemo(() => ({ q, callId, limit, offset }), [q, callId, limit, offset])
 
   useEffect(() => {
-    // cargar opciones de convocatorias para filtros/select
-    ;(async () => {
-      try {
-        const res = await apiGet<ListResponse<CallOption> | CallOption[]>('/calls?limit=200')
-        const list = Array.isArray(res) ? res : res.data ?? []
-        // ordenar por fecha inicio desc si hay
-        list.sort((a: CallOption, b: CallOption) => (a.start_date < b.start_date ? 1 : -1))
-        setCalls(list)
-      } catch {
-        setCalls([])
-      }
-    })()
-  }, [])
+    // usar convocatorias del contexto y filtrar solo activas
+    const active = ctxCalls.filter((c) => c.status === 'OPEN') as CallOption[]
+    const list = active.length > 0 ? active : (ctxCalls as CallOption[])
+    list.sort((a: CallOption, b: CallOption) => (a.start_date < b.start_date ? 1 : -1))
+    setCalls(list)
+  }, [ctxCalls])
+
+  useEffect(() => {
+    if (selectedCallId && callId !== selectedCallId) {
+      setCallId(selectedCallId)
+    }
+    if (selectedCallId && createForm.call_id !== selectedCallId) {
+      setCreateForm((s) => ({ ...s, call_id: selectedCallId }))
+    }
+    if (selectedCallId && bulkCallId !== selectedCallId) {
+      setBulkCallId(selectedCallId)
+    }
+  }, [selectedCallId])
 
   useEffect(() => {
     load()
@@ -123,11 +130,16 @@ export default function InvitesPage() {
     try {
       setLoading(true)
       setError(null)
+      if (!callId) {
+        setRows([])
+        setTotal(0)
+        return
+      }
       const params = new URLSearchParams()
       params.set('limit', String(limit))
       params.set('offset', String(offset))
       if (q.trim()) params.set('q', q.trim())
-      if (callId.trim()) params.set('callId', callId.trim())
+      params.set('callId', callId.trim())
 
       const res = await apiGet<ListResponse<InviteRow> | InviteRow[]>(
         `/invites?${params.toString()}`,
@@ -161,6 +173,7 @@ export default function InvitesPage() {
 
   function applyFilters() {
     setOffset(0)
+    if (!callId) return
     // reflejar callId en la URL para deep-link
     const n = new URLSearchParams(sp)
     if (callId) n.set('callId', callId)
@@ -318,7 +331,6 @@ export default function InvitesPage() {
               onChange={(e) => setCallId(e.target.value)}
               className="rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-medium hover:border-slate-300 transition-colors focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
             >
-              <option value="">Todas las convocatorias</option>
               {calls.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name} ({c.year})
@@ -552,7 +564,6 @@ export default function InvitesPage() {
                   onChange={(e) => setCreateForm((s) => ({ ...s, call_id: e.target.value }))}
                   className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-medium hover:border-slate-300 transition-colors focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
                 >
-                  <option value="">Selecciona</option>
                   {calls.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.year})
@@ -612,7 +623,6 @@ export default function InvitesPage() {
                   onChange={(e) => setBulkCallId(e.target.value)}
                   className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-medium hover:border-slate-300 transition-colors focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
                 >
-                  <option value="">Selecciona</option>
                   {calls.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.year})
