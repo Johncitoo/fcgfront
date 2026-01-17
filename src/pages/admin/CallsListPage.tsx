@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { apiGet, apiPost, apiPatch } from '../../lib/api'
-import { Calendar, Clock } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { useCallContext } from '../../contexts/CallContext'
 
 interface CallRow {
