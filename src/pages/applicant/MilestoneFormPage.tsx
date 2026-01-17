@@ -89,6 +89,7 @@ export default function MilestoneFormPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [showSuccessNotification, setShowSuccessNotification] = useState(false)
   const [previewingFile, setPreviewingFile] = useState<any | null>(null)
+  const [isEditable, setIsEditable] = useState(true)
 
   const token = localStorage.getItem('fcg.access_token') ?? ''
   const headers = useMemo(
@@ -101,7 +102,7 @@ export default function MilestoneFormPage() {
 
   // Auto-guardar cuando cambian los valores (con debounce)
   useEffect(() => {
-    if (isReadOnly || !milestone || !applicationId) return
+    if (isReadOnly || !isEditable || !milestone || !applicationId) return
     
     const timeoutId = setTimeout(() => {
       // Auto-guardar después de 2 segundos de inactividad
@@ -189,6 +190,23 @@ export default function MilestoneFormPage() {
         }
       }
       
+      // Determinar si este es el hito actual editable
+      const sortedProgress = [...progressData.progress].sort(
+        (a: any, b: any) => a.orderIndex - b.orderIndex,
+      )
+      const inProgress = sortedProgress.find((m: any) => m.status === 'IN_PROGRESS')
+      const firstPending = sortedProgress.find((m: any) => m.status === 'PENDING')
+      const currentEditable = inProgress || firstPending || null
+      const isCurrentEditable = !currentEditable || currentEditable.mp_id === milestoneProgressId
+      const isBlockedStatus = currentMilestone.status === 'BLOCKED' || currentMilestone.status === 'REJECTED'
+      const isActiveMilestone = currentMilestone.milestoneStatus === 'ACTIVE'
+
+      const canEdit = isCurrentEditable && isActiveMilestone && !isBlockedStatus
+      setIsEditable(canEdit)
+      if (!canEdit && !isReadOnly) {
+        setError('Este hito no está disponible. Solo puedes completar el hito actual.')
+      }
+
       setMilestone(currentMilestone)
 
       // 2. Cargar esquema del formulario
@@ -313,7 +331,7 @@ export default function MilestoneFormPage() {
   }
 
   async function onSaveDraft() {
-    if (!milestoneProgressId || !applicationId || !milestone) return
+    if (!milestoneProgressId || !applicationId || !milestone || !isEditable) return
     setSaving(true)
     setError(null)
     
@@ -352,6 +370,10 @@ export default function MilestoneFormPage() {
   }
 
   function onSubmit() {
+    if (!isEditable) {
+      setError('Este hito no está disponible. Solo puedes completar el hito actual.')
+      return
+    }
     // Prevenir múltiples envíos
     if (submitting) {
       console.warn('[MilestoneForm] Envío ya en progreso, ignorando...')

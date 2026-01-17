@@ -7,7 +7,7 @@ interface Milestone {
   milestoneId: string // milestone_id
   milestoneName: string
   orderIndex: number
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED'
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED' | 'BLOCKED'
   whoCanFill: string | string[]
   milestoneStatus: 'ACTIVE' | 'PENDING'
   required: boolean
@@ -101,6 +101,7 @@ export default function MilestoneProgress({ applicationId }: Props) {
   if (!data) return null
 
   const { progress, summary } = data
+  const currentMilestoneId = summary.currentMilestone?.mp_id ?? null
 
   return (
     <div className="card">
@@ -157,6 +158,7 @@ export default function MilestoneProgress({ applicationId }: Props) {
               key={milestone.mp_id}
               milestone={milestone}
               applicationId={applicationId}
+              currentMilestoneId={currentMilestoneId}
             />
           ))}
         </div>
@@ -191,11 +193,21 @@ export default function MilestoneProgress({ applicationId }: Props) {
  * @param milestone - Datos del hito
  * @param applicationId - UUID de la aplicación
  */
-function MilestoneCard({ milestone, applicationId }: { milestone: Milestone; applicationId: string }) {
+function MilestoneCard({
+  milestone,
+  applicationId,
+  currentMilestoneId,
+}: {
+  milestone: Milestone;
+  applicationId: string;
+  currentMilestoneId: string | null;
+}) {
   const isCompleted = milestone.status === 'COMPLETED'
   const isInProgress = milestone.status === 'IN_PROGRESS'
   const isPending = milestone.status === 'PENDING'
   const isRejected = milestone.status === 'REJECTED'
+  const isBlocked = milestone.status === 'BLOCKED'
+  const isCurrentMilestone = currentMilestoneId === milestone.mp_id
   
   // whoCanFill puede ser string o array
   const whoCanFillArray = Array.isArray(milestone.whoCanFill) ? milestone.whoCanFill : [milestone.whoCanFill]
@@ -235,7 +247,7 @@ function MilestoneCard({ milestone, applicationId }: { milestone: Milestone; app
     )
     cardBorderClass = 'border-emerald-200 bg-emerald-50/30'
     iconBgClass = 'bg-emerald-600'
-  } else if (isInProgress) {
+  } else if (isInProgress && isCurrentMilestone) {
     statusBadge = (
       <span className="badge badge-info animate-pulse">
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -246,7 +258,7 @@ function MilestoneCard({ milestone, applicationId }: { milestone: Milestone; app
     )
     cardBorderClass = 'border-sky-200 bg-sky-50/30'
     iconBgClass = 'bg-sky-600 animate-pulse'
-  } else if (isPending && isMilestoneActive && isApplicantTask) {
+  } else if (isPending && isMilestoneActive && isApplicantTask && isCurrentMilestone) {
     statusBadge = (
       <span className="badge badge-warn">
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -257,7 +269,7 @@ function MilestoneCard({ milestone, applicationId }: { milestone: Milestone; app
     )
     cardBorderClass = 'border-amber-200 bg-amber-50/30'
     iconBgClass = 'bg-amber-600'
-  } else if (isPending && isMilestoneActive && isReviewerTask) {
+  } else if (isPending && isMilestoneActive && isReviewerTask && isCurrentMilestone) {
     statusBadge = (
       <span className="badge badge-purple">
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -364,7 +376,7 @@ function MilestoneCard({ milestone, applicationId }: { milestone: Milestone; app
                   </svg>
                   Ver respuestas
                 </Link>
-              ) : (isPending || isInProgress) && isMilestoneActive ? (
+              ) : (isPending || isInProgress) && isMilestoneActive && isCurrentMilestone ? (
                 <Link
                   to={`/applicant/milestone/${milestone.mp_id}?app=${applicationId}`}
                   className={`btn btn-sm ${isInProgress ? 'btn-info' : 'btn-primary'} w-full sm:w-auto`}
@@ -409,7 +421,7 @@ function MilestoneCard({ milestone, applicationId }: { milestone: Milestone; app
             </div>
           )}
 
-          {isPending && isMilestoneActive && isApplicantTask && !isRejected && (
+          {isPending && isMilestoneActive && isApplicantTask && !isRejected && isCurrentMilestone && (
             <div className="mt-3 p-3 bg-sky-50 border border-sky-100 rounded-lg">
               <p className="text-sm text-sky-800">
                 <svg className="w-4 h-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
