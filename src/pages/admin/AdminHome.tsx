@@ -257,17 +257,19 @@ export default function AdminHome() {
 
   if (!activeCall) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
-        <Card className="border-amber-200 bg-amber-50 p-6">
-          <div className="flex items-center gap-4">
-            <div className="rounded-full bg-amber-100 p-3">
-              <AlertCircle className="h-6 w-6 text-amber-600" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="max-w-md w-full border-0 bg-gradient-to-br from-amber-50 to-orange-50 shadow-xl shadow-amber-500/10">
+          <CardContent className="p-8">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                <AlertCircle className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-amber-900">Sin convocatoria</h3>
+                <p className="text-sm text-amber-700 mt-2">No hay una convocatoria activa seleccionada. Selecciona una en el menú superior.</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-amber-900">Sin convocatoria</h3>
-              <p className="text-sm text-amber-700">No hay una convocatoria activa seleccionada</p>
-            </div>
-          </div>
+          </CardContent>
         </Card>
       </div>
     )
@@ -275,12 +277,20 @@ export default function AdminHome() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
-        <Card className="p-12">
-          <div className="flex flex-col items-center gap-4">
-            <Activity className="h-12 w-12 animate-spin text-sky-600" />
-            <p className="mt-4 text-lg font-semibold text-slate-700">Cargando estadísticas...</p>
-          </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="max-w-md w-full border-0 shadow-xl">
+          <CardContent className="p-12">
+            <div className="flex flex-col items-center gap-6">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-sky-400 to-sky-600 animate-pulse"></div>
+                <Activity className="h-8 w-8 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin" />
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-semibold text-slate-700">Cargando estadísticas...</p>
+                <p className="text-sm text-slate-500 mt-1">Esto tomará solo un momento</p>
+              </div>
+            </div>
+          </CardContent>
         </Card>
       </div>
     )
@@ -288,36 +298,41 @@ export default function AdminHome() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
-        <Card className="border-rose-200 bg-rose-50 p-6">
-          <div className="flex items-center gap-4">
-            <div className="rounded-full bg-rose-100 p-3">
-              <AlertCircle className="h-6 w-6 text-rose-600" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="max-w-md w-full border-0 bg-gradient-to-br from-rose-50 to-red-50 shadow-xl shadow-rose-500/10">
+          <CardContent className="p-8">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-400 to-red-500 flex items-center justify-center shadow-lg shadow-rose-500/30">
+                <AlertCircle className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-rose-900">Error al cargar</h3>
+                <p className="text-sm text-rose-700 mt-2">{error}</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-rose-900">Error al cargar</h3>
-              <p className="text-sm text-rose-700">{error}</p>
-            </div>
-          </div>
+          </CardContent>
         </Card>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
+    <div className="space-y-6 lg:space-y-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-900 to-sky-700 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-900 via-slate-700 to-sky-700 bg-clip-text text-transparent">
                 Panel de Control
               </h1>
-              <p className="mt-1 text-slate-600">Dashboard administrativo - {activeCall.name}</p>
+              <p className="mt-2 text-slate-500 flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Dashboard administrativo • {activeCall.name}
+              </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge className="gap-1.5 bg-green-100 text-green-700 border-green-300">
-                <Activity className="h-3 w-3 animate-pulse" />
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge className="gap-2 px-4 py-2 bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm">
+                <Activity className="h-3.5 w-3.5 animate-pulse" />
                 Convocatoria Activa
               </Badge>
             </div>
@@ -327,81 +342,85 @@ export default function AdminHome() {
         <div className="space-y-6">
           {/* 4 Tarjetas de Métricas Principales */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
-            <Card className="border-l-4 border-l-blue-500 hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: '0.1s' }}>
-              <CardHeader className="pb-3">
-                <CardDescription className="uppercase text-xs font-semibold tracking-wide">Total Postulantes</CardDescription>
+            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 animate-slide-up group" style={{ animationDelay: '0.1s' }}>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+              <CardHeader className="pb-2">
+                <CardDescription className="uppercase text-xs font-semibold tracking-wide text-blue-100">Total Postulantes</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-3xl font-bold text-slate-900">{applicantCount}</div>
-                    <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
+                    <div className="text-4xl font-bold">{applicantCount}</div>
+                    <p className="text-sm text-blue-100 mt-1 flex items-center gap-1">
                       <ArrowUpRight className="h-3 w-3" />
                       Registrados
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-blue-600" />
+                  <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Users className="h-7 w-7 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-purple-500 hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <CardHeader className="pb-3">
-                <CardDescription className="uppercase text-xs font-semibold tracking-wide">Postulaciones</CardDescription>
+            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 animate-slide-up group" style={{ animationDelay: '0.2s' }}>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+              <CardHeader className="pb-2">
+                <CardDescription className="uppercase text-xs font-semibold tracking-wide text-purple-100">Postulaciones</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-3xl font-bold text-slate-900">{appStats.total}</div>
-                    <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
+                    <div className="text-4xl font-bold">{appStats.total}</div>
+                    <p className="text-sm text-purple-100 mt-1 flex items-center gap-1">
                       <ArrowUpRight className="h-3 w-3" />
                       Total enviadas
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-purple-600" />
+                  <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <FileText className="h-7 w-7 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-amber-500 hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: '0.3s' }}>
-              <CardHeader className="pb-3">
-                <CardDescription className="uppercase text-xs font-semibold tracking-wide">Pendientes de Revisión</CardDescription>
+            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300 animate-slide-up group" style={{ animationDelay: '0.3s' }}>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+              <CardHeader className="pb-2">
+                <CardDescription className="uppercase text-xs font-semibold tracking-wide text-amber-100">Pendientes de Revisión</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-3xl font-bold text-slate-900">{appStats.in_review}</div>
-                    <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
+                    <div className="text-4xl font-bold">{appStats.in_review}</div>
+                    <p className="text-sm text-amber-100 mt-1 flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       En proceso
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
-                    <Clock className="h-6 w-6 text-amber-600" />
+                  <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Clock className="h-7 w-7 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-green-500 hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: '0.4s' }}>
-              <CardHeader className="pb-3">
-                <CardDescription className="uppercase text-xs font-semibold tracking-wide">Becas Aprobadas</CardDescription>
+            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 animate-slide-up group" style={{ animationDelay: '0.4s' }}>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+              <CardHeader className="pb-2">
+                <CardDescription className="uppercase text-xs font-semibold tracking-wide text-emerald-100">Becas Aprobadas</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-3xl font-bold text-slate-900">{appStats.approved}</div>
-                    <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
+                    <div className="text-4xl font-bold">{appStats.approved}</div>
+                    <p className="text-sm text-emerald-100 mt-1 flex items-center gap-1">
                       <CheckCircle2 className="h-3 w-3" />
                       Becas otorgadas
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle2 className="h-6 w-6 text-green-600" />
+                  <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <CheckCircle2 className="h-7 w-7 text-white" />
                   </div>
                 </div>
               </CardContent>
@@ -415,30 +434,34 @@ export default function AdminHome() {
 
           {/* Distribución por Estado y Top Instituciones */}
           <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="animate-slide-up" style={{ animationDelay: '0.5s' }}>
-              <CardHeader className="border-b bg-slate-50/50">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow animate-slide-up" style={{ animationDelay: '0.5s' }}>
+              <CardHeader className="border-b bg-gradient-to-r from-slate-50 to-sky-50/50">
                 <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-sky-600" />
+                  <div className="p-2 rounded-lg bg-sky-100">
+                    <BarChart3 className="h-5 w-5 text-sky-600" />
+                  </div>
                   Distribución por Estado
                 </CardTitle>
                 <CardDescription>Estado actual de las postulaciones</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="space-y-5">
-                  <StatusBar label="Borrador" count={appStats.draft} total={appStats.total} color="bg-slate-400" />
-                  <StatusBar label="Enviadas" count={appStats.submitted} total={appStats.total} color="bg-blue-500" />
-                  <StatusBar label="En Revisión" count={appStats.in_review} total={appStats.total} color="bg-purple-500" />
-                  <StatusBar label="Requiere Correcciones" count={appStats.needs_fix} total={appStats.total} color="bg-amber-500" />
-                  <StatusBar label="Aprobadas" count={appStats.approved} total={appStats.total} color="bg-green-500" />
-                  <StatusBar label="Rechazadas" count={appStats.rejected} total={appStats.total} color="bg-rose-500" />
+                <div className="space-y-4">
+                  <StatusBar label="Borrador" count={appStats.draft} total={appStats.total} color="bg-gradient-to-r from-slate-400 to-slate-500" />
+                  <StatusBar label="Enviadas" count={appStats.submitted} total={appStats.total} color="bg-gradient-to-r from-blue-400 to-blue-600" />
+                  <StatusBar label="En Revisión" count={appStats.in_review} total={appStats.total} color="bg-gradient-to-r from-purple-400 to-purple-600" />
+                  <StatusBar label="Requiere Correcciones" count={appStats.needs_fix} total={appStats.total} color="bg-gradient-to-r from-amber-400 to-amber-600" />
+                  <StatusBar label="Aprobadas" count={appStats.approved} total={appStats.total} color="bg-gradient-to-r from-emerald-400 to-emerald-600" />
+                  <StatusBar label="Rechazadas" count={appStats.rejected} total={appStats.total} color="bg-gradient-to-r from-rose-400 to-rose-600" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="animate-slide-up" style={{ animationDelay: '0.6s' }}>
-              <CardHeader className="border-b bg-slate-50/50">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow animate-slide-up" style={{ animationDelay: '0.6s' }}>
+              <CardHeader className="border-b bg-gradient-to-r from-slate-50 to-blue-50/50">
                 <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-sky-600" />
+                  <div className="p-2 rounded-lg bg-blue-100">
+                    <Building2 className="h-5 w-5 text-blue-600" />
+                  </div>
                   Top 5 Instituciones
                 </CardTitle>
                 <CardDescription>Colegios con más postulantes</CardDescription>
@@ -447,16 +470,25 @@ export default function AdminHome() {
                 {institutionData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={institutionData} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis type="number" />
-                      <YAxis dataKey="institution_name" type="category" width={150} tick={{ fontSize: 12 }} />
-                      <Tooltip />
-                      <Bar dataKey="count" fill={COLORS.blue} radius={[0, 8, 8, 0]} />
+                      <YAxis dataKey="institution_name" type="category" width={150} tick={{ fontSize: 11, fill: '#64748b' }} />
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                      <Bar dataKey="count" fill="url(#blueGradient)" radius={[0, 8, 8, 0]} />
+                      <defs>
+                        <linearGradient id="blueGradient" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#3b82f6" />
+                          <stop offset="100%" stopColor="#6366f1" />
+                        </linearGradient>
+                      </defs>
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex h-[300px] items-center justify-center text-slate-500">
-                    <p>No hay datos disponibles</p>
+                  <div className="flex h-[300px] items-center justify-center text-slate-400">
+                    <div className="text-center">
+                      <Building2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p>No hay datos disponibles</p>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -798,25 +830,27 @@ interface StatusBarProps {
 function StatusBar({ label, count, total, color, icon }: StatusBarProps) {
   const pct = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0'
   return (
-    <div className="group hover:bg-slate-50 p-3 rounded-lg transition-colors">
-      <div className="mb-2 flex items-center justify-between">
+    <div className="group hover:bg-slate-50/80 p-3 rounded-xl transition-all duration-200 hover:shadow-sm">
+      <div className="mb-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {icon && <span className="text-lg">{icon}</span>}
-          <span className="font-semibold text-slate-900 group-hover:text-sky-700 transition-colors">
+          <span className="font-medium text-slate-700 group-hover:text-slate-900 transition-colors">
             {label}
           </span>
         </div>
-        <div className="flex items-baseline gap-1">
-          <span className="text-lg font-bold text-slate-900">{count}</span>
-          <span className="text-xs text-slate-500">({pct}%)</span>
+        <div className="flex items-baseline gap-2">
+          <span className="text-xl font-bold text-slate-900">{count}</span>
+          <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+            {pct}%
+          </span>
         </div>
       </div>
-      <div className="relative h-3 overflow-hidden rounded-full bg-slate-200 shadow-inner">
+      <div className="relative h-2.5 overflow-hidden rounded-full bg-slate-100">
         <div
-          className={`h-full ${color} transition-all duration-700 ease-out shadow-sm`}
+          className={`h-full ${color} transition-all duration-1000 ease-out`}
           style={{ width: `${pct}%` }}
         >
-          <div className="h-full w-full bg-gradient-to-r from-white/30 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent"></div>
         </div>
       </div>
     </div>
@@ -832,20 +866,32 @@ interface CompletionCardProps {
 
 function CompletionCard({ label, count, total, isTotal = false }: CompletionCardProps) {
   const percentage = total > 0 ? Math.round((count / total) * 100) : 0
-  const color = isTotal 
+  const bgColor = isTotal 
+    ? 'bg-gradient-to-br from-slate-50 to-slate-100' 
+    : percentage >= 80 
+      ? 'bg-gradient-to-br from-emerald-50 to-green-50' 
+      : percentage >= 50 
+        ? 'bg-gradient-to-br from-amber-50 to-orange-50' 
+        : 'bg-gradient-to-br from-rose-50 to-red-50'
+  const textColor = isTotal 
     ? 'text-slate-700' 
     : percentage >= 80 
-      ? 'text-green-600' 
+      ? 'text-emerald-600' 
       : percentage >= 50 
         ? 'text-amber-600' 
         : 'text-rose-600'
   
   return (
-    <div className="text-center p-3 rounded-lg border bg-white hover:shadow-md transition-shadow">
-      <p className="text-xs font-semibold text-slate-600 uppercase mb-2">{label}</p>
-      <p className={`text-2xl font-bold ${color}`}>{count}</p>
+    <div className={`text-center p-4 rounded-xl border border-white/50 ${bgColor} hover:shadow-lg transition-all duration-200 group`}>
+      <p className="text-xs font-semibold text-slate-500 uppercase mb-2 group-hover:text-slate-700 transition-colors">{label}</p>
+      <p className={`text-2xl font-bold ${textColor}`}>{count}</p>
       {!isTotal && (
-        <p className="text-xs text-slate-500 mt-1">{percentage}%</p>
+        <div className="mt-2">
+          <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
+            <div className={`h-full ${percentage >= 80 ? 'bg-emerald-500' : percentage >= 50 ? 'bg-amber-500' : 'bg-rose-500'} transition-all duration-500`} style={{ width: `${percentage}%` }}></div>
+          </div>
+          <p className="text-xs text-slate-400 mt-1">{percentage}%</p>
+        </div>
       )}
     </div>
   )

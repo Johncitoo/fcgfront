@@ -1,75 +1,100 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { authService } from '../lib/auth'
+import {
+  Home,
+  Users,
+  Building2,
+  Calendar,
+  Mail,
+  FileText,
+  Settings,
+  Milestone,
+  ClipboardList,
+  Send,
+  LayoutTemplate,
+  History,
+  Activity,
+  UserCog,
+  UserCheck,
+  ChevronRight
+} from 'lucide-react'
 
 /**
  * Barra lateral de navegación para admin y reviewer.
- * Menús organizados en secciones: Panel, Gestión, Formularios, Comunicaciones, Monitoreo, Sistema.
- * Adapta rutas base según si está en /admin o /reviewer.
- * Opciones de Comunicaciones y Sistema solo visibles para ADMIN.
- * Oculta en mobile (responsive con md:block).
- * 
- * @example
- * <SideNav /> // En layout de admin/reviewer
+ * Diseño moderno con íconos y efectos de hover elegantes.
  */
 export default function SideNav() {
   const location = useLocation()
   const userRole = authService.getUserRole()
   
-  // Detectar si estamos en rutas de reviewer
   const isReviewerSection = location.pathname.startsWith('/reviewer')
   const baseRoute = isReviewerSection ? '/reviewer' : '/admin'
-  
-  // Solo mostrar gestión de usuarios si es ADMIN
   const isAdmin = userRole === 'ADMIN'
 
   return (
-    <aside className="hidden border-r bg-white md:block">
-      <div className="sticky top-14 h-[calc(100vh-3.5rem)] w-64 overflow-y-auto px-3 py-3">
-        <Section title="Panel">
-          <Item to={baseRoute} label="Inicio" />
-        </Section>
-
-        <Section title="Gestión">
-          <Item to={`${baseRoute}/applicants`} label="Postulantes" />
-          <Item to={`${baseRoute}/institutions`} label="Escuelas/Colegios" />
-          <Item to={`${baseRoute}/calls`} label="Convocatorias" />
-          <Item to={`${baseRoute}/invites`} label="Invitaciones" />
-          <Item to={`${baseRoute}/applications`} label="Postulaciones" />
-        </Section>
-
-        <Section title="Formularios">
-          <Item to={`${baseRoute}/milestones`} label="Configurar Hitos" />
-          <Item to={`${baseRoute}/forms-builder`} label="Diseñar Formularios" />
-          <Item to={`${baseRoute}/form-templates`} label="Plantillas" />
-        </Section>
-
-        {isAdmin && (
-          <Section title="Comunicaciones">
-            <Item to="/admin/email/announcements" label="Enviar Avisos" />
-            <Item to="/admin/email/templates" label="Plantillas" />
-            <Item to={`${baseRoute}/email/logs`} label="Historial" />
+    <aside className="hidden md:block border-r border-slate-200/80 bg-gradient-to-b from-white via-slate-50/30 to-white">
+      <div className="sticky top-14 h-[calc(100vh-3.5rem)] w-64 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+        <nav className="p-4 space-y-6">
+          {/* Panel */}
+          <Section title="Panel" icon={<Home className="w-4 h-4" />}>
+            <Item to={baseRoute} icon={<Home />} label="Inicio" end />
           </Section>
-        )}
 
-        {!isAdmin && (
-          <Section title="Monitoreo">
-            <Item to={`${baseRoute}/email/logs`} label="Logs Email" />
-            <Item to={`${baseRoute}/audit`} label="Auditoría" />
+          {/* Gestión */}
+          <Section title="Gestión" icon={<Settings className="w-4 h-4" />}>
+            <Item to={`${baseRoute}/applicants`} icon={<Users />} label="Postulantes" />
+            <Item to={`${baseRoute}/institutions`} icon={<Building2 />} label="Escuelas/Colegios" />
+            <Item to={`${baseRoute}/calls`} icon={<Calendar />} label="Convocatorias" />
+            <Item to={`${baseRoute}/invites`} icon={<Mail />} label="Invitaciones" />
+            <Item to={`${baseRoute}/applications`} icon={<ClipboardList />} label="Postulaciones" />
           </Section>
-        )}
 
-        {isAdmin && (
-          <>
-            <Section title="Monitoreo">
-              <Item to="/admin/audit" label="Auditoría" />
+          {/* Formularios */}
+          <Section title="Formularios" icon={<FileText className="w-4 h-4" />}>
+            <Item to={`${baseRoute}/milestones`} icon={<Milestone />} label="Configurar Hitos" />
+            <Item to={`${baseRoute}/forms-builder`} icon={<FileText />} label="Diseñar Formularios" />
+            <Item to={`${baseRoute}/form-templates`} icon={<LayoutTemplate />} label="Plantillas" />
+          </Section>
+
+          {/* Comunicaciones (solo Admin) */}
+          {isAdmin && (
+            <Section title="Comunicaciones" icon={<Send className="w-4 h-4" />}>
+              <Item to="/admin/email/announcements" icon={<Send />} label="Enviar Avisos" />
+              <Item to="/admin/email/templates" icon={<LayoutTemplate />} label="Plantillas" />
+              <Item to={`${baseRoute}/email/logs`} icon={<History />} label="Historial" />
             </Section>
-            
-            <Section title="Sistema">
-              <Item to="/admin/user-management" label="Administradores" />
-              <Item to="/admin/reviewer-management" label="Revisores" />
+          )}
+
+          {/* Monitoreo (Reviewer) */}
+          {!isAdmin && (
+            <Section title="Monitoreo" icon={<Activity className="w-4 h-4" />}>
+              <Item to={`${baseRoute}/email/logs`} icon={<History />} label="Logs Email" />
+              <Item to={`${baseRoute}/audit`} icon={<Activity />} label="Auditoría" />
             </Section>
-          </>
-        )}
+          )}
+
+          {/* Monitoreo y Sistema (Admin) */}
+          {isAdmin && (
+            <>
+              <Section title="Monitoreo" icon={<Activity className="w-4 h-4" />}>
+                <Item to="/admin/audit" icon={<Activity />} label="Auditoría" />
+              </Section>
+              
+              <Section title="Sistema" icon={<UserCog className="w-4 h-4" />}>
+                <Item to="/admin/user-management" icon={<UserCog />} label="Administradores" />
+                <Item to="/admin/reviewer-management" icon={<UserCheck />} label="Revisores" />
+              </Section>
+            </>
+          )}
+        </nav>
+
+        {/* Footer del sidebar */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
+          <div className="px-3 py-2 rounded-xl bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-100">
+            <p className="text-xs font-medium text-sky-700">Fundación Carmen Goudie</p>
+            <p className="text-[10px] text-sky-500/80">Sistema de Gestión de Becas</p>
+          </div>
+        </div>
       </div>
     </aside>
   )
@@ -77,65 +102,89 @@ export default function SideNav() {
 
 /**
  * Sección con título para agrupar items del menú.
- * Título en mayúsculas pequeñas, gris.
- * 
- * @param title - Título de la sección
- * @param children - Items del menú
  */
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ 
+  title, 
+  icon, 
+  children 
+}: { 
+  title: string
+  icon?: React.ReactNode
+  children: React.ReactNode 
+}) {
   return (
-    <div className="mb-4">
-      <div className="mb-2 px-2 text-xs font-bold uppercase tracking-wider text-sky-600 border-b border-sky-200 pb-1">
-        {title}
+    <div className="space-y-1">
+      <div className="flex items-center gap-2 px-3 py-1.5">
+        {icon && <span className="text-sky-500/70">{icon}</span>}
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          {title}
+        </span>
       </div>
-      <ul className="space-y-1">{children}</ul>
+      <ul className="space-y-0.5">{children}</ul>
     </div>
   )
 }
 
 /**
- * Item individual del menú con NavLink o span deshabilitado.
- * Resalta con fondo gris cuando activo.
- * 
- * @param to - Ruta del link
- * @param label - Texto del item
- * @param disabled - Si está deshabilitado (muestra cursor-not-allowed)
+ * Item individual del menú con NavLink.
  */
 function Item({
   to,
   label,
+  icon,
   disabled,
+  end,
 }: {
   to: string
   label: string
+  icon: React.ReactNode
   disabled?: boolean
+  end?: boolean
 }) {
   if (disabled) {
     return (
       <li>
         <span
-          className="block cursor-not-allowed rounded-md px-3 py-2 text-sm text-slate-400"
+          className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-300 cursor-not-allowed"
           title="Disponible próximamente"
         >
-          {label}
+          <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-slate-300">
+            {icon}
+          </span>
+          <span className="flex-1">{label}</span>
         </span>
       </li>
     )
   }
+
   return (
     <li>
       <NavLink
         to={to}
+        end={end}
         className={({ isActive }) =>
-          [
-            'block rounded-md px-3 py-2 text-sm',
+          `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
             isActive
-              ? 'bg-slate-100 font-medium text-slate-900'
-              : 'text-slate-700 hover:bg-slate-50',
-          ].join(' ')
+              ? 'bg-gradient-to-r from-sky-500 to-sky-600 text-white shadow-md shadow-sky-500/25'
+              : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
+          }`
         }
       >
-        {label}
+        {({ isActive }) => (
+          <>
+            <span className={`flex-shrink-0 w-5 h-5 flex items-center justify-center transition-transform duration-200 group-hover:scale-110 ${
+              isActive ? 'text-white' : 'text-slate-400 group-hover:text-sky-500'
+            }`}>
+              {icon}
+            </span>
+            <span className="flex-1 truncate">{label}</span>
+            <ChevronRight className={`w-4 h-4 transition-all duration-200 ${
+              isActive 
+                ? 'text-white/70 translate-x-0 opacity-100' 
+                : 'text-slate-300 -translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100'
+            }`} />
+          </>
+        )}
       </NavLink>
     </li>
   )

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { apiGet, apiPost } from '../../lib/api'
 import BulkInviteModal from '../../components/admin/BulkInviteModal'
+import { Mail, Send, Upload, UserPlus } from 'lucide-react'
 
 interface CallOption {
   id: string
@@ -232,137 +233,158 @@ export default function InvitesPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
+    <div className="space-y-6">
       <div className="mx-auto w-full max-w-7xl">
-        {/* Header + acciones */}
+        {/* Header moderno + acciones */}
         <header className="mb-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold">Invitaciones</h1>
-              <p className="text-slate-600">
-                Genera códigos y gestiona invitaciones por convocatoria.
-              </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/25">
+                <Mail className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">Invitaciones</h1>
+                <p className="text-sm text-slate-500">
+                  Genera códigos y gestiona invitaciones por convocatoria
+                </p>
+              </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setCreateOpen(true)}
-                className="btn-secondary"
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all"
               >
-                + Nueva invitación
+                <UserPlus className="w-4 h-4" />
+                Nueva invitación
               </button>
               <button
                 onClick={() => setBulkOpen(true)}
-                className="btn-secondary"
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all"
               >
-                📥 Importar correos
+                <Upload className="w-4 h-4" />
+                Importar correos
               </button>
               <button
                 onClick={() => setBulkSendOpen(true)}
                 disabled={!callId}
-                className="btn-primary flex items-center gap-2 disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-sky-600 rounded-xl hover:from-sky-600 hover:to-sky-700 transition-all shadow-lg shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
                 title={
                   callId
                     ? `Enviar invitaciones masivas${stats ? ` (pendientes: ${stats.pending})` : ''}`
                     : 'Selecciona una convocatoria para enviar invitaciones masivas'
                 }
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+                <Send className="w-4 h-4" />
                 Invitación masiva{stats ? ` (${stats.pending})` : ''}
               </button>
             </div>
           </div>
 
-          {/* Panel de estadísticas (solo si hay convocatoria seleccionada) */}
+          {/* Panel de estadísticas modernizado (solo si hay convocatoria seleccionada) */}
           {stats && callId && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="rounded-lg border border-slate-200 bg-white p-3">
-                <div className="text-xs text-slate-600 font-medium">Total creadas</div>
-                <div className="text-2xl font-bold text-slate-900 mt-1">{stats.total}</div>
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-4 shadow-sm">
+                <div className="text-xs text-slate-500 font-semibold uppercase tracking-wide">Total creadas</div>
+                <div className="text-3xl font-bold text-slate-900 mt-2">{stats.total}</div>
               </div>
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
-                <div className="text-xs text-emerald-700 font-medium">Emails enviados</div>
-                <div className="text-2xl font-bold text-emerald-900 mt-1">{stats.sent}</div>
+              <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-4 shadow-sm">
+                <div className="text-xs text-emerald-600 font-semibold uppercase tracking-wide">Emails enviados</div>
+                <div className="text-3xl font-bold text-emerald-700 mt-2">{stats.sent}</div>
               </div>
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
-                <div className="text-xs text-amber-700 font-medium">Pendientes envío</div>
-                <div className="text-2xl font-bold text-amber-900 mt-1">{stats.pending}</div>
+              <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/50 p-4 shadow-sm">
+                <div className="text-xs text-amber-600 font-semibold uppercase tracking-wide">Pendientes envío</div>
+                <div className="text-3xl font-bold text-amber-700 mt-2">{stats.pending}</div>
               </div>
-              <div className="rounded-lg border border-sky-200 bg-sky-50 p-3">
-                <div className="text-xs text-sky-700 font-medium">Códigos usados</div>
-                <div className="text-2xl font-bold text-sky-900 mt-1">{stats.used}</div>
+              <div className="rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-sky-100/50 p-4 shadow-sm">
+                <div className="text-xs text-sky-600 font-semibold uppercase tracking-wide">Códigos usados</div>
+                <div className="text-3xl font-bold text-sky-700 mt-2">{stats.used}</div>
               </div>
             </div>
           )}
         </header>
 
-        {/* Filtros responsive */}
-        <section className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_18rem_auto]">
-          <input
-            type="text"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar por correo…"
-            className="input"
-          />
-          <select
-            value={callId}
-            onChange={(e) => setCallId(e.target.value)}
-            className="rounded-md border px-3 py-2 text-sm"
-          >
-            <option value="">Todas las convocatorias</option>
-            {calls.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.year})
-              </option>
-            ))}
-          </select>
-          <button onClick={applyFilters} className="btn">
-            Aplicar
-          </button>
+        {/* Filtros modernizados */}
+        <section className="mb-6 p-4 rounded-2xl bg-white/50 backdrop-blur-sm border border-slate-200/50 shadow-sm">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_18rem_auto]">
+            <input
+              type="text"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar por correo…"
+              className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
+            />
+            <select
+              value={callId}
+              onChange={(e) => setCallId(e.target.value)}
+              className="rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-medium hover:border-slate-300 transition-colors focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
+            >
+              <option value="">Todas las convocatorias</option>
+              {calls.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.year})
+                </option>
+              ))}
+            </select>
+            <button onClick={applyFilters} className="rounded-xl border-2 border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all">
+              Aplicar
+            </button>
+          </div>
         </section>
 
-        {/* Tabla / tarjetas */}
-        <div className="card">
-          <div className="card-body">
+        {/* Tabla / tarjetas modernizada */}
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div className="p-6">
             {loading ? (
-              <p className="text-slate-600">Cargando…</p>
+              <div className="flex flex-col items-center gap-4 py-8">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 animate-pulse"></div>
+                <p className="text-slate-500 font-medium">Cargando invitaciones...</p>
+              </div>
             ) : error ? (
-              <p className="text-sm text-rose-700">{error}</p>
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
+                <p className="text-sm text-rose-700">{error}</p>
+              </div>
             ) : rows.length === 0 ? (
-              <p className="text-sm text-slate-600">No hay invitaciones para los filtros actuales.</p>
+              <div className="text-center py-12">
+                <Mail className="w-12 h-12 mx-auto text-slate-300 mb-4" />
+                <p className="text-slate-500 font-medium">No hay invitaciones para los filtros actuales</p>
+                <p className="text-sm text-slate-400 mt-1">Crea una nueva invitación para comenzar</p>
+              </div>
             ) : (
               <>
                 {/* Desktop */}
                 <div className="hidden overflow-x-auto lg:block">
                   <table className="w-full text-sm">
                     <thead className="text-left text-slate-600">
-                      <tr className="border-b">
-                        <th className="py-2 pr-3">Postulante</th>
-                        <th className="py-2 pr-3">Email</th>
-                        <th className="py-2 pr-3">Convocatoria</th>
-                        <th className="py-2 pr-3">Email enviado</th>
-                        <th className="py-2 pr-3">Código usado</th>
-                        <th className="py-2">Creada</th>
+                      <tr className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100/50">
+                        <th className="py-4 px-4 font-semibold">Postulante</th>
+                        <th className="py-4 px-4 font-semibold">Email</th>
+                        <th className="py-4 px-4 font-semibold">Convocatoria</th>
+                        <th className="py-4 px-4 font-semibold">Email enviado</th>
+                        <th className="py-4 px-4 font-semibold">Código usado</th>
+                        <th className="py-4 px-4 font-semibold">Creada</th>
                       </tr>
                     </thead>
                     <tbody>
                       {rows.map((r) => (
-                        <tr key={r.id} className="border-b last:border-0">
-                          <td className="py-2 pr-3 !text-slate-900">
+                        <tr key={r.id} className="border-b border-slate-100 last:border-0 hover:bg-sky-50/30 transition-colors">
+                          <td className="py-4 px-4 text-slate-900 font-medium">
                             {r.firstName || r.lastName 
                               ? `${r.firstName || ''} ${r.lastName || ''}`.trim()
-                              : '—'}
+                              : <span className="text-slate-400">—</span>}
                           </td>
-                          <td className="py-2 pr-3 !text-slate-700">{r.email}</td>
-                          <td className="py-2 pr-3 !text-slate-700">
-                            {calls.find((c) => c.id === r.call_id)?.name ?? '—'}
+                          <td className="py-4 px-4 text-slate-700">{r.email}</td>
+                          <td className="py-4 px-4">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">
+                              {calls.find((c) => c.id === r.call_id)?.name ?? '—'}
+                            </span>
                           </td>
-                          <td className="py-2 pr-3 !text-slate-700">
-                            <span
-                              className={'badge ' + (r.emailSent ? 'badge-success' : 'badge-warning')}
-                            >
+                          <td className="py-4 px-4">
+                            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${
+                              r.emailSent 
+                                ? 'bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border border-emerald-200' 
+                                : 'bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border border-amber-200'
+                            }`}>
+                              {r.emailSent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>}
                               {r.emailSent ? 'Enviado' : 'Pendiente'}
                             </span>
                             {r.sentAt && (
@@ -371,10 +393,12 @@ export default function InvitesPage() {
                               </div>
                             )}
                           </td>
-                          <td className="py-2 pr-3 !text-slate-700">
-                            <span
-                              className={'badge ' + (r.used ? 'badge-info' : 'badge-neutral')}
-                            >
+                          <td className="py-4 px-4">
+                            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${
+                              r.used 
+                                ? 'bg-gradient-to-r from-sky-50 to-sky-100 text-sky-700 border border-sky-200' 
+                                : 'bg-gradient-to-r from-slate-50 to-slate-100 text-slate-600 border border-slate-200'
+                            }`}>
                               {r.used ? 'Usado' : 'No usado'}
                             </span>
                             {r.used_at && (
@@ -383,7 +407,7 @@ export default function InvitesPage() {
                               </div>
                             )}
                           </td>
-                          <td className="py-2 !text-slate-700">
+                          <td className="py-4 px-4 text-slate-600 text-xs">
                             {new Date(r.created_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </td>
                         </tr>
@@ -392,30 +416,34 @@ export default function InvitesPage() {
                   </table>
                 </div>
 
-                {/* Mobile */}
+                {/* Mobile modernizado */}
                 <div className="space-y-3 lg:hidden">
                   {rows.map((r) => (
-                    <div key={r.id} className="rounded-lg border p-3">
-                      <div className="mb-1 flex items-center justify-between">
-                        <div className="text-sm font-semibold !text-slate-900">{r.email}</div>
-                        <span className={'badge ' + (r.used ? 'badge-success' : 'badge-neutral')}>
+                    <div key={r.id} className="rounded-2xl border border-slate-200 p-4 bg-gradient-to-br from-white to-slate-50/50 hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300">
+                      <div className="mb-2 flex items-center justify-between">
+                        <div className="text-sm font-bold text-slate-900">{r.email}</div>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${
+                          r.used 
+                            ? 'bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border border-emerald-200' 
+                            : 'bg-gradient-to-r from-slate-50 to-slate-100 text-slate-600 border border-slate-200'
+                        }`}>
                           {r.used ? 'Usada' : 'No usada'}
                         </span>
                       </div>
-                      <div className="text-xs !text-slate-700">
+                      <div className="text-xs text-slate-600">
                         Convocatoria:{' '}
-                        <span className="font-mono">
+                        <span className="font-medium text-slate-700">
                           {calls.find((c) => c.id === r.call_id)?.name ?? '—'}
                         </span>
                       </div>
-                      <div className="mt-1 grid grid-cols-2 gap-2 text-xs !text-slate-700">
+                      <div className="mt-3 grid grid-cols-2 gap-3 text-xs bg-slate-50 rounded-xl p-3">
                         <div>
-                          <div className="!text-slate-600">Usada en</div>
-                          <div>{r.used_at ? new Date(r.used_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</div>
+                          <div className="text-slate-500 mb-1">Usada en</div>
+                          <div className="text-slate-700 font-medium">{r.used_at ? new Date(r.used_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</div>
                         </div>
                         <div>
-                          <div className="!text-slate-600">Creada</div>
-                          <div>{new Date(r.created_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                          <div className="text-slate-500 mb-1">Creada</div>
+                          <div className="text-slate-700 font-medium">{new Date(r.created_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                         </div>
                       </div>
                     </div>
@@ -426,17 +454,17 @@ export default function InvitesPage() {
           </div>
         </div>
 
-        {/* Paginación */}
-        <div className="mt-4 flex flex-col items-center justify-between gap-3 text-sm sm:flex-row">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-600">Filas por página:</span>
+        {/* Paginación modernizada */}
+        <div className="mt-6 p-4 rounded-2xl bg-white/50 backdrop-blur-sm border border-slate-200/50 shadow-sm flex flex-col items-center justify-between gap-4 text-sm sm:flex-row">
+          <div className="flex items-center gap-3">
+            <span className="text-slate-600 font-medium">Filas por página:</span>
             <select
               value={limit}
               onChange={(e) => {
                 setLimit(Number(e.target.value))
                 setOffset(0)
               }}
-              className="rounded-md border px-2 py-1"
+              className="rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-medium hover:border-slate-300 transition-colors focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
             >
               {[10, 20, 50, 100].map((n) => (
                 <option key={n} value={n}>
@@ -445,22 +473,28 @@ export default function InvitesPage() {
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setOffset(Math.max(0, offset - limit))}
               disabled={offset === 0}
-              className="btn disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-600 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
               Anterior
             </button>
             <button
               onClick={() => setOffset(offset + limit)}
               disabled={offset + limit >= total}
-              className="btn disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-600 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Siguiente
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
-            <span className="text-slate-600">
+            <span className="px-4 py-2 text-slate-600 font-medium bg-slate-100 rounded-xl">
               {total > 0
                 ? `${Math.min(total, offset + 1)}–${Math.min(total, offset + rows.length)} de ${total}`
                 : ''}
@@ -469,47 +503,54 @@ export default function InvitesPage() {
         </div>
       </div>
 
-      {/* Modal — crear una invitación */}
+      {/* Modal — crear una invitación modernizado */}
       {createOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4">
-          <div className="w-full max-w-lg rounded-lg border bg-white shadow-lg">
-            <div className="flex items-center justify-between border-b px-5 py-3">
-              <div className="text-base font-semibold">Nueva invitación</div>
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/25">
+                  <UserPlus className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-lg font-bold text-slate-900">Nueva invitación</h2>
+              </div>
               <button
                 onClick={() => setCreateOpen(false)}
-                className="btn"
+                className="rounded-xl border-2 border-slate-200 p-2 text-slate-500 hover:bg-slate-50 hover:border-slate-300 transition-all"
                 aria-label="Cerrar"
               >
-                Cerrar
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            <form onSubmit={onCreate} className="px-5 py-4 space-y-3">
+            <form onSubmit={onCreate} className="px-6 py-5 space-y-4">
               {createErr && (
-                <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 font-medium">
                   {createErr}
                 </div>
               )}
               {createSuccess && (
-                <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 font-medium">
                   {createSuccess}
                 </div>
               )}
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Correo del postulante *</label>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Correo del postulante *</label>
                 <input
                   type="email"
                   value={createForm.email}
                   onChange={(e) => setCreateForm((s) => ({ ...s, email: e.target.value }))}
-                  className="input"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                   placeholder="alumno@colegio.cl"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Convocatoria *</label>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Convocatoria *</label>
                 <select
                   value={createForm.call_id}
                   onChange={(e) => setCreateForm((s) => ({ ...s, call_id: e.target.value }))}
-                  className="w-full rounded-md border px-3 py-2 text-sm"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-medium hover:border-slate-300 transition-colors focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
                 >
                   <option value="">Selecciona</option>
                   {calls.map((c) => (
@@ -519,50 +560,57 @@ export default function InvitesPage() {
                   ))}
                 </select>
               </div>
-              <div className="mt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setCreateOpen(false)} className="btn">
+              <div className="mt-4 flex justify-end gap-3 pt-4 border-t border-slate-200">
+                <button type="button" onClick={() => setCreateOpen(false)} className="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all">
                   Cancelar
                 </button>
-                <button type="submit" disabled={createSaving} className="btn-primary">
-                  {createSaving ? 'Creando…' : 'Crear'}
+                <button type="submit" disabled={createSaving} className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-sky-600 rounded-xl hover:from-sky-600 hover:to-sky-700 transition-all shadow-lg shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
+                  {createSaving ? 'Creando…' : 'Crear invitación'}
                 </button>
               </div>
-              <p className="pt-2 text-xs text-slate-500">
-                Se generará un código único (solo se almacena su hash en el backend).
+              <p className="pt-2 text-xs text-slate-500 bg-slate-50 rounded-xl p-3">
+                💡 Se generará un código único y se enviará automáticamente al postulante.
               </p>
             </form>
           </div>
         </div>
       )}
 
-      {/* Modal — importación de correos */}
+      {/* Modal — importación de correos modernizado */}
       {bulkOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4">
-          <div className="w-full max-w-2xl rounded-lg border bg-white shadow-lg">
-            <div className="flex items-center justify-between border-b px-5 py-3">
-              <div className="text-base font-semibold">Importar correos para invitaciones</div>
-              <button onClick={() => setBulkOpen(false)} className="btn" aria-label="Cerrar">
-                Cerrar
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-500/25">
+                  <Upload className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-lg font-bold text-slate-900">Importar correos para invitaciones</h2>
+              </div>
+              <button onClick={() => setBulkOpen(false)} className="rounded-xl border-2 border-slate-200 p-2 text-slate-500 hover:bg-slate-50 hover:border-slate-300 transition-all" aria-label="Cerrar">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            <form onSubmit={onBulk} className="px-5 py-4 space-y-3">
+            <form onSubmit={onBulk} className="px-6 py-5 space-y-4">
               {bulkErr && (
-                <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 font-medium">
                   {bulkErr}
                 </div>
               )}
               {bulkOk && (
-                <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 font-medium">
                   {bulkOk}
                 </div>
               )}
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Convocatoria *</label>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Convocatoria *</label>
                 <select
                   value={bulkCallId}
                   onChange={(e) => setBulkCallId(e.target.value)}
-                  className="w-full rounded-md border px-3 py-2 text-sm"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-medium hover:border-slate-300 transition-colors focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
                 >
                   <option value="">Selecciona</option>
                   {calls.map((c) => (
@@ -573,12 +621,12 @@ export default function InvitesPage() {
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Correos (uno por línea o separados por coma/espacio) *</label>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Correos (uno por línea o separados por coma/espacio) *</label>
                 <textarea
                   value={bulkText}
                   onChange={(e) => setBulkText(e.target.value)}
-                  className="input min-h-[160px]"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300 min-h-[160px] resize-y"
                   placeholder={`ejemplo1@colegio.cl
 ejemplo2@dominio.cl, ejemplo3@dominio.cl`}
                 />
@@ -587,18 +635,18 @@ ejemplo2@dominio.cl, ejemplo3@dominio.cl`}
                 </p>
               </div>
 
-              <div className="mt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setBulkOpen(false)} className="btn">
+              <div className="mt-4 flex justify-end gap-3 pt-4 border-t border-slate-200">
+                <button type="button" onClick={() => setBulkOpen(false)} className="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all">
                   Cancelar
                 </button>
-                <button type="submit" disabled={bulkSaving} className="btn-primary">
+                <button type="submit" disabled={bulkSaving} className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
                   {bulkSaving ? 'Procesando…' : 'Crear invitaciones'}
                 </button>
               </div>
 
-              <div className="rounded-md border bg-slate-50 p-3 text-xs text-slate-600">
-                <p className="font-semibold">Nota:</p>
-                <ul className="list-disc pl-5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
+                <p className="font-bold text-slate-700 mb-2">💡 Nota importante:</p>
+                <ul className="list-disc pl-5 space-y-1">
                   <li>No se almacena el código en claro; solo su hash.</li>
                   <li>
                     Este módulo <strong>solo crea</strong> invitaciones. Para enviar correos masivos usa el botón

@@ -1067,31 +1067,39 @@ Fundación Carmen Goudie`
   }
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="mx-auto w-full max-w-[98%]">
+    <div className="space-y-6">
+      <div className="mx-auto w-full">
+        {/* Header moderno */}
         <header className="mb-6">
-          <h1 className="text-2xl font-semibold">Postulantes</h1>
-          <p className="text-slate-600">
-            Ingreso manual, búsqueda y visualización de postulantes.
-          </p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 shadow-lg shadow-sky-500/25">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">Postulantes</h1>
+              <p className="text-sm text-slate-500">
+                Ingreso manual, búsqueda y visualización de postulantes
+              </p>
+            </div>
+          </div>
         </header>
 
-        {/* Barra de acciones */}
-        <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+        {/* Barra de acciones modernizada */}
+        <div className="mb-6 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 p-4 rounded-2xl bg-white/50 backdrop-blur-sm border border-slate-200/50 shadow-sm">
           <div className="flex gap-2 flex-1 min-w-[200px]">
             <input
               type="text"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Buscar por nombre o correo…"
-              className="flex-1 rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+              className="flex-1 rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
             />
             <button
               onClick={() => {
                 setOffset(0)
                 load()
               }}
-              className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-slate-50"
+              className="rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all"
             >
               Buscar
             </button>
@@ -1102,7 +1110,7 @@ Fundación Carmen Goudie`
               <>
                 <button
                   onClick={openMilestoneSelection}
-                  className="rounded-md border border-green-600 px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 flex items-center gap-2 flex-1 sm:flex-initial justify-center"
+                  className="rounded-xl border-2 border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300 flex items-center gap-2 flex-1 sm:flex-initial justify-center transition-all shadow-sm"
                   title="Descargar respuestas de formularios en CSV"
                 >
                   <Download className="w-4 h-4" />
@@ -1114,42 +1122,49 @@ Fundación Carmen Goudie`
             )}
             <button
               onClick={() => setCreating(true)}
-              className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700 w-full sm:w-auto"
+              className="rounded-xl bg-gradient-to-r from-sky-500 to-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:from-sky-600 hover:to-sky-700 shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30 transition-all w-full sm:w-auto"
             >
-              Ingresar postulante
+              + Ingresar postulante
             </button>
           </div>
         </div>
 
         {/* Vista de tabla / cards responsive */}
         {loading ? (
-          <div className="card p-6">
-            <p className="text-slate-600">Cargando…</p>
+          <div className="rounded-2xl border border-slate-200 bg-white p-12 shadow-sm">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-400 to-sky-600 animate-pulse"></div>
+              <p className="text-slate-500 font-medium">Cargando postulantes...</p>
+            </div>
           </div>
         ) : error ? (
-          <div className="card p-6">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 shadow-sm">
             <p className="text-sm text-rose-700">{error}</p>
           </div>
         ) : rows.length === 0 ? (
-          <div className="card p-6">
-            <p className="text-center text-slate-500">No hay registros.</p>
+          <div className="rounded-2xl border border-slate-200 bg-white p-12 shadow-sm">
+            <div className="text-center">
+              <Users className="w-12 h-12 mx-auto text-slate-300 mb-4" />
+              <p className="text-slate-500 font-medium">No hay registros</p>
+              <p className="text-sm text-slate-400 mt-1">Los postulantes aparecerán aquí</p>
+            </div>
           </div>
         ) : (
           <>
             {/* Vista Desktop - Tabla */}
-            <div className="hidden lg:block card overflow-hidden">
+            <div className="hidden lg:block rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
               <div className="overflow-x-auto max-h-[calc(100vh-16rem)]">
                 <table className="w-full text-sm">
-                <thead className="text-left text-slate-600 bg-slate-100 sticky top-0 z-10">
-                  <tr className="border-b">
-                    <th className="py-3 px-3 font-semibold">Nombre</th>
-                    <th className="py-3 px-3 font-semibold">RUT</th>
-                    <th className="py-3 px-3 font-semibold">Correo</th>
-                    <th className="py-3 px-3 font-semibold">Teléfono</th>
-                    <th className="py-3 px-3 font-semibold">Escuela/Colegio</th>
-                    <th className="py-3 px-3 font-semibold">Creado</th>
-                    <th className="py-3 px-3 font-semibold">Invitación</th>
-                    <th className="py-3 px-3 font-semibold">Acciones</th>
+                <thead className="text-left text-slate-600 bg-gradient-to-r from-slate-50 to-slate-100/50 sticky top-0 z-10">
+                  <tr className="border-b border-slate-200">
+                    <th className="py-4 px-4 font-semibold">Nombre</th>
+                    <th className="py-4 px-4 font-semibold">RUT</th>
+                    <th className="py-4 px-4 font-semibold">Correo</th>
+                    <th className="py-4 px-4 font-semibold">Teléfono</th>
+                    <th className="py-4 px-4 font-semibold">Escuela/Colegio</th>
+                    <th className="py-4 px-4 font-semibold">Creado</th>
+                    <th className="py-4 px-4 font-semibold">Invitación</th>
+                    <th className="py-4 px-4 font-semibold">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1164,71 +1179,71 @@ Fundación Carmen Goudie`
                       const inviteStatus = inviteStatuses[r.id]
                       
                       return (
-                        <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50">
-                          <td className="py-2 px-3 font-medium !text-slate-900" title={name}>{name}</td>
-                          <td className="py-2 px-3 font-mono text-xs !text-slate-700">{rut}</td>
-                          <td className="py-2 px-3 !text-slate-700" title={r.email}>{r.email}</td>
-                          <td className="py-2 px-3 !text-slate-700">{r.phone || '—'}</td>
-                          <td className="py-2 px-3 !text-slate-700" title={school}>{school}</td>
-                          <td className="py-2 px-3 !text-slate-700 whitespace-nowrap">
+                        <tr key={r.id} className="border-b border-slate-100 last:border-0 hover:bg-sky-50/30 transition-colors">
+                          <td className="py-3 px-4 font-medium text-slate-900" title={name}>{name}</td>
+                          <td className="py-3 px-4 font-mono text-xs text-slate-600">{rut}</td>
+                          <td className="py-3 px-4 text-slate-600" title={r.email}>{r.email}</td>
+                          <td className="py-3 px-4 text-slate-600">{r.phone || '—'}</td>
+                          <td className="py-3 px-4 text-slate-600 max-w-[200px] truncate" title={school}>{school}</td>
+                          <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
                             {r.createdAt
                               ? new Date(r.createdAt).toLocaleDateString('es-CL')
                               : '—'}
                           </td>
-                          <td className="py-2 px-3 whitespace-nowrap">
+                          <td className="py-3 px-4 whitespace-nowrap">
                             {inviteStatus ? (
-                              <div className="flex items-center gap-2">
-                                <CheckCircle2 className="w-4 h-4 text-green-600" />
-                                <span className="text-xs text-green-700">
-                                  Invitado ({inviteStatus.method === 'auto' ? 'Email' : 'Manual'})
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span className="text-xs font-medium text-emerald-700">
+                                  {inviteStatus.method === 'auto' ? 'Email' : 'Manual'}
                                 </span>
                               </div>
                             ) : (
                               <button
                                 onClick={() => openInviteModal(r)}
-                                className="inline-flex items-center gap-1 rounded-md bg-sky-600 px-2 py-1 text-xs font-medium text-white hover:bg-sky-700"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:from-sky-600 hover:to-sky-700 shadow-sm transition-all"
                               >
                                 <Send className="w-3 h-3" />
                                 Invitar
                               </button>
                             )}
                           </td>
-                          <td className="py-2 px-3 whitespace-nowrap">
+                          <td className="py-3 px-4 whitespace-nowrap">
                             <div className="flex items-center gap-1.5">
                               <button
                                 onClick={() => generateQuickCode(r)}
-                                className="inline-flex items-center gap-1 rounded-md bg-purple-600 px-2 py-1 text-xs font-medium text-white hover:bg-purple-700"
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
                                 title="Generar código"
                               >
-                                <Key className="w-3 h-3" />
+                                <Key className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => setEditingApplicant(r)}
-                                className="inline-flex items-center gap-1 rounded-md bg-amber-600 px-2 py-1 text-xs font-medium text-white hover:bg-amber-700"
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-100 text-amber-600 hover:bg-amber-200 transition-colors"
                                 title="Editar postulante"
                               >
-                                <Edit className="w-3 h-3" />
+                                <Edit className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => {
                                   setSelectedApplicantId(r.id)
                                   setDetailModalOpen(true)
                                 }}
-                                className="inline-flex items-center gap-1 rounded-md bg-slate-600 px-2 py-1 text-xs font-medium text-white hover:bg-slate-700"
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
                                 title="Ver detalles"
                               >
-                                <Eye className="w-3 h-3" />
+                                <Eye className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => deleteApplicant(r)}
                                 disabled={deletingApplicantId === r.id}
-                                className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-rose-100 text-rose-600 hover:bg-rose-200 transition-colors disabled:opacity-50"
                                 title="Eliminar postulante"
                               >
                                 {deletingApplicantId === r.id ? (
-                                  <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  <span className="w-4 h-4 border-2 border-rose-600 border-t-transparent rounded-full animate-spin" />
                                 ) : (
-                                  <Trash2 className="w-3 h-3" />
+                                  <Trash2 className="w-4 h-4" />
                                 )}
                               </button>
                             </div>
@@ -1254,65 +1269,67 @@ Fundación Carmen Goudie`
                 const inviteStatus = inviteStatuses[r.id]
                 
                 return (
-                  <div key={r.id} className="card p-4 space-y-3">
+                  <div key={r.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold !text-slate-900 truncate">{name}</h3>
-                        <p className="text-xs font-mono !text-slate-600 mt-1">{rut}</p>
+                        <h3 className="font-semibold text-slate-900 truncate">{name}</h3>
+                        <p className="text-xs font-mono text-slate-500 mt-1">{rut}</p>
                       </div>
                       {inviteStatus && (
-                        <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                        <div className="flex-shrink-0 p-1.5 rounded-full bg-emerald-100">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        </div>
                       )}
                     </div>
 
                     <div className="space-y-2 text-sm">
                       <div className="flex gap-2">
-                        <span className="!text-slate-600 w-20 flex-shrink-0">Correo:</span>
-                        <span className="!text-slate-900 break-all">{r.email}</span>
+                        <span className="text-slate-500 w-20 flex-shrink-0">Correo:</span>
+                        <span className="text-slate-700 break-all">{r.email}</span>
                       </div>
                       {r.phone && (
                         <div className="flex gap-2">
-                          <span className="!text-slate-600 w-20 flex-shrink-0">Teléfono:</span>
-                          <span className="!text-slate-900">{r.phone}</span>
+                          <span className="text-slate-500 w-20 flex-shrink-0">Teléfono:</span>
+                          <span className="text-slate-700">{r.phone}</span>
                         </div>
                       )}
                       <div className="flex gap-2">
-                        <span className="!text-slate-600 w-20 flex-shrink-0">Escuela:</span>
-                        <span className="!text-slate-900 flex-1">{school}</span>
+                        <span className="text-slate-500 w-20 flex-shrink-0">Escuela:</span>
+                        <span className="text-slate-700 flex-1">{school}</span>
                       </div>
                       <div className="flex gap-2">
-                        <span className="!text-slate-600 w-20 flex-shrink-0">Creado:</span>
-                        <span className="!text-slate-900">
+                        <span className="text-slate-500 w-20 flex-shrink-0">Creado:</span>
+                        <span className="text-slate-700">
                           {r.createdAt ? new Date(r.createdAt).toLocaleDateString('es-CL') : '—'}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 pt-2 border-t">
+                    <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100">
                       {!inviteStatus ? (
                         <button
                           onClick={() => openInviteModal(r)}
-                          className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700"
+                          className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-sky-600 px-4 py-2.5 text-sm font-medium text-white hover:from-sky-600 hover:to-sky-700 shadow-sm transition-all"
                         >
                           <Send className="w-4 h-4" />
                           Invitar
                         </button>
                       ) : (
-                        <div className="flex-1 flex items-center justify-center gap-2 text-sm text-green-700">
+                        <div className="flex-1 flex items-center justify-center gap-2 text-sm text-emerald-700 bg-emerald-50 rounded-xl py-2.5 border border-emerald-200">
                           <CheckCircle2 className="w-4 h-4" />
                           <span>Invitado ({inviteStatus.method === 'auto' ? 'Email' : 'Manual'})</span>
                         </div>
                       )}
                       <button
                         onClick={() => generateQuickCode(r)}
-                        className="inline-flex items-center justify-center gap-1 rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-purple-100 text-purple-700 px-4 py-2.5 text-sm font-medium hover:bg-purple-200 transition-colors"
                       >
                         <Key className="w-4 h-4" />
                         Código
                       </button>
                       <button
                         onClick={() => setEditingApplicant(r)}
-                        className="inline-flex items-center justify-center gap-1 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-amber-100 text-amber-700 px-4 py-2.5 text-sm font-medium hover:bg-amber-200 transition-colors"
                       >
                         <Edit className="w-4 h-4" />
                         Editar
@@ -1322,7 +1339,7 @@ Fundación Carmen Goudie`
                           setSelectedApplicantId(r.id)
                           setDetailModalOpen(true)
                         }}
-                        className="inline-flex items-center justify-center gap-1 rounded-md bg-slate-600 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-100 text-slate-700 px-4 py-2.5 text-sm font-medium hover:bg-slate-200 transition-colors"
                       >
                         <Eye className="w-4 h-4" />
                         Ver
@@ -1330,10 +1347,10 @@ Fundación Carmen Goudie`
                       <button
                         onClick={() => deleteApplicant(r)}
                         disabled={deletingApplicantId === r.id}
-                        className="inline-flex items-center justify-center gap-1 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-100 text-rose-700 px-4 py-2.5 text-sm font-medium hover:bg-rose-200 transition-colors disabled:opacity-50"
                       >
                         {deletingApplicantId === r.id ? (
-                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span className="w-4 h-4 border-2 border-rose-600 border-t-transparent rounded-full animate-spin" />
                         ) : (
                           <Trash2 className="w-4 h-4" />
                         )}
@@ -1346,17 +1363,17 @@ Fundación Carmen Goudie`
           </>
         )}
 
-        {/* Paginación */}
-        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-600">Filas por página:</span>
+        {/* Paginación modernizada */}
+        <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm p-4 rounded-2xl bg-white/50 backdrop-blur-sm border border-slate-200/50 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="text-slate-500 font-medium">Filas por página:</span>
             <select
               value={limit}
               onChange={(e) => {
                 setLimit(Number(e.target.value))
                 setOffset(0)
               }}
-              className="rounded-md border px-2 py-1"
+              className="rounded-xl border-2 border-slate-200 bg-white px-3 py-2 font-medium text-slate-700 outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300 cursor-pointer"
             >
               {[10, 20, 50, 100].map((n) => (
                 <option key={n} value={n}>
@@ -1366,22 +1383,22 @@ Fundación Carmen Goudie`
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setOffset(Math.max(0, offset - limit))}
               disabled={offset === 0}
-              className="rounded-md border px-3 py-1.5 disabled:opacity-50"
+              className="rounded-xl border-2 border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
-              Anterior
+              ← Anterior
             </button>
             <button
               onClick={() => setOffset(offset + limit)}
               disabled={meta ? offset + limit >= meta.total : undefined}
-              className="rounded-md border px-3 py-1.5 disabled:opacity-50"
+              className="rounded-xl border-2 border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
-              Siguiente
+              Siguiente →
             </button>
-            <span className="text-slate-600">
+            <span className="text-slate-500 font-medium bg-slate-100 px-3 py-1.5 rounded-lg">
               {meta
                 ? `${Math.min(meta.total, offset + 1)}–${Math.min(
                     meta.total,
@@ -1395,20 +1412,21 @@ Fundación Carmen Goudie`
 
       {/* Modal crear */}
       {creating && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4">
-          <div className="w-full max-w-lg rounded-lg border bg-white shadow-lg">
-            <div className="border-b px-5 py-3">
-              <div className="text-base font-semibold">Ingresar postulante</div>
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
+            <div className="border-b border-slate-100 px-6 py-4 bg-gradient-to-r from-slate-50 to-sky-50/30">
+              <div className="text-lg font-bold text-slate-900">Ingresar postulante</div>
+              <p className="text-sm text-slate-500 mt-1">Complete los datos del nuevo postulante</p>
             </div>
-            <form onSubmit={createApplicant} className="px-5 py-4 space-y-4">
+            <form onSubmit={createApplicant} className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
               {createError && (
-                <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                   {createError}
                 </div>
               )}
               
               {!selectedCallId && (
-                <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                <div className="rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 text-sm text-amber-800">
                   <div className="flex items-center gap-2 font-semibold mb-1">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -1420,15 +1438,15 @@ Fundación Carmen Goudie`
               )}
 
               {/* Campos siempre visibles (básicos) */}
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-sm font-medium">Correo electrónico *</label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-semibold text-slate-700">Correo electrónico *</label>
                   <input
                     type="email"
                     required
                     value={createForm.email}
                     onChange={(e) => onChange('email', e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                     placeholder="alumno@colegio.cl"
                   />
                 </div>
