@@ -10,24 +10,24 @@ interface Props {
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
-/**
- * Modal para envío masivo de invitaciones a postulantes.
- * Envía correos a todos los postulantes elegibles de una convocatoria específica.
- * Muestra resultado con contador de exitosos/fallidos y detalle de errores.
- * 
- * @param callId - UUID de la convocatoria
- * @param callName - Nombre de la convocatoria (para mostrar)
- * @param onClose - Callback al cerrar el modal
- * @param onSuccess - Callback al enviar exitosamente
- * 
- * @example
- * <BulkInviteModal
- *   callId="call-uuid"
- *   callName="Convocatoria 2025"
- *   onClose={() => setOpen(false)}
- *   onSuccess={() => refetch()}
- * />
- */
+  /**
+   * Modal para envío masivo de invitaciones a postulantes.
+   * Envía correos SOLO a postulantes que aún no han recibido invitación previa.
+   * Muestra resultado con contador de exitosos/fallidos y detalle de errores.
+   * 
+   * @param callId - UUID de la convocatoria
+   * @param callName - Nombre de la convocatoria (para mostrar)
+   * @param onClose - Callback al cerrar el modal
+   * @param onSuccess - Callback al enviar exitosamente
+   * 
+   * @example
+   * <BulkInviteModal
+   *   callId="call-uuid"
+   *   callName="Convocatoria 2025"
+   *   onClose={() => setOpen(false)}
+   *   onSuccess={() => refetch()}
+   * />
+   */
 export default function BulkInviteModal({ callId, callName, onClose, onSuccess }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -161,10 +161,10 @@ export default function BulkInviteModal({ callId, callName, onClose, onSuccess }
                   <strong>Convocatoria:</strong> {callName}
                 </p>
                 <p className="text-sm text-amber-700 mt-2">
-                  Se enviarán invitaciones automáticas por correo a postulantes que NO han recibido email todavía.
+                  Se enviarán invitaciones automáticas por correo a postulantes que <strong>NO</strong> han recibido invitación previa.
                 </p>
                 <p className="text-xs text-amber-600 mt-2">
-                  El sistema detecta automáticamente qué invitaciones ya fueron enviadas y solo procesa las pendientes.
+                  El sistema detecta automáticamente qué invitaciones ya fueron enviadas y solo procesa las pendientes o nuevos postulantes.
                 </p>
               </div>
 

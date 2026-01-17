@@ -254,20 +254,23 @@ export default function InvitesPage() {
                 onClick={() => setBulkOpen(true)}
                 className="btn-secondary"
               >
-                📋 Carga masiva
+                📥 Importar correos
               </button>
-              {callId && stats && stats.pending > 0 && (
-                <button
-                  onClick={() => setBulkSendOpen(true)}
-                  className="btn-primary flex items-center gap-2"
-                  title={`Enviar ${stats.pending} invitaciones pendientes por email`}
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Enviar invitaciones ({stats.pending})
-                </button>
-              )}
+              <button
+                onClick={() => setBulkSendOpen(true)}
+                disabled={!callId}
+                className="btn-primary flex items-center gap-2 disabled:opacity-50"
+                title={
+                  callId
+                    ? `Enviar invitaciones masivas${stats ? ` (pendientes: ${stats.pending})` : ''}`
+                    : 'Selecciona una convocatoria para enviar invitaciones masivas'
+                }
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Invitación masiva{stats ? ` (${stats.pending})` : ''}
+              </button>
             </div>
           </div>
 
@@ -532,12 +535,12 @@ export default function InvitesPage() {
         </div>
       )}
 
-      {/* Modal — carga masiva */}
+      {/* Modal — importación de correos */}
       {bulkOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4">
           <div className="w-full max-w-2xl rounded-lg border bg-white shadow-lg">
             <div className="flex items-center justify-between border-b px-5 py-3">
-              <div className="text-base font-semibold">Carga masiva de invitaciones</div>
+              <div className="text-base font-semibold">Importar correos para invitaciones</div>
               <button onClick={() => setBulkOpen(false)} className="btn" aria-label="Cerrar">
                 Cerrar
               </button>
@@ -598,11 +601,8 @@ ejemplo2@dominio.cl, ejemplo3@dominio.cl`}
                 <ul className="list-disc pl-5">
                   <li>No se almacena el código en claro; solo su hash.</li>
                   <li>
-                    El envío de correos masivos (con el código) se hará desde el módulo de{' '}
-                    <Link to="/admin/email/templates" className="text-sky-700 hover:underline">
-                      comunicaciones
-                    </Link>
-                    .
+                    Este módulo <strong>solo crea</strong> invitaciones. Para enviar correos masivos usa el botón
+                    <strong> “Invitación masiva”</strong> (arriba) que envía automáticamente a quienes no han recibido invitación.
                   </li>
                 </ul>
               </div>
