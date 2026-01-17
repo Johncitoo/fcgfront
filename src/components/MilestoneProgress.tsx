@@ -206,7 +206,6 @@ function MilestoneCard({
   const isInProgress = milestone.status === 'IN_PROGRESS'
   const isPending = milestone.status === 'PENDING'
   const isRejected = milestone.status === 'REJECTED'
-  const isBlocked = milestone.status === 'BLOCKED'
   const isCurrentMilestone = currentMilestoneId === milestone.mp_id
   
   // whoCanFill puede ser string o array
