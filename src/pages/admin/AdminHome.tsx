@@ -176,7 +176,7 @@ export default function AdminHome() {
         fetch(`${API_BASE}/admin/applicants-stats/${callId}/age-distribution`, { headers }),
         fetch(`${API_BASE}/admin/applicants-stats/${callId}/contact-completeness`, { headers }),
         fetch(`${API_BASE}/admin/stats/${callId}/submission-timeline`, { headers }),
-        fetch(`${API_BASE}/admin/applications?limit=5&sortBy=created_at&order=DESC&callId=${callId}`, { headers }),
+        fetch(`${API_BASE}/applications?limit=5&sortBy=created_at&order=DESC&callId=${callId}`, { headers }),
       ])
 
       if (overviewRes.ok) {

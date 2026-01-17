@@ -406,34 +406,49 @@ export default function InstitutionsPage() {
 
       {/* Modal */}
       {creating && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4 overflow-y-auto">
-          <div className="w-full max-w-lg rounded-lg border bg-white shadow-lg my-8">
-            <div className="border-b px-5 py-3">
-              <div className="text-base font-semibold">
-                {editing ? 'Editar institución' : 'Nueva institución'}
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl my-8 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 shadow-lg shadow-sky-500/25">
+                  {editing ? <Edit className="w-5 h-5 text-white" /> : <Plus className="w-5 h-5 text-white" />}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">
+                    {editing ? 'Editar institución' : 'Nueva institución'}
+                  </h2>
+                  <p className="text-sm text-slate-500">Completa la información principal de la institución.</p>
+                </div>
               </div>
+              <button
+                onClick={() => { setCreating(false); setEditing(null) }}
+                className="rounded-xl border-2 border-slate-200 p-2 text-slate-500 hover:bg-slate-50 hover:border-slate-300 transition-all"
+                aria-label="Cerrar"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <form onSubmit={onCreate} className="px-5 py-4 space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
+            <form onSubmit={onCreate} className="px-6 py-5 space-y-4 max-h-[calc(100vh-12rem)] overflow-y-auto">
               {createError && (
-                <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 font-medium">
                   {createError}
                 </div>
               )}
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Nombre *</label>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Nombre *</label>
                 <input
                   type="text"
                   required
                   value={createForm.name}
                   onChange={(e) => setCreateForm((s) => ({ ...s, name: e.target.value }))}
-                  className="input"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                   placeholder="Ej: Liceo A-1"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium flex items-center gap-1.5">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
                   Código RBD
                   <div className="group relative">
                     <Info className="w-4 h-4 text-slate-400 cursor-help" />
@@ -446,53 +461,53 @@ export default function InstitutionsPage() {
                   type="text"
                   value={createForm.code}
                   onChange={(e) => setCreateForm((s) => ({ ...s, code: e.target.value }))}
-                  className="input"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                   placeholder="Ej: 1234-5 (opcional)"
                 />
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Comuna</label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Comuna</label>
                   <input
                     type="text"
                     value={createForm.commune}
                     onChange={(e) => setCreateForm((s) => ({ ...s, commune: e.target.value }))}
-                    className="input"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                     placeholder="Ej: Ovalle"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Provincia</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Provincia</label>
                   <input
                     type="text"
                     value={createForm.province}
                     onChange={(e) => setCreateForm((s) => ({ ...s, province: e.target.value }))}
-                    className="input"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                     placeholder="Ej: Limarí"
                   />
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Región</label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Región</label>
                   <input
                     type="text"
                     value={createForm.region}
                     onChange={(e) => setCreateForm((s) => ({ ...s, region: e.target.value }))}
-                    className="input"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                     placeholder="Ej: Coquimbo"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Tipo</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Tipo</label>
                   <select
                     value={createForm.type}
                     onChange={(e) => setCreateForm((s) => ({ ...s, type: e.target.value as any }))}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-medium hover:border-slate-300 transition-colors focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
                   >
                     <option value="LICEO">Liceo</option>
                     <option value="COLEGIO">Colegio</option>
@@ -502,87 +517,87 @@ export default function InstitutionsPage() {
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Email</label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Email</label>
                   <input
                     type="email"
                     value={createForm.email}
                     onChange={(e) => setCreateForm((s) => ({ ...s, email: e.target.value }))}
-                    className="input"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                     placeholder="contacto@liceo.cl"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Teléfono</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Teléfono</label>
                   <input
                     type="tel"
                     value={createForm.phone}
                     onChange={(e) => setCreateForm((s) => ({ ...s, phone: e.target.value }))}
-                    className="input"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                     placeholder="+56 9 1234 5678"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Dirección</label>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Dirección</label>
                 <input
                   type="text"
                   value={createForm.address}
                   onChange={(e) => setCreateForm((s) => ({ ...s, address: e.target.value }))}
-                  className="input"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                   placeholder="Calle Principal #123"
                 />
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Nombre del Director</label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Nombre del Director</label>
                   <input
                     type="text"
                     value={createForm.directorName}
                     onChange={(e) => setCreateForm((s) => ({ ...s, directorName: e.target.value }))}
-                    className="input"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                     placeholder="Juan Pérez González"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Sitio Web</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Sitio Web</label>
                   <input
                     type="url"
                     value={createForm.website}
                     onChange={(e) => setCreateForm((s) => ({ ...s, website: e.target.value }))}
-                    className="input"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300"
                     placeholder="https://www.liceo.cl"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Notas</label>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Notas</label>
                 <textarea
                   value={createForm.notes}
                   onChange={(e) => setCreateForm((s) => ({ ...s, notes: e.target.value }))}
-                  className="input min-h-[80px] resize-y"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 hover:border-slate-300 min-h-[100px] resize-y"
                   placeholder="Información adicional sobre la institución..."
                 />
               </div>
 
-              <div className="mt-4 flex justify-end gap-2">
+              <div className="mt-4 flex justify-end gap-3 pt-4 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => { setCreating(false); setEditing(null) }}
-                  className="btn"
+                  className="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={createLoading}
-                  className="btn-primary"
+                  className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-sky-600 rounded-xl hover:from-sky-600 hover:to-sky-700 transition-all shadow-lg shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {createLoading ? 'Guardando…' : 'Guardar'}
                 </button>

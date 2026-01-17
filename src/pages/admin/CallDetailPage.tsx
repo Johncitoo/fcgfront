@@ -82,10 +82,19 @@ export default function CallDetailPage() {
           start_date: call.start_date ?? '',
           end_date: call.end_date ?? '',
         })
-        // métricas rápidas (si no existe el endpoint en tu backend, puedes omitir esta llamada)
+        // métricas rápidas
         try {
-          const s = await apiGet<StatRes>(`/calls/${id}/stats`)
-          setStats(s)
+          const [overview, applicantsCount] = await Promise.all([
+            apiGet<any>(`/admin/stats/${id}/overview`),
+            apiGet<{ count: number }>(`/admin/stats/${id}/applicants-count`),
+          ])
+
+          setStats({
+            applicants: Number(applicantsCount?.count ?? 0),
+            applications: Number(overview?.total ?? 0),
+            submitted: Number(overview?.submitted ?? 0),
+            in_review: Number(overview?.in_review ?? 0),
+          })
         } catch {
           setStats(null)
         }
