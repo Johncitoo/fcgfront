@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { apiGet, apiPost } from '../../lib/api'
 import BulkInviteModal from '../../components/admin/BulkInviteModal'
 
