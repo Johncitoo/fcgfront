@@ -17,11 +17,11 @@ interface CallOption {
 interface InviteRow {
   id: string
   email: string
-  call_id: string
+  callId: string
   code_hash: string
   used: boolean
-  used_at?: string | null
-  created_at: string
+  usedAt?: string | null
+  createdAt: string
   emailSent?: boolean
   sentAt?: string | null
   firstName?: string
@@ -387,7 +387,7 @@ export default function InvitesPage() {
                           <td className="py-4 px-4 text-slate-700">{r.email}</td>
                           <td className="py-4 px-4">
                             <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">
-                              {calls.find((c) => c.id === r.call_id)?.name ?? '—'}
+                              {calls.find((c) => c.id === r.callId)?.name ?? '—'}
                             </span>
                           </td>
                           <td className="py-4 px-4">
@@ -413,14 +413,14 @@ export default function InvitesPage() {
                             }`}>
                               {r.used ? 'Usado' : 'No usado'}
                             </span>
-                            {r.used_at && (
+                            {r.usedAt && (
                               <div className="text-xs text-slate-500 mt-1">
-                                {new Date(r.used_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                {new Date(r.usedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                               </div>
                             )}
                           </td>
                           <td className="py-4 px-4 text-slate-600 text-xs">
-                            {new Date(r.created_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            {new Date(r.createdAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </td>
                         </tr>
                       ))}
@@ -445,17 +445,17 @@ export default function InvitesPage() {
                       <div className="text-xs text-slate-600">
                         Convocatoria:{' '}
                         <span className="font-medium text-slate-700">
-                          {calls.find((c) => c.id === r.call_id)?.name ?? '—'}
+                          {calls.find((c) => c.id === r.callId)?.name ?? '—'}
                         </span>
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-3 text-xs bg-slate-50 rounded-xl p-3">
                         <div>
                           <div className="text-slate-500 mb-1">Usada en</div>
-                          <div className="text-slate-700 font-medium">{r.used_at ? new Date(r.used_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</div>
+                          <div className="text-slate-700 font-medium">{r.usedAt ? new Date(r.usedAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</div>
                         </div>
                         <div>
                           <div className="text-slate-500 mb-1">Creada</div>
-                          <div className="text-slate-700 font-medium">{new Date(r.created_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                          <div className="text-slate-700 font-medium">{new Date(r.createdAt).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                         </div>
                       </div>
                     </div>
