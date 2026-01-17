@@ -33,6 +33,7 @@ const TOKEN_KEY = 'fcg.access_token';
 const REFRESH_KEY = 'fcg.refresh_token';
 const USER_KEY = 'fcg.user_data';
 const ROLE_KEY = 'fcg.role';
+const REMEMBER_KEY = 'fcg.remember_me';
 
 /**
  * Servicio de autenticación con múltiples métodos de login.
@@ -65,7 +66,7 @@ export const authService = {
    * const response = await authService.loginWithInviteCode('ABC123XYZ');
    * console.log('Bienvenido', response.user.fullName);
    */
-  async loginWithInviteCode(code: string): Promise<EnterInviteResponse> {
+  async loginWithInviteCode(code: string, rememberMe: boolean = false): Promise<EnterInviteResponse> {
     const response = await api.post<EnterInviteResponse>('/auth/enter-invite', {
       code: code.trim(),
       // Email es opcional - el backend lo obtiene del meta del invite
@@ -73,6 +74,7 @@ export const authService = {
     
     // Guardar tokens y datos del usuario
     this.setTokens(response.data.accessToken, response.data.refreshToken);
+    this.setRememberMe(rememberMe);
     this.setUser(response.data.user);
     
     return response.data;
@@ -90,7 +92,7 @@ export const authService = {
    * @example
    * await authService.loginStaff('admin@fcg.cl', 'password123');
    */
-  async loginStaff(email: string, password: string): Promise<LoginStaffResponse> {
+  async loginStaff(email: string, password: string, rememberMe: boolean = false): Promise<LoginStaffResponse> {
     const response = await api.post<LoginStaffResponse>('/auth/login-staff', {
       email: email.trim(),
       password,
@@ -98,6 +100,7 @@ export const authService = {
     
     // Guardar tokens y datos del usuario
     this.setTokens(response.data.accessToken, response.data.refreshToken);
+    this.setRememberMe(rememberMe);
     this.setUser(response.data.user);
     
     return response.data;
@@ -116,7 +119,7 @@ export const authService = {
    * @example
    * await authService.loginApplicant('postulante@example.com', 'password123');
    */
-  async loginApplicant(email: string, password: string): Promise<LoginStaffResponse> {
+  async loginApplicant(email: string, password: string, rememberMe: boolean = false): Promise<LoginStaffResponse> {
     const response = await api.post<LoginStaffResponse>('/auth/login', {
       email: email.trim(),
       password,
@@ -124,6 +127,7 @@ export const authService = {
     
     // Guardar tokens y datos del usuario
     this.setTokens(response.data.accessToken, response.data.refreshToken);
+    this.setRememberMe(rememberMe);
     this.setUser(response.data.user);
     
     return response.data;
@@ -161,6 +165,20 @@ export const authService = {
   setTokens(accessToken: string, refreshToken: string): void {
     localStorage.setItem(TOKEN_KEY, accessToken);
     localStorage.setItem(REFRESH_KEY, refreshToken);
+  },
+
+  /**
+   * Guarda la preferencia "Recordarme".
+   */
+  setRememberMe(rememberMe: boolean): void {
+    localStorage.setItem(REMEMBER_KEY, rememberMe ? 'true' : 'false');
+  },
+
+  /**
+   * Obtiene la preferencia "Recordarme".
+   */
+  getRememberMe(): boolean {
+    return localStorage.getItem(REMEMBER_KEY) === 'true';
   },
 
   /**
@@ -235,6 +253,7 @@ export const authService = {
     localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(ROLE_KEY);
+    localStorage.removeItem(REMEMBER_KEY);
   },
 
   /**
@@ -328,12 +347,16 @@ export const authService = {
     }
 
     try {
-      const response = await api.post<{ accessToken: string }>('/auth/refresh', {
+      const response = await api.post<{ accessToken: string; refreshToken?: string }>('/auth/refresh', {
         refreshToken,
       });
       
       const newAccessToken = response.data.accessToken;
+      const newRefreshToken = response.data.refreshToken;
       localStorage.setItem(TOKEN_KEY, newAccessToken);
+      if (newRefreshToken) {
+        localStorage.setItem(REFRESH_KEY, newRefreshToken);
+      }
       
       return newAccessToken;
     } catch (error) {

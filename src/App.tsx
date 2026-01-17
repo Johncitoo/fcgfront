@@ -93,6 +93,14 @@ export default function App() {
     const timerId = authService.setupTokenRenewalTimer(() => {
       const timeLeft = authService.getTokenTimeToExpiry();
       setMinutesLeft(timeLeft / (60 * 1000)); // Convertir ms a minutos
+
+      if (authService.getRememberMe()) {
+        authService.refreshAccessToken().catch(() => {
+          setShowRenewalModal(true);
+        });
+        return;
+      }
+
       setShowRenewalModal(true);
     }, 5); // Advertir 5 minutos antes
 

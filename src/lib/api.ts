@@ -29,10 +29,24 @@ export const api = axios.create({
   timeout: 10000,
 });
 
+const refreshClient = axios.create({
+  baseURL,
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 10000,
+});
+
+function getStoredToken(key: string): string | null {
+  return localStorage.getItem(key) || sessionStorage.getItem(key);
+}
+
+function setStoredToken(key: string, value: string): void {
+  localStorage.setItem(key, value);
+}
+
 // Interceptor para agregar el token a cada petición
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('fcg.access_token');
+    const token = getStoredToken('fcg.access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -48,13 +62,46 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('fcg.access_token');
-      localStorage.removeItem('fcg.refresh_token');
-      localStorage.removeItem('fcg.user_data');
-      localStorage.removeItem('fcg.role');
+      const originalRequest = error.config;
+      const refreshToken = getStoredToken('fcg.refresh_token');
 
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      if (refreshToken && !originalRequest?._retry) {
+        originalRequest._retry = true;
+        try {
+          const refreshResponse = await refreshClient.post<{ accessToken: string; refreshToken?: string }>(
+            '/auth/refresh',
+            { refreshToken },
+          );
+
+          const newAccessToken = refreshResponse.data.accessToken;
+          const newRefreshToken = refreshResponse.data.refreshToken;
+
+          setStoredToken('fcg.access_token', newAccessToken);
+          if (newRefreshToken) {
+            setStoredToken('fcg.refresh_token', newRefreshToken);
+          }
+
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return api(originalRequest);
+        } catch (_) {
+          localStorage.removeItem('fcg.access_token');
+          localStorage.removeItem('fcg.refresh_token');
+          localStorage.removeItem('fcg.user_data');
+          localStorage.removeItem('fcg.role');
+
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
+        }
+      } else {
+        localStorage.removeItem('fcg.access_token');
+        localStorage.removeItem('fcg.refresh_token');
+        localStorage.removeItem('fcg.user_data');
+        localStorage.removeItem('fcg.role');
+
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
       }
     }
     
@@ -148,7 +195,7 @@ export async function apiDelete<T = unknown>(url: string): Promise<T> {
  * const response = await authFetch('https://api.example.com/data', { method: 'GET' });
  */
 export async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  const token = localStorage.getItem('fcg.access_token');
+  const token = getStoredToken('fcg.access_token');
   
   const headers = {
     ...options.headers,

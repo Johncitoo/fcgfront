@@ -105,13 +105,13 @@ export default function LoginPage() {
       
       // Intentar primero como APPLICANT
       try {
-        response = await authService.loginApplicant(email, password)
+        response = await authService.loginApplicant(email, password, rememberMe)
         // DEV: console.log('✅ Login exitoso como APPLICANT:', response)
       } catch (applicantErr: any) {
         // Si falla con 401 o 403, intentar como STAFF
         if (applicantErr.response?.status === 401 || applicantErr.response?.status === 403) {
           // DEV: console.log('⚠️ No es APPLICANT, intentando como STAFF...')
-          response = await authService.loginStaff(email, password)
+          response = await authService.loginStaff(email, password, rememberMe)
           // DEV: console.log('✅ Login exitoso como STAFF:', response)
         } else {
           throw applicantErr
