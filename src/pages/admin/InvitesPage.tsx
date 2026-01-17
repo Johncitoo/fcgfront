@@ -52,7 +52,7 @@ function generateInviteCode(): string {
 }
 
 export default function InvitesPage() {
-  const { selectedCallId, selectedCall, calls: ctxCalls } = useCall()
+  const { selectedCallId, calls: ctxCalls } = useCall()
   const [sp, setSp] = useSearchParams()
   const callIdFromQuery = sp.get('callId') ?? ''
 
