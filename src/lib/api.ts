@@ -60,7 +60,7 @@ api.interceptors.request.use(
 // Interceptor para manejar errores de autenticación y extraer mensajes del backend
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
       const originalRequest = error.config;
       const refreshToken = getStoredToken('fcg.refresh_token');
