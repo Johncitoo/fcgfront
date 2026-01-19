@@ -580,7 +580,7 @@ export default function MilestoneFormPage() {
   if (!schema || !milestone) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8 pb-32">
       <div className="mx-auto w-full max-w-6xl">
         {/* Header */}
         <header className="mb-8 animate-fade-in">
@@ -1347,18 +1347,21 @@ async function safeError(res: Response) {
   }
 }
 
-function FileReadOnlyView({ fileId }: { fileId: string }) {
+function FileReadOnlyView({ fileId }: { fileId: string | any }) {
   const [fileData, setFileData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [previewingFile, setPreviewingFile] = useState<any>(null)
   
   const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
   const token = localStorage.getItem('fcg.access_token') ?? ''
+  
+  // Normalizar fileId - puede venir como string o como objeto {id: string}
+  const normalizedFileId = typeof fileId === 'string' ? fileId : fileId?.id || fileId
 
   useEffect(() => {
-    if (!fileId) return
+    if (!normalizedFileId || typeof normalizedFileId !== 'string') return
     
-    fetch(`${API_BASE}/files/${fileId}/metadata`, {
+    fetch(`${API_BASE}/files/${normalizedFileId}/metadata`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -1375,10 +1378,10 @@ function FileReadOnlyView({ fileId }: { fileId: string }) {
         console.error('Error loading file:', err)
         setLoading(false)
       })
-  }, [fileId])
+  }, [normalizedFileId])
 
   const downloadFile = () => {
-    const url = `${API_BASE}/files/${fileId}/download`
+    const url = `${API_BASE}/files/${normalizedFileId}/download`
     
     fetch(url, {
       headers: {
@@ -1403,7 +1406,7 @@ function FileReadOnlyView({ fileId }: { fileId: string }) {
   const previewFile = () => {
     if (!fileData) return
     setPreviewingFile({
-      id: fileId,
+      id: normalizedFileId,
       originalFilename: fileData.originalFilename || 'Archivo',
       mimetype: fileData.mimetype || 'application/octet-stream',
       size: fileData.size || 0,
