@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://fcgback-production.up.railway.app/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export interface Form {
   id: string;

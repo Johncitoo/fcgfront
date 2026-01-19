@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useCallContext } from '../../contexts/CallContext'
 import { CallStatusBadge } from '../../components/CallStatusBadge'
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'https://fcgback-production.up.railway.app/api'
+const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
 export default function InviteApplicant() {
   const { selectedCall } = useCallContext()

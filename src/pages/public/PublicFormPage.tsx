@@ -25,7 +25,7 @@ interface FormSection {
   fields: FormField[]
 }
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'https://fcgback-production.up.railway.app/api'
+const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000/api'
 
 // Mapear tipos de DB a tipos de input HTML
 function mapFieldType(dbType: string): FieldType {
