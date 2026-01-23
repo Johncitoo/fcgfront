@@ -130,11 +130,22 @@ export default function MilestonesManagementPage() {
   const handleOpenModal = (milestone?: Milestone) => {
     if (milestone) {
       setEditingMilestone(milestone)
+      
+      // Limpiar whoCanFill de corrupciones de llaves
+      let cleanedWhoCanFill = Array.isArray(milestone.whoCanFill) 
+        ? milestone.whoCanFill[0] 
+        : milestone.whoCanFill || 'APPLICANT'
+        
+      cleanedWhoCanFill = cleanedWhoCanFill
+        .replace(/^\{+/, '') // Quitar llaves iniciales
+        .replace(/\}+$/, '') // Quitar llaves finales
+        .replace(/["{}\s]/g, '') // Quitar comillas, llaves y espacios
+        
       setFormData({
         name: milestone.name,
         description: milestone.description || '',
         required: milestone.required,
-        whoCanFill: (Array.isArray(milestone.whoCanFill) ? milestone.whoCanFill[0] : 'APPLICANT') as 'APPLICANT' | 'REVIEWER' | 'ADMIN',
+        whoCanFill: cleanedWhoCanFill as 'APPLICANT' | 'REVIEWER' | 'ADMIN',
         status: milestone.status,
         dueDate: milestone.dueDate ? milestone.dueDate.split('T')[0] : '',
       })
@@ -210,17 +221,28 @@ export default function MilestonesManagementPage() {
       }
 
       // Construir payload del hito
+      // Limpiar whoCanFill de cualquier corrupción de llaves
+      const cleanedWhoCanFill = formData.whoCanFill
+        .replace(/^\{+/, '') // Quitar llaves iniciales
+        .replace(/\}+$/, '') // Quitar llaves finales
+        .replace(/["{}\s]/g, '') // Quitar comillas, llaves y espacios
+      
+      console.log('[MilestonesManagement] whoCanFill original:', formData.whoCanFill)
+      console.log('[MilestonesManagement] whoCanFill limpio:', cleanedWhoCanFill)
+        
       const payload = {
         name: formData.name,
         description: formData.description,
         required: formData.required,
-        whoCanFill: [formData.whoCanFill], // Convertir a array
+        whoCanFill: [cleanedWhoCanFill], // Convertir a array
         status: formData.status,
         callId: selectedCallId,
         orderIndex: editingMilestone ? editingMilestone.orderIndex : milestones.length + 1,
         ...(formData.dueDate ? { dueDate: formData.dueDate } : {}), // Solo incluir si tiene valor
         ...(clonedFormId ? { formId: clonedFormId } : {}), // 🔗 Vincular formulario clonado
       }
+      
+      console.log('[MilestonesManagement] Payload completo:', JSON.stringify(payload, null, 2))
 
       if (editingMilestone) {
         console.log('[MilestonesManagement] Actualizando hito:', editingMilestone.id)
